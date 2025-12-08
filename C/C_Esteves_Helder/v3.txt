@@ -1,0 +1,55 @@
+Algorithme de Pavage (Version 3)
+
+Objectif
+L'objectif principal de cet algorithme est de paver une image (matrice de pixels colorés) avec un ensemble de briques de différentes tailles (principalement 1x1, 2x1, 2x2, et 4x2) et couleurs, tout en minimisant deux métriques :
+
+1.  L'Erreur Totale de Couleur (somme des différences quadratiques de couleur entre le pixel cible et la brique placée).
+2.  Le Dépassement de Stock des briques disponibles.
+
+La stratégie privilégie l'utilisation de grandes briques (2x2, 4x2) pour couvrir les grandes zones, puis utilise des briques plus petites (2x1, 1x1) pour les zones restantes, permettant potentiellement de réduire le coût et le nombre total de briques.
+
+---
+
+Méthode d'Implémentation : Stratégie en Deux Étapes
+
+L'algorithme de la fonction run_algo_main est une approche gloutonne qui se déroule en deux phases :
+
+1. Pavage des Blocs 2x2 et Fusion en 4x2 (run_algo2x2)
+
+Cette première phase vise à maximiser l'utilisation des briques 2x2 et 4x2 (ou 2x4 par rotation) sur les zones de couleur uniforme.
+
+Détection de Blocs 2x2 Similaires:
+    - L'algorithme parcourt l'image à la recherche de blocs 2x2 où les quatre pixels ont la même couleur (is2x2SameColor).
+    - Chaque bloc 2x2 détecté et non encore couvert est enregistré.
+
+Fusion Gloutonne en 4x2:
+    - Un algorithme de matching glouton (greedyInsert2x2) est appliqué à la liste des blocs 2x2.
+    - Il tente d'associer deux blocs 2x2 adjacents (horizontalement ou verticalement) et de même couleur pour former une zone 4x2 ou 2x4.
+    - Si une association est trouvée et qu'une brique 4x2 (ou 2x4) de la couleur optimale est disponible en stock, elle est utilisée.
+    - Le stock de la brique 4x2 est décrémenté.
+
+Placement de Blocs 2x2 Restants:
+    - Tout bloc 2x2 qui n'a pas pu être fusionné (pas de match ou manque de stock 4x2) est couvert individuellement par une brique 2x2 de la couleur optimale disponible.
+    - Le stock de la brique 2x2 est décrémenté.
+
+Marquage des Cellules: Toutes les cellules (pixels) recouvertes sont marquées comme 'placed' pour être ignorées lors de l'étape suivante.
+
+---
+
+2. Pavage des Zones Restantes avec 2x1 et 1x1 (run_algo_1)
+
+La deuxième phase est un pavage plus fin des pixels restants.
+
+Matching Bicolore Optimal en 2x1:
+    - Un algorithme de matching optimal (basé sur la recherche de chemin augmentant via la fonction liberer) est appliqué aux pixels non encore 'placed'.
+    - Il recherche des paires de pixels adjacents (2x1 ou 1x2) qui ont la même couleur cible, en garantissant un matching maximal pour les briques 2x1.
+    - Si une paire est trouvée et qu'une brique 2x1 (ou 1x2) de la couleur optimale est disponible, la paire est couplée.
+
+Placement Final:
+    L'algorithme parcourt les pixels non 'placed' et procède au placement :
+        - Cas 2x1: Si le pixel est la première moitié d'une paire matchée, une brique 2x1 (ou 1x2) est placée en utilisant la couleur la plus proche disponible. Les stocks sont mis à jour et les deux pixels sont marqués comme 'placed'.
+        - Cas 1x1: Si le pixel n'a pas été apparié (manque de voisin de même couleur, manque de stock 2x1, etc.), il est couvert par une brique 1x1 de la couleur la plus proche disponible. Les stocks sont mis à jour.
+
+Finalisation
+
+Les solutions des deux étapes (S1 et S2) sont combinées. L'Erreur Totale de la solution finale est la somme des erreurs de couleur calculées lors du placement des briques dans les deux étapes.
