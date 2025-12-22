@@ -1,0 +1,15 @@
+CC=gcc
+CFLAGS=-Wall -Wextra -O2
+BIN=pavage_v3
+SRC=src/main.c src/lego.c src/matching.c src/blocks2x2.c
+
+all: $(BIN)
+
+$(BIN): $(SRC)
+	$(CC) $(CFLAGS) -o $(BIN) $(SRC)
+
+clean:
+	rm -f $(BIN) *.o
+
+run: all
+	./$(BIN) data/pieces.txt data/image.txt out/pavage.out
