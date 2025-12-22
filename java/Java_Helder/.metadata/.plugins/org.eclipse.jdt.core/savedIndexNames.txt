@@ -1,0 +1,7 @@
+INDEX VERSION 1.134+C:\Users\hetit\OneDrive\Documents\Ecole\BUT 2\S1\SAE\Java\.metadata\.plugins\org.eclipse.jdt.core
+2809406489.index
+1865797976.index
+1737414222.index
+224224457.index
+676478712.index
+3477650950.index
