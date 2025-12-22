@@ -1,3 +1,0 @@
-User-agent: *
-Disallow: /
-# Block indexing per project spec (no public indexing)
