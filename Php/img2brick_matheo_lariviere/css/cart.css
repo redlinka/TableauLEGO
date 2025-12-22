@@ -1,0 +1,170 @@
+* { box-sizing: border-box; }
+
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#f6f6f6;
+  color:#222;
+}
+
+.cart-page{
+  max-width:1200px;
+  margin:0 auto;
+  padding:30px 16px 60px;
+}
+
+.title{
+  text-align:center;
+  margin-bottom:20px;
+  font-size:34px;
+  font-weight:800;
+}
+
+.cart-layout{
+  display:grid;
+  grid-template-columns: 1fr 360px;
+  gap:18px;
+}
+
+.cart-left, .cart-right{
+  background:#fff;
+  border:1px solid #e6e6e6;
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.06);
+}
+
+.section-title{
+  margin:0 0 12px;
+  font-size:20px;
+}
+
+.empty{
+  color:#666;
+}
+
+
+.items-grid{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:14px;
+}
+
+.item-card{
+  border:1px solid #eee;
+  border-radius:14px;
+  overflow:hidden;
+  background:#fafafa;
+}
+
+.thumb{
+  height:170px;
+  background:#eee;
+}
+
+.thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.meta{
+  padding:10px 12px;
+}
+
+.meta-row{
+  display:flex;
+  justify-content:space-between;
+  margin-top:6px;
+}
+
+
+.qty-row{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  margin-bottom:6px;
+}
+
+.qty-form{ margin:0; }
+
+.qty-btn{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  border:1px solid #ddd;
+  background:#fff;
+  font-size:18px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.qty-btn:hover{
+  background:#f0f0f0;
+}
+
+.qty-value{
+  min-width:24px;
+  text-align:center;
+  font-weight:700;
+}
+
+
+.summary-box{
+  display:grid;
+  gap:10px;
+}
+
+.sum-row{
+  display:flex;
+  justify-content:space-between;
+}
+
+.sum-divider{
+  height:1px;
+  background:#e6e6e6;
+}
+
+.sum-row.total{
+  font-size:18px;
+}
+
+.order-btn{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:0;
+  background:#222;
+  color:#fff;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.order-btn:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.back-link{
+  display:block;
+  text-align:center;
+  margin-top:10px;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  text-decoration:none;
+  color:#222;
+}
+
+
+@media (max-width: 980px){
+  .cart-layout{
+    grid-template-columns:1fr;
+  }
+  .items-grid{
+    grid-template-columns:1fr;
+  }
+}
+
