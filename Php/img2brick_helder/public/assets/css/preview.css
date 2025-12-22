@@ -1,0 +1,134 @@
+body {
+  display: flex;
+  flex-direction: column;
+}
+.container {
+  flex: 1;
+  height: 80%;
+  display: flex;
+  padding: 2rem;
+}
+
+.container > .c-left {
+  width: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 20px;
+}
+.container > .c-left > .error > button {
+  cursor: pointer;
+  border: 1px solid red;
+  background-color: rgb(85, 1, 1);
+  border-radius: 5px;
+  padding: 5px;
+  color: red;
+  font-weight: bold;
+  margin-left: 10px;
+}
+.container > .c-left > .error > button:hover {
+  background-color: red;
+  color: rgb(85, 1, 1);
+}
+
+.container > .c-left > img {
+  width: 100%;
+}
+
+.container > .c-right {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem;
+}
+
+.container > .c-right > .c-preview {
+  width: 80%;
+  height: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background-color: var(--secondary-color);
+  border-radius: 10px;
+  color: #ffffff3b;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+.container > .c-right > .c-option {
+  width: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--secondary-color);
+  border-radius: 10px;
+  padding: 10px;
+}
+.container > .c-right > .c-option > .c-tools {
+  display: flex;
+  height: 100%;
+  gap: 10px;
+}
+.container > .c-right > .c-option > .c-tools > input[type="radio"] {
+  display: none;
+}
+.container > .c-right > .c-option > .c-tools > label {
+  cursor: pointer;
+  border: 1px solid var(--third-color);
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  height: 100%;
+}
+.container > .c-right > .c-option > .c-tools > label:hover {
+  border-color: var(--third-color);
+}
+
+.container > .c-right > .c-option > .c-tools > label > img {
+  height: 35px;
+}
+.container > .c-right > .c-option > .c-tools > button {
+  cursor: pointer;
+  background-color: var(--fourth-color);
+  border: 1px solid var(--fourth-color);
+  height: 100%;
+  border-radius: 5px;
+  padding: 10px;
+  font-weight: bold;
+  transition: all 0.2s ease-in-out;
+}
+.container > .c-right > .c-option > .c-tools > button:hover {
+  background-color: transparent;
+  color: var(--fourth-color);
+}
+
+.container > .c-right > .c-option > .c-size-option {
+  height: 100%;
+}
+
+.container > .c-right > .c-option > .c-size-option > select {
+  border-color: var(--fifth-color);
+  background: transparent;
+  color: var(--fifth-color);
+  border-radius: 5px;
+  height: 100%;
+  padding: 0 10px;
+}
+.container > .c-right > .c-option > .c-size-option > select > option {
+  background-color: var(--secondary-color);
+  color: var(--fourth-color);
+}
+.container > .c-right > .c-option > input[type="submit"] {
+  width: fit-content;
+  height: 100%;
+}
+
+.cropper-bg {
+  background: rgba(92, 92, 92, 0.562) !important;
+  border-radius: 20px;
+}

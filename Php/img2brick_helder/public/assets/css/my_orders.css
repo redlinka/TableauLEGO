@@ -1,0 +1,90 @@
+body {
+  display: flex;
+  flex-direction: column;
+}
+.container {
+  flex: 1;
+}
+.container > h1 {
+  margin-left: 10rem;
+  margin-top: 5rem;
+}
+.container > p {
+  margin-left: 10rem;
+  margin-top: 1rem;
+  margin-bottom: 5rem;
+}
+.c-table {
+  max-height: 400px;
+  overflow-y: auto;
+  width: 70%;
+  margin: 0 auto;
+  border-radius: 10px;
+  box-shadow: 0 0 20px 1px var(--fourth-color);
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+thead {
+  border-bottom: solid black;
+}
+
+thead tr {
+  position: sticky;
+  top: 0;
+  background-color: var(--fourth-color);
+  color: var(--secondary-color);
+
+  z-index: 1;
+}
+thead tr th {
+  text-align: center;
+  padding: 8px 0;
+}
+
+td {
+  padding: 8px;
+  text-align: center;
+}
+
+.details {
+  display: none;
+}
+
+.details-content {
+  overflow: hidden;
+  opacity: 0;
+  max-height: 0;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  background: var(--secondary-color);
+  padding: 5px 10px;
+  border: 1px solid var(--fourth-color);
+  border-radius: 10px;
+}
+
+.details-content.open {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+.details > td {
+  text-align: left;
+}
+
+.details > td > .details-content > ul > li > a {
+  text-decoration: none;
+  color: var(--fourth-color);
+}
+.toggle-btn {
+  cursor: pointer;
+  color: #007bff;
+  text-decoration: underline;
+  border: none;
+  background: none;
+}
+img {
+  max-width: 100px;
+  max-height: 100px;
+  object-fit: cover;
+}
