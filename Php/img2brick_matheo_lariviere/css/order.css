@@ -1,0 +1,173 @@
+* { box-sizing: border-box; }
+
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#f6f6f6;
+  color:#222;
+}
+
+.wrap{
+  max-width:1100px;
+  margin:0 auto;
+  padding:28px 16px 60px;
+}
+
+.page-title{
+  text-align:center;
+  margin:0 0 18px;
+  font-size:34px;
+  font-weight:800;
+}
+
+.alert{
+  background:#fff3cd;
+  border:1px solid #ffe69c;
+  color:#664d03;
+  padding:12px 14px;
+  border-radius:12px;
+  margin:0 auto 16px;
+  max-width:900px;
+}
+
+.card{
+  background:#fff;
+  border:1px solid #e7e7e7;
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.06);
+}
+
+.card-title{
+  margin:0 0 12px;
+  font-size:20px;
+}
+
+.grid-3{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:12px;
+}
+
+.field label{
+  display:block;
+  font-size:13px;
+  font-weight:700;
+  margin:0 0 6px;
+  color:#333;
+}
+
+.field input{
+  width:100%;
+  padding:10px 12px;
+  border:1px solid #ddd;
+  border-radius:12px;
+  outline:none;
+}
+
+.field input:disabled{
+  background:#f3f3f3;
+}
+
+.captcha-placeholder{
+  margin-top:14px;
+  height:86px;
+  border-radius:14px;
+  border:2px dashed #d9d9d9;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#777;
+  background:#fff;
+}
+
+.bottom-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-top:16px;
+}
+
+.notice{
+  margin:10px 0 12px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid #e7e7e7;
+  background:#fafafa;
+  color:#444;
+  font-size:14px;
+}
+
+.pay-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.summary{
+  margin-top:14px;
+  border:1px solid #eee;
+  border-radius:14px;
+  padding:12px;
+  background:#fafafa;
+}
+
+.sum-row{
+  display:flex;
+  justify-content:space-between;
+  padding:6px 0;
+  font-size:15px;
+}
+
+.divider{
+  height:1px;
+  background:#e5e5e5;
+  margin:8px 0;
+}
+
+.sum-row.total{
+  font-size:18px;
+}
+
+.delivery-form{
+  display:grid;
+  gap:12px;
+}
+
+.btn-primary{
+  width:100%;
+  padding:12px 14px;
+  border:0;
+  border-radius:12px;
+  cursor:pointer;
+  background:#222;
+  color:#fff;
+  font-weight:800;
+}
+
+.btn-primary:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.btn-secondary{
+  display:block;
+  text-align:center;
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  text-decoration:none;
+  color:#222;
+  background:#fff;
+}
+
+@media (max-width:900px){
+  .grid-3{ grid-template-columns:1fr; }
+  .bottom-row{ grid-template-columns:1fr; }
+  .pay-grid{ grid-template-columns:1fr; }
+}
+
+
+
+
+
