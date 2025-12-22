@@ -1,0 +1,11 @@
+afin d'utiliser se fichier il faut posseder:
+    -piece.txt qui est l'ensemble des couleur et piece autoriser avec leur information sous le format:
+couleur
+couleur
+/
+format_piece trou prix stock
+    -fichier.txt qui est le fichier a convertir separer par des espace et des saut a la ligne
+
+il faut ensuite executer la commande avec le ficier txt en argument 
+le nom de fichier txt peut etre changer et ne pas etre mis dans le meme repertoire tant que preciser en argument
+fichier piece doit etre dans le meme repertoire et avec le meme nom
