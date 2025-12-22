@@ -1,0 +1,149 @@
+.bg-dots {
+  --dot: radial-gradient(circle at center, rgba(0,0,0,.06) 25%, transparent 26%) 0 0/24px 24px;
+  background-image: var(--dot);
+  background-color: #f7f8fa;
+}
+.logo-dot { display:inline-block; width:14px; height:14px; border-radius:50%;
+  background:#e31b2d; box-shadow:0 0 0 3px #ffd24a inset, 0 1px 2px rgba(0,0,0,.2); }
+.hero { position:relative; }
+.upload-wrap { position: relative; }
+.upload-tile {
+  display:block; border:2px dashed #cfd6df; border-radius:16px; padding:48px 24px;
+  text-align:center; background:#fff; transition:border-color .2s, box-shadow .2s, transform .05s;
+  cursor:pointer; user-select:none;
+}
+.upload-tile:hover { border-color:#86b7fe; box-shadow:0 0 0 4px rgba(13,110,253,.1); }
+.upload-tile:active { transform: scale(.995); }
+.upload-icon { display:inline-block; font-size:44px; line-height:1; color:#adb5bd; margin-bottom:8px; }
+.upload-title { display:block; font-weight:700; color:#0b1220; }
+.upload-sub   { display:block; color:#6c757d; font-size:.95rem; margin-top:6px; }
+.visually-hidden { position:absolute !important; height:1px; width:1px; overflow:hidden;
+  clip:rect(1px,1px,1px,1px); white-space:nowrap; clip-path:inset(50%); }
+.img-preview-box { border-radius:16px; overflow:hidden; background:#fff; border:1px solid #e7e7e7; }
+.mosaic-option { border-radius:12px; overflow:hidden; border:1px solid #e5e7eb; background:#fff; }
+.mosaic-option img { display:block; width:100%; height:auto; }
+.filter-blue { filter: saturate(1.2) hue-rotate(190deg) contrast(1.05); }
+.filter-red  { filter: saturate(1.25) hue-rotate(-20deg) contrast(1.05); }
+.filter-bw   { filter: grayscale(1) contrast(1.1); }
+
+.mosaic-preview {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Effet carte sélectionnable (optionnel mais joli) */
+.selectable-card {
+  cursor: pointer;
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.selectable-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.75rem 1.5rem rgba(15, 23, 42, 0.15);
+}
+
+/* Filtres simulés */
+.mosaic-blue {
+  filter: grayscale(100%) sepia(100%) hue-rotate(190deg) saturate(300%);
+}
+
+.mosaic-red {
+  filter: grayscale(100%) sepia(100%) hue-rotate(-50deg) saturate(400%);
+}
+
+.mosaic-bw {
+  filter: grayscale(1) contrast(1.15);
+}
+/* Drag & drop styles */
+.upload-wrap {
+  border-radius: 1rem;
+}
+
+.upload-tile {
+  border: 2px dashed rgba(148, 163, 184, 0.9);
+  border-radius: 1rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  background: rgba(248, 250, 252, 0.8);
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
+}
+
+.upload-wrap.dragover .upload-tile {
+  border-color: #0d6efd;
+  background-color: #e8f1ff;
+  transform: translateY(-1px);
+}
+
+.upload-tile .upload-icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.upload-tile .upload-title {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.upload-tile .upload-sub {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+.drop-zone {
+  border: 2px dashed rgba(0, 0, 0, 0.15);
+  border-radius: 1rem;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  background: #fafafa;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.drop-zone--over {
+  border-color: rgba(13, 110, 253, 0.8);
+  background: #eef5ff;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+}
+.upload-wrap.is-dragover .upload-tile {
+  border-color: rgba(13, 110, 253, 0.8);
+  background: #eef5ff;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.12);
+}
+
+/* Pixelisation modérée (moins agressive) */
+.pixel-wrap {
+  width: 100%;
+  height: 260px;
+  overflow: hidden;
+  background: #f8f9fa;
+}
+
+/* Cropper + pixelated previews */
+.cropper-panel {
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.cropper-toolbar .btn {
+  min-width: 110px;
+}
+
+.cropper-area {
+  min-height: 360px;
+  background: #0f172a0d;
+}
+
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
