@@ -1,0 +1,30 @@
+# Robots.txt for img2brick
+
+User-agent: *
+
+# --- DISALLOW (Do not index) ---
+# Folders and files that are not standalone content pages
+Disallow: /config.php
+Disallow: /connection.inc.php
+Disallow: /functions.inc.php
+Disallow: /upload.php
+Disallow: /verify_connection.php
+Disallow: /verify_email_connection.php
+Disallow: /verify_email.php
+Disallow: /verify_token.php
+Disallow: /password_reset.php
+Disallow: /validation.php
+Disallow: /result.php
+Disallow: /order.php
+Disallow: /order_confirmation.php
+Disallow: /order_details
+
+# --- ALLOW (Index these) ---
+# Publicly accessible pages
+Allow: /index.php
+Allow: /user.php
+Allow: /registration.php
+Allow: /connection.php
+Allow: /forgot_password.php
+Allow: /logout.php
+Allow: /orders_history
