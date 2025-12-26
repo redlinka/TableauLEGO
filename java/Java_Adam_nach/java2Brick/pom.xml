@@ -25,7 +25,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>fr.uge.univ_eiffel.Main</mainClass>
+              <mainClass>Main</mainClass>
             </manifest>
           </archive>
         </configuration>

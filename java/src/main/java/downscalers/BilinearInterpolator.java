@@ -1,4 +1,4 @@
-package fr.uge.univ_eiffel.image_processing.downscalers;
+package downscalers;
 
 import java.awt.image.BufferedImage;
 
