@@ -1,4 +1,4 @@
-package fr.uge.univ_eiffel.image_processing;
+package image_processing;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

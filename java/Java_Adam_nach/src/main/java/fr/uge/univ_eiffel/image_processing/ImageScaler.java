@@ -1,6 +1,5 @@
 package fr.uge.univ_eiffel.image_processing;
 
-import fr.uge.univ_eiffel.image_processing.downscalers.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
