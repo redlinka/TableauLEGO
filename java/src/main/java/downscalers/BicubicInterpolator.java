@@ -10,7 +10,7 @@ public class BicubicInterpolator implements Downscaler {
     /** uses the bicubic interpolation formula to determine the best ARGB value of a given destination pixel during rescaling
      * Input: 4 color values and the distance 'd'.
      * Output: The interpolated color component value. */
-    private double biCubicInterpolate(int c0,int c1, int c2, int c3, double d) {
+    private double biCubicInterpolate(int c0, int c1, int c2, int c3, double d) {
         double slope1 = (c2 - c0)/2;
         double slope2 = (c3 - c1)/2;
         return (2 * Math.pow(d, 3) - 3 * Math.pow(d, 2) + 1) * c1

@@ -6,7 +6,7 @@ public class NearestNeighbour implements Downscaler {
 
     /**
      * here is a rescaling method that uses the pixel from the source that is the closest to the one in the destination
-     * result can sometimes result to a noisy or grainy result
+     * result can sometimes result in a noisy or grainy result
      * Input: source, destination, both bufferedImages
      * Output: void.
      */
