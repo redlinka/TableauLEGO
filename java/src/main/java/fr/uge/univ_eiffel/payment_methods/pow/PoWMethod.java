@@ -1,4 +1,4 @@
-package fr.uge.univ_eiffel.payment_methods.PoW;
+package fr.uge.univ_eiffel.payment_methods.pow;
 
 import java.io.IOException;
 import java.util.HexFormat;
@@ -63,7 +63,7 @@ public class PoWMethod implements PaymentMethod {
     }
 
     /**
-     * Main loop that mines credits until the requested amount is reached.
+     * fr.uge.univ_eiffel.Main loop that mines credits until the requested amount is reached.
      * Keeps solving challenges one by one.
      * Input: The target amount of money needed (double).
      * Output: void (prints progress to console).

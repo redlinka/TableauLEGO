@@ -1,10 +1,6 @@
-package image_processing;
+package fr.uge.univ_eiffel.image_processing;
 
 import fr.uge.univ_eiffel.image_processing.downscalers.*;
-import downscalers.BicubicInterpolator;
-import downscalers.BilinearInterpolator;
-import downscalers.Downscaler;
-import downscalers.NearestNeighbour;
 
 import java.awt.image.BufferedImage;
 import java.io.File;

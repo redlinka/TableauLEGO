@@ -40,7 +40,7 @@ foreach ($algos as $algo) {
     $destPath = __DIR__ . '/' . $imgDir . $tempName;
 
     $cmd = sprintf(
-            '%s -cp %s fr.uge.univ_eiffel.image_processing.ImageScaler %s %s %d %d %s 2>&1',
+            '%s -cp %s fr.uge.univ_eiffel.fr.uge.univ_eiffel.image_processing.ImageScaler %s %s %d %d %s 2>&1',
             $javaCmd,
             escapeshellarg($jarPath),
             escapeshellarg($sourcePath),

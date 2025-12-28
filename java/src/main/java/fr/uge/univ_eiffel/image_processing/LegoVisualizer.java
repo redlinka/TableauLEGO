@@ -1,4 +1,4 @@
-package image_processing;
+package fr.uge.univ_eiffel.image_processing;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
