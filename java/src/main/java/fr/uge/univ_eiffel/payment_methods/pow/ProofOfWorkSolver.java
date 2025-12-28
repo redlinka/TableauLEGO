@@ -1,4 +1,4 @@
-package fr.uge.univ_eiffel.payment_methods.PoW;
+package fr.uge.univ_eiffel.payment_methods.pow;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

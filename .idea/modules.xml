@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/TableauLEGO.iml" filepath="$PROJECT_DIR$/.idea/TableauLEGO.iml" />
+      <module fileurl="file://$PROJECT_DIR$/java/java2Brick.iml" filepath="$PROJECT_DIR$/java/java2Brick.iml" />
     </modules>
   </component>
 </project>

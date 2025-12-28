@@ -13,7 +13,7 @@ public class Main {
      */
     public static void main(String[] args) throws IOException {
         if (args.length < 3) {
-            System.err.println("Usage: java Main <pictureId> <widthxheight> <method>");
+            System.err.println("Usage: java fr.uge.univ_eiffel.Main <pictureId> <widthxheight> <method>");
             return;
         }
         int pictureId = Integer.parseInt(args[0]);

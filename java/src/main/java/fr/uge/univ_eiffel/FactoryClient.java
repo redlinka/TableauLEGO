@@ -182,7 +182,7 @@ public class FactoryClient {
 
     /** Factory method to create a client from a properties file.
      * Input: Filename (e.g., "config.properties").
-     * Output: A fully initialized FactoryClient instance. */
+     * Output: A fully initialized fr.uge.univ_eiffel.FactoryClient instance. */
     public static FactoryClient makeFromProps(String fileName) {
         Properties props = new Properties();
 

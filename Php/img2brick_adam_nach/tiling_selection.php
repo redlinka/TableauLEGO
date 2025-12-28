@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Execute Java tiling application
         // Usage: <inPng> <outPng> <outTxt> <catalog> <exe> <method> <thresh>
         $cmd = sprintf(
-                '%s -cp %s fr.uge.univ_eiffel.image_processing.TileAndDraw %s %s %s %s %s %s %s 2>&1',
+                '%s -cp %s fr.uge.univ_eiffel.fr.uge.univ_eiffel.image_processing.TileAndDraw %s %s %s %s %s %s %s 2>&1',
                 $javaCmd,
                 escapeshellarg($jarPath),
                 escapeshellarg($inputPath),     // 0
