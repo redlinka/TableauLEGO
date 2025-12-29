@@ -40,7 +40,7 @@ This project serves as the central control unit for the Lego Tiling application.
 
 ## **Usage**
 
-Run the main class fr.uge.univ\_eiffel.fr.uge.univ_eiffel.Main. The application pipeline will:
+Run the main class fr.uge.univ\_eiffel.fr.uge.univ_eiffel.PaymentTester. The application pipeline will:
 
 1. Downscale the source image (test\_imgs/original-image.jpg).  
 2. Export the current SQL inventory to catalog.txt.  
@@ -56,8 +56,8 @@ Run the main class fr.uge.univ\_eiffel.fr.uge.univ_eiffel.Main. The application 
   * fr.uge.univ_eiffel.image_processing.downscalers/: Image resizing algorithms.  
   * payment\_methods/: Payment strategies (PoW).  
   * image\_processing/: File I/O and Hex Matrix conversion.  
-  * App.java: fr.uge.univ_eiffel.Main application controller (Facade pattern).  
-  * fr.uge.univ_eiffel.FactoryClient.java: HTTP REST Client.  
+  * App.java: fr.uge.univ_eiffel.PaymentTester application controller (Facade pattern).  
+  * fr.uge.univ_eiffel.interfaces.FactoryClient.java: HTTP REST Client.  
   * InventoryManager.java: DAO for MariaDB.
 
   

@@ -43,7 +43,7 @@ public class InventoryManager {
 
     /** this function will setup the catalog of an empty database,
      * or will update it to its latest version, its takes a few seconds to run
-     * Input: An active fr.uge.univ_eiffel.FactoryClient instance.
+     * Input: An active fr.uge.univ_eiffel.interfaces.FactoryClient instance.
      * Output: void (updates DB). */
     public void updateCatalog(FactoryClient fc) throws Exception {
 

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HexFormat;
 
 import com.google.gson.Gson;
-import fr.uge.univ_eiffel.FactoryClient;
+import fr.uge.univ_eiffel.interfaces.FactoryClient;
 import fr.uge.univ_eiffel.payment_methods.PaymentMethod;
 
 /**
@@ -16,7 +16,7 @@ public class PoWMethod implements PaymentMethod {
 
     public static final ProofOfWorkSolver POW_SOLVER = new ProofOfWorkSolver("SHA-256");
     private final FactoryClient client;
-    private Gson gson = new Gson();
+    private final Gson gson = new Gson();
 
     public record Challenge(String data_prefix, String hash_prefix) {}
     public record ChallengeAnswer(String data_prefix, String hash_prefix, String answer) {}
@@ -49,8 +49,7 @@ public class PoWMethod implements PaymentMethod {
         byte[] hashPrefix = HexFormat.of().parseHex(challenge.hash_prefix());
         byte[] solved = POW_SOLVER.solve(dataPrefix, hashPrefix);
         System.err.println("Challenge solved in " + (System.nanoTime() - startTime)/1e9 + " seconds");
-        ChallengeAnswer answer = new ChallengeAnswer(challenge.data_prefix(), challenge.hash_prefix(), HexFormat.of().formatHex(solved));
-        return answer;
+        return new ChallengeAnswer(challenge.data_prefix(), challenge.hash_prefix(), HexFormat.of().formatHex(solved));
     }
 
     /**

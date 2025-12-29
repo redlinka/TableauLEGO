@@ -183,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="row g-3">
                             <div class="col-12">
                                 <label class="form-label">Address</label>
-                                <input type="text" class="form-control" name="address" value="<?= htmlspecialchars($fillAddr) ?>" placeholder="123 fr.uge.univ_eiffel.Main St" required>
+                                <input type="text" class="form-control" name="address" value="<?= htmlspecialchars($fillAddr) ?>" placeholder="123 fr.uge.univ_eiffel.PaymentTester St" required>
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label">Country</label>

@@ -1,5 +1,6 @@
-package fr.uge.univ_eiffel.image_processing;
+package fr.uge.univ_eiffel;
 
+import fr.uge.univ_eiffel.image_processing.ImageUtils;
 import fr.uge.univ_eiffel.image_processing.downscalers.*;
 
 import java.awt.image.BufferedImage;
@@ -9,11 +10,11 @@ import java.io.File;
  * A specialized tool just for the Web Interface.
  * Usage: java ImageScaler <inputPath> <outputPath> <width> <height> <algo>
  */
-public class ImageScaler {
+public class ImageRescaler {
 
     public static void main(String[] args) {
         if (args.length != 5) {
-            System.err.println("Usage: <input> <output> <width> <height> <algo>");
+            System.err.println("Usage: <inputPath> <outputPath> <width> <height> <algo>");
             System.exit(1);
         }
 
@@ -27,7 +28,7 @@ public class ImageScaler {
             // 1. Select the Algorithm dynamically
             Downscaler method;
             switch (algoName) {
-                case "nearest": method = new NearestNeighbour(); break; // Assuming you have these classes
+                case "nearest": method = new NearestNeighbour(); break;
                 case "bicubic": method = new BicubicInterpolator(); break;
                 case "bilinear": method = new BilinearInterpolator(); break;
                 default:

@@ -1,5 +1,7 @@
 package fr.uge.univ_eiffel.image_processing;
 
+import fr.uge.univ_eiffel.LegoVisualizer;
+
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
