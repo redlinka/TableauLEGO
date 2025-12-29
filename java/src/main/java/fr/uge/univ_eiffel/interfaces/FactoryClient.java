@@ -1,4 +1,4 @@
-package fr.uge.univ_eiffel;
+package fr.uge.univ_eiffel.interfaces;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -17,32 +17,44 @@ import java.util.Properties;
 public class FactoryClient {
 
     private static final String BASE_URL = "https://legofactory.plade.org";
-
-    private final String email;
-    private final String apiKey;
+    private final String EMAIL;
+    private final String API_KEY;
     private final Gson gson = new Gson();
 
     private FactoryClient(String email, String apiKey) {
-        this.email = email;
-        this.apiKey = apiKey;
+        this.EMAIL = email;
+        this.API_KEY = apiKey;
+    }
+
+    /** Helper method to set up an HttpURLConnection with headers.
+     * Input: Endpoint path and HTTP method (GET/POST).
+     * Output: Configured HttpURLConnection instance. */
+    private HttpURLConnection connect(String endpoint, String method) throws IOException {
+        var url = new URL(BASE_URL + endpoint);
+        var connection = (HttpURLConnection) url.openConnection();
+
+        connection.setRequestMethod(method);
+        connection.setDoOutput(true);
+
+        // factory api sometimes redirects on order completion
+        connection.setInstanceFollowRedirects(true);
+        connection.addRequestProperty("X-Email", EMAIL);
+        connection.addRequestProperty("X-Secret-Key", API_KEY);
+        connection.addRequestProperty("Content-Type", "application/json");
+        return connection;
     }
 
     /** Helper method to perform a GET request.
      * Input: Endpoint path (e.g. "/ping").
      * Output: Raw response body as a String. */
     private String get(String endpoint) throws IOException {
-        var url = new URL(BASE_URL + endpoint);
-        var connection = (HttpURLConnection) url.openConnection();
 
-        connection.setRequestMethod("GET");
-        connection.addRequestProperty("X-Email", email);
-        connection.addRequestProperty("X-Secret-Key", apiKey);
+        var connection = connect(endpoint, "GET");
 
         int status = connection.getResponseCode();
         if (status != 200) {
             throw new IOException("GET " + endpoint + " failed with status " + status);
         }
-
         return new String(connection.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
     }
 
@@ -51,17 +63,8 @@ public class FactoryClient {
      * Input: Endpoint path and JSON string body.
      * Output: Raw response body as a String. */
     public String post(String endpoint, String jsonBody) throws IOException {
-        var url = new URL(BASE_URL + endpoint);
-        var connection = (HttpURLConnection) url.openConnection();
 
-        connection.setRequestMethod("POST");
-        connection.setDoOutput(true);
-
-        // factory api sometimes redirects on order completion
-        connection.setInstanceFollowRedirects(true);
-        connection.addRequestProperty("X-Email", email);
-        connection.addRequestProperty("X-Secret-Key", apiKey);
-        connection.addRequestProperty("Content-Type", "application/json");
+        var connection = connect(endpoint, "POST");
 
         if (jsonBody != null && !jsonBody.isEmpty()) {
             connection.getOutputStream().write(jsonBody.getBytes(StandardCharsets.UTF_8));
@@ -117,6 +120,7 @@ public class FactoryClient {
      * Input: None.
      * Output: The balance amount as a double. */
     public double balance() throws IOException {
+
         String json = get("/billing/balance");
         return JsonParser.parseString(json).getAsJsonObject().get("balance").getAsDouble();
     }
@@ -125,6 +129,7 @@ public class FactoryClient {
      * Input: None.
      * Output: JsonObject containing data_prefix and hash_prefix. */
     public JsonObject billingChallenge() throws IOException {
+
         return JsonParser.parseString(get("/billing/challenge")).getAsJsonObject();
     }
 
@@ -132,6 +137,7 @@ public class FactoryClient {
      * Input: The challenge prefixes and the computed answer.
      * Output: void (throws IOException if rejected). */
     public void billingChallengeAnswer(String dataPrefix, String hashPrefix, String answer) throws IOException {
+
         JsonObject payload = new JsonObject();
         payload.addProperty("data_prefix", dataPrefix);
         payload.addProperty("hash_prefix", hashPrefix);
@@ -144,6 +150,7 @@ public class FactoryClient {
      * Input: Brick name, serial number, and certificate signature.
      * Output: True if valid, False otherwise. */
     public boolean verify(String name, String serial, String certificate) {
+
         JsonObject payload = new JsonObject();
         payload.addProperty("name", name);
         payload.addProperty("serial", serial);
@@ -152,6 +159,7 @@ public class FactoryClient {
         try {
             post("/verify", gson.toJson(payload));
             return true;
+
         } catch (IOException e) {
             return false;
         }
@@ -161,6 +169,7 @@ public class FactoryClient {
      * Input: JsonObject mapping brick names to quantities.
      * Output: JsonObject containing quote ID and price. */
     public JsonObject requestQuote(JsonObject bricksRequest) throws IOException {
+
         String json = post("/ordering/quote-request", gson.toJson(bricksRequest));
         return JsonParser.parseString(json).getAsJsonObject();
     }
@@ -169,6 +178,7 @@ public class FactoryClient {
      * Input: The quote ID received from requestQuote.
      * Output: void. */
     public void confirmOrder(String quoteId) throws IOException {
+
         post("/ordering/order/" + quoteId, "");
     }
 
@@ -176,23 +186,22 @@ public class FactoryClient {
      * Input: The quote ID.
      * Output: JsonObject with status and list of built bricks. */
     public JsonObject deliver(String quoteId) throws IOException {
+
         String json = get("/ordering/deliver/" + quoteId);
         return JsonParser.parseString(json).getAsJsonObject();
     }
 
     /** Factory method to create a client from a properties file.
      * Input: Filename (e.g., "config.properties").
-     * Output: A fully initialized fr.uge.univ_eiffel.FactoryClient instance. */
+     * Output: A fully initialized fr.uge.univ_eiffel.interfaces.FactoryClient instance. */
     public static FactoryClient makeFromProps(String fileName) {
         Properties props = new Properties();
 
-        try (InputStream input = FactoryClient.class.getClassLoader()
-                .getResourceAsStream(fileName)) {
+        try (InputStream input = FactoryClient.class.getClassLoader().getResourceAsStream(fileName)) {
 
             if (input == null) {
                 throw new RuntimeException("Properties file '" + fileName + "' not found.");
             }
-
             props.load(input);
 
             String email = props.getProperty("USER_MAIL");
@@ -201,7 +210,6 @@ public class FactoryClient {
             if (email == null || key == null) {
                 throw new RuntimeException("USER_MAIL or API_KEY missing in properties file.");
             }
-
             return new FactoryClient(email, key);
 
         } catch (IOException e) {

@@ -25,7 +25,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>fr.uge.univ_eiffel.Main</mainClass>
+                            <mainClass>fr.uge.univ_eiffel.PaymentTester</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
