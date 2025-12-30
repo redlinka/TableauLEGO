@@ -746,9 +746,50 @@ static BestMatch find_best_match_rot(RGBValues color, int w, int h, Catalog cata
     return swapped;
 }
 
+/* Best match that favors lower price with limited error slack. */
+static BestMatch find_best_match_price_bias(RGBValues color, int w, int h,
+                                            Catalog catalog, int max_extra_error) {
+    int bestErr = INT_MAX;
+    for (int i = 0; i < catalog.size; i++) {
+        Brick current = catalog.bricks[i];
+        if (current.number <= 0) continue;
+        if (current.width != w || current.height != h) continue;
+        int diff = compare_colors(color, current.color);
+        if (diff < bestErr) bestErr = diff;
+    }
+
+    if (bestErr == INT_MAX) {
+        BestMatch none = { -1, INT_MAX };
+        return none;
+    }
+
+    if (max_extra_error < 0) max_extra_error = 0;
+    int limit = bestErr + max_extra_error;
+
+    int bestIndex = -1;
+    int bestDiff = INT_MAX;
+    double bestPrice = 1e300;
+    for (int i = 0; i < catalog.size; i++) {
+        Brick current = catalog.bricks[i];
+        if (current.number <= 0) continue;
+        if (current.width != w || current.height != h) continue;
+        int diff = compare_colors(color, current.color);
+        if (diff > limit) continue;
+        if (current.price < bestPrice ||
+            (current.price == bestPrice && diff < bestDiff)) {
+            bestPrice = current.price;
+            bestDiff = diff;
+            bestIndex = i;
+        }
+    }
+
+    BestMatch result = { bestIndex, bestDiff };
+    return result;
+}
+
 /* Write a placed piece line. */
 static void emit_piece(FILE *out, const Brick *b, int x, int y, int rot) {
-    fprintf(out, "%d,%d,%d,%d,%d,%d\n", b->color.r, b->color.g, b->color.b, x, y, rot);
+    fprintf(out, "%s %d %d %d\n", b->name, x, y, rot);
 }
 
 /* Decrement stock and track ruptures. */
@@ -799,6 +840,32 @@ static void algo_1x1(Image image, Catalog catalog, const char* out_name, AlgoSta
 
     fclose(tiled);
     make_order_file(catalog, "order_1x1.txt");
+}
+
+/* 1x1 tiling with price bias and limited color slack. */
+static void algo_1x1_price_bias(Image image, Catalog catalog, const char* out_name,
+                                int max_extra_error, AlgoStats *stats) {
+    FILE* tiled = fopen(out_name, "w");
+    if (!tiled) {
+        perror("Error opening output");
+        exit(1);
+    }
+
+    for (int i = 0; i < image.height; i++) {
+        for (int j = 0; j < image.width; j++) {
+            RGBValues p = image.pixels[i * image.canvasDims + j];
+            BestMatch bestBrick = find_best_match_price_bias(p, 1, 1, catalog, max_extra_error);
+            int bestId = bestBrick.index;
+            if (bestId < 0) continue;
+            stats->price += catalog.bricks[bestId].price;
+            stats->error += (double)compare_colors(p, catalog.bricks[bestId].color);
+            update_stock(&catalog, bestId, stats);
+            emit_piece(tiled, &catalog.bricks[bestId], j, i, 0);
+        }
+    }
+
+    fclose(tiled);
+    make_order_file(catalog, "order_cheap.txt");
 }
 
 /* Quadtree recursive build with placement. */
@@ -1161,6 +1228,43 @@ static BestPiece find_best_piece_any(Image img, int x, int y, int *placed,
     return best;
 }
 
+/* Best in-stock brick for any size at a position, ignoring stock. */
+static BestPiece find_best_piece_any_nostock(Image img, int x, int y, int *placed,
+                                             Catalog *catalog) {
+    BestPiece best = { .index = -1, .w = 0, .h = 0, .rot = 0, .error = 0.0 };
+    int W = img.width;
+    int H = img.height;
+
+    for (int i = 0; i < catalog->size; i++) {
+        Brick *b = &catalog->bricks[i];
+
+        if (region_is_free(placed, W, H, x, y, b->width, b->height)) {
+            double err = block_error(img, x, y, b->width, b->height, b->color);
+            if (should_replace_best(err, b->width * b->height, best)) {
+                best.index = i;
+                best.w = b->width;
+                best.h = b->height;
+                best.rot = 0;
+                best.error = err;
+            }
+        }
+
+        if (b->width != b->height &&
+            region_is_free(placed, W, H, x, y, b->height, b->width)) {
+            double err = block_error(img, x, y, b->height, b->width, b->color);
+            if (should_replace_best(err, b->height * b->width, best)) {
+                best.index = i;
+                best.w = b->height;
+                best.h = b->width;
+                best.rot = 90;
+                best.error = err;
+            }
+        }
+    }
+
+    return best;
+}
+
 /* Sizes allowed in the combo preference pass. */
 static int is_combo_size(int w, int h) {
     return (w == 2 && h == 2) || (w == 2 && h == 1) || (w == 1 && h == 2);
@@ -1475,6 +1579,41 @@ static void algo_any(Image img, Catalog catalog, const char* out_name, AlgoStats
     free(placed);
 }
 
+/* Greedy tiler that ignores stock limits. */
+static void algo_any_nostock(Image img, Catalog catalog, const char* out_name, AlgoStats *stats) {
+    FILE* out = fopen(out_name, "w");
+    if (!out) {
+        perror("Failed to open output file");
+        exit(1);
+    }
+
+    int W = img.width;
+    int H = img.height;
+    int *placed = calloc(W * H, sizeof(int));
+    if (!placed) {
+        perror("Memory allocation failed");
+        exit(1);
+    }
+
+    for (int y = 0; y < H; y++) {
+        for (int x = 0; x < W; x++) {
+            int idx = y * W + x;
+            if (placed[idx]) continue;
+            BestPiece bp = find_best_piece_any_nostock(img, x, y, placed, &catalog);
+            if (bp.index < 0) continue;
+            update_stock(&catalog, bp.index, stats);
+            emit_piece(out, &catalog.bricks[bp.index], x, y, bp.rot);
+            stats->price += catalog.bricks[bp.index].price;
+            stats->error += bp.error;
+            mark_region(placed, W, x, y, bp.w, bp.h);
+        }
+    }
+
+    fclose(out);
+    make_order_file(catalog, "order_any_nostock.txt");
+    free(placed);
+}
+
 /* Parse catalog format CLI flag. */
 static CatalogFormat parse_catalog_format(const char *arg) {
     if (strcmp(arg, "nach") == 0) return CAT_NACH;
@@ -1492,19 +1631,18 @@ static ImageFormat parse_image_format(const char *arg) {
 }
 
 /* Print stats for an algorithm run. */
-static void print_stats(const char *label, const AlgoStats *stats, const char *outPath) {
-    printf("%s -> %s price=%.2f error=%.0f ruptures=%d\n",
-           label, outPath, stats->price, stats->error, stats->ruptures);
+static void print_stats(const AlgoStats *stats, const char *outPath) {
+    printf("%s %.2f %.0f %d\n", outPath, stats->price, stats->error, stats->ruptures);
 }
 
 /* CLI usage helper. */
 static void print_usage(const char *prog) {
     fprintf(stderr,
         "Usage: %s <image> <catalog> <algo> <output> [threshold] [--catalog=fmt] [--image=fmt]\n"
-        "Algos: 1x1 | match2x1 | blocks2x2 | quadtree | combo | any | all\n"
+        "Algos: 1x1 | match2x1 | blocks2x2 | quadtree | combo | any | any_nostock | cheap | all\n"
         "Catalog formats: auto | nach | kadi | helder | matheo\n"
         "Image formats: auto | dim | matrix\n"
-        "Threshold used for quadtree/blocks2x2 (default 500)\n",
+        "Threshold used for quadtree/blocks2x2/cheap (default 500)\n",
         prog);
 }
 
@@ -1543,82 +1681,108 @@ int main(int argc, char *argv[]) {
         AlgoStats stats = {0};
         Catalog catalog = load_catalog_auto(catalogPath, catFmt);
         algo_1x1(img, catalog, outPath, &stats);
-        print_stats("1x1", &stats, outPath);
+        print_stats(&stats, outPath);
         free(catalog.bricks);
     } else if (strcmp(algo, "match2x1") == 0) {
         AlgoStats stats = {0};
         Catalog catalog = load_catalog_auto(catalogPath, catFmt);
         algo_match2x1(img, catalog, outPath, &stats);
-        print_stats("match2x1", &stats, outPath);
+        print_stats(&stats, outPath);
         free(catalog.bricks);
     } else if (strcmp(algo, "blocks2x2") == 0) {
         AlgoStats stats = {0};
         Catalog catalog = load_catalog_auto(catalogPath, catFmt);
         algo_blocks2x2(img, catalog, outPath, threshold, &stats);
-        print_stats("blocks2x2", &stats, outPath);
+        print_stats(&stats, outPath);
         free(catalog.bricks);
     } else if (strcmp(algo, "quadtree") == 0) {
         AlgoStats stats = {0};
         Catalog catalog = load_catalog_auto(catalogPath, catFmt);
         algo_quadtree(img, catalog, outPath, threshold, &stats);
-        print_stats("quadtree", &stats, outPath);
+        print_stats(&stats, outPath);
         free(catalog.bricks);
     } else if (strcmp(algo, "combo") == 0) {
         AlgoStats stats = {0};
         Catalog catalog = load_catalog_auto(catalogPath, catFmt);
         algo_combo(img, catalog, outPath, threshold, &stats);
-        print_stats("combo", &stats, outPath);
+        print_stats(&stats, outPath);
         free(catalog.bricks);
     } else if (strcmp(algo, "any") == 0) {
         AlgoStats stats = {0};
         Catalog catalog = load_catalog_auto(catalogPath, catFmt);
         algo_any(img, catalog, outPath, &stats);
-        print_stats("any", &stats, outPath);
+        print_stats(&stats, outPath);
+        free(catalog.bricks);
+    } else if (strcmp(algo, "any_nostock") == 0) {
+        AlgoStats stats = {0};
+        Catalog catalog = load_catalog_auto(catalogPath, catFmt);
+        algo_any_nostock(img, catalog, outPath, &stats);
+        print_stats(&stats, outPath);
+        free(catalog.bricks);
+    } else if (strcmp(algo, "cheap") == 0) {
+        AlgoStats stats = {0};
+        Catalog catalog = load_catalog_auto(catalogPath, catFmt);
+        algo_1x1_price_bias(img, catalog, outPath, threshold, &stats);
+        print_stats(&stats, outPath);
         free(catalog.bricks);
     } else if (strcmp(algo, "all") == 0) {
-        char out1[256], out2[256], out3[256], out4[256], out5[256], out6[256];
+        char out1[256], out2[256], out3[256], out4[256], out5[256], out6[256], out7[256], out8[256];
         snprintf(out1, sizeof(out1), "%s_1x1.txt", outPath);
         snprintf(out2, sizeof(out2), "%s_match2x1.txt", outPath);
         snprintf(out3, sizeof(out3), "%s_blocks2x2.txt", outPath);
         snprintf(out4, sizeof(out4), "%s_quadtree.txt", outPath);
         snprintf(out5, sizeof(out5), "%s_combo.txt", outPath);
         snprintf(out6, sizeof(out6), "%s_any.txt", outPath);
+        snprintf(out7, sizeof(out7), "%s_any_nostock.txt", outPath);
+        snprintf(out8, sizeof(out8), "%s_cheap.txt", outPath);
 
         AlgoStats stats1 = {0};
         Catalog catalog1 = load_catalog_auto(catalogPath, catFmt);
         algo_1x1(img, catalog1, out1, &stats1);
-        print_stats("1x1", &stats1, out1);
+        print_stats(&stats1, out1);
         free(catalog1.bricks);
 
         AlgoStats stats2 = {0};
         Catalog catalog2 = load_catalog_auto(catalogPath, catFmt);
         algo_match2x1(img, catalog2, out2, &stats2);
-        print_stats("match2x1", &stats2, out2);
+        print_stats(&stats2, out2);
         free(catalog2.bricks);
 
         AlgoStats stats3 = {0};
         Catalog catalog3 = load_catalog_auto(catalogPath, catFmt);
         algo_blocks2x2(img, catalog3, out3, threshold, &stats3);
-        print_stats("blocks2x2", &stats3, out3);
+        print_stats(&stats3, out3);
         free(catalog3.bricks);
 
         AlgoStats stats4 = {0};
         Catalog catalog4 = load_catalog_auto(catalogPath, catFmt);
         algo_quadtree(img, catalog4, out4, threshold, &stats4);
-        print_stats("quadtree", &stats4, out4);
+        print_stats(&stats4, out4);
         free(catalog4.bricks);
 
         AlgoStats stats5 = {0};
         Catalog catalog5 = load_catalog_auto(catalogPath, catFmt);
         algo_combo(img, catalog5, out5, threshold, &stats5);
-        print_stats("combo", &stats5, out5);
+        print_stats(&stats5, out5);
         free(catalog5.bricks);
 
         AlgoStats stats6 = {0};
         Catalog catalog6 = load_catalog_auto(catalogPath, catFmt);
         algo_any(img, catalog6, out6, &stats6);
-        print_stats("any", &stats6, out6);
+        print_stats(&stats6, out6);
         free(catalog6.bricks);
+
+        AlgoStats stats7 = {0};
+        Catalog catalog7 = load_catalog_auto(catalogPath, catFmt);
+        algo_any_nostock(img, catalog7, out7, &stats7);
+        print_stats(&stats7, out7);
+        free(catalog7.bricks);
+
+        AlgoStats stats8 = {0};
+        Catalog catalog8 = load_catalog_auto(catalogPath, catFmt);
+        algo_1x1_price_bias(img, catalog8, out8, threshold, &stats8);
+        print_stats(&stats8, out8);
+        free(catalog8.bricks);
     } else {
         print_usage(argv[0]);
         free(img.pixels);
