@@ -748,7 +748,7 @@ static BestMatch find_best_match_rot(RGBValues color, int w, int h, Catalog cata
 
 /* Write a placed piece line. */
 static void emit_piece(FILE *out, const Brick *b, int x, int y, int rot) {
-    fprintf(out, "%s,%d,%d,%d\n", b->name, x, y, rot);
+    fprintf(out, "%d,%d,%d,%d,%d,%d\n", b->color.r, b->color.g, b->color.b, x, y, rot);
 }
 
 /* Decrement stock and track ruptures. */
