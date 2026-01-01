@@ -85,7 +85,7 @@ public class RestockManager {
         return invoice;
     }
 
-    static void reffilInventory(InventoryManager inventory, OrderManager orderer, FactoryClient client, Map<String, Integer> invoice) throws Exception {
+    static void refillInventory(InventoryManager inventory, OrderManager orderer, FactoryClient client, Map<String, Integer> invoice) throws Exception {
         var quote = orderer.requestQuote((HashMap<String, Integer>) invoice);
         System.out.println("currently asking confirmation of quote: " + quote);
 
@@ -143,7 +143,7 @@ public class RestockManager {
                 return true;
             }
             var client = FactoryClient.makeFromProps("config.properties");
-            reffilInventory(im, new OrderManager(client, im), client, invoice);
+            refillInventory(im, new OrderManager(client, im), client, invoice);
             return true;
         } catch (SQLException e) {
             throw new RuntimeException(e);
