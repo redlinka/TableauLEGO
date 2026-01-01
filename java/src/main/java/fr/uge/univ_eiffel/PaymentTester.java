@@ -1,6 +1,6 @@
 package fr.uge.univ_eiffel;
 
-import fr.uge.univ_eiffel.interfaces.FactoryClient;
+import fr.uge.univ_eiffel.butlers.FactoryClient;
 import fr.uge.univ_eiffel.payment_methods.PaymentMethod;
 import fr.uge.univ_eiffel.payment_methods.pow.PoWMethod;
 
