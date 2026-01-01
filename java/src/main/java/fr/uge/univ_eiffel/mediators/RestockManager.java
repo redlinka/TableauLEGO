@@ -1,8 +1,7 @@
-package fr.uge.univ_eiffel.manager;
+package fr.uge.univ_eiffel.mediators;
 
 import fr.uge.univ_eiffel.Brick;
 import fr.uge.univ_eiffel.CertificateVerification;
-import fr.uge.univ_eiffel.butlers.FactoryClient;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -11,6 +10,7 @@ public class RestockManager {
 
     private static List<Integer> orders;
     private static List<List<Piece>> pieces;
+    private static int RANGE = 7;
 
     public static record Piece(int idInventory, int pavageId, int idCatalog){
         @Override
@@ -41,7 +41,7 @@ public class RestockManager {
         Map<Integer, Integer> dailyAverage = new HashMap<>();
 
         for(Map.Entry<Integer, Integer> a : quantity.entrySet()){
-            dailyAverage.put(a.getKey(), (int) Math.ceil((double)a.getValue() / 7));
+            dailyAverage.put(a.getKey(), (int) Math.ceil((double)a.getValue() / RANGE));
         }
 
 //        System.out.println("-----Daily average is :------");
@@ -175,9 +175,10 @@ public class RestockManager {
     static boolean dailyRestockage(InventoryManager im) throws SQLException {
 
         pieces = new ArrayList<>();
+
         try {
-            //retrieve orders from the last 7 days
-            orders = im.getOrders(7);
+            //retrieve orders from the last RANGE days
+            orders = im.getOrders(RANGE);
             System.out.println("Getting orders pieces");
             //retrieve the items used in each order
             for(int x : orders){

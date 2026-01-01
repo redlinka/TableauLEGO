@@ -1,10 +1,10 @@
-package fr.uge.univ_eiffel.manager;
+package fr.uge.univ_eiffel.mediators;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.uge.univ_eiffel.Brick;
-import fr.uge.univ_eiffel.butlers.FactoryClient;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,9 +17,11 @@ import java.util.*;
  * The code is currently adapted to my local MariaDB database, but i left the
  * SQL dump if you wish to try it for yourself.
  * Fields: The active JDBC Connection. */
-public class InventoryManager {
+public class InventoryManager implements AutoCloseable {
 
     private Connection connection;
+
+
 
     private InventoryManager(String url, String user, String password) throws Exception {
         connection = DriverManager.getConnection(url, user, password);
@@ -47,13 +49,13 @@ public class InventoryManager {
      * or will update it to its latest version, its takes a few seconds to run
      * Input: An active FactoryClient instance.
      * Output: void (updates DB). */
-    public void updateCatalog(FactoryClient fc) throws Exception {
+    public void updateCatalog(@NotNull FactoryClient fc) throws Exception {
 
         JsonObject cat = fc.catalog();
         JsonArray blocks = cat.getAsJsonArray("blocks");
         JsonArray colors = cat.getAsJsonArray("colors");
 
-        String query = "INSERT INTO catalog (width, height, holes, name, color_hex, unit_price) VALUES (?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO CATALOG (width, height, color_hex, color_name, holes) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement insertStmt = connection.prepareStatement(query)) {
 
@@ -74,10 +76,9 @@ public class InventoryManager {
                     try {
                         insertStmt.setInt(1, w);
                         insertStmt.setInt(2, h);
-                        insertStmt.setString(3, holes);
+                        insertStmt.setString(3, hex);
                         insertStmt.setString(4, name);
-                        insertStmt.setString(5, hex);
-                        insertStmt.setDouble(6, computeUnitPrice(w, h));
+                        insertStmt.setString(5, holes);
                         insertStmt.executeUpdate();
                     } catch (SQLException e) {
                         // dups are ignored, let DB handle it because it's faster
@@ -93,13 +94,15 @@ public class InventoryManager {
     /** Closes the database connection safely.
      * Input: None.
      * Output: void. */
+    @Override
     public void close() {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
+                System.out.println("Database connection closed cleanly.");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Failed to close DB connection: " + e.getMessage());
         }
     }
 
@@ -317,8 +320,8 @@ public class InventoryManager {
         System.out.println("Getting stock pieces..." );
         Map<Integer, Integer> stock = new HashMap<>();
         String selectSql = "SELECT id_catalogue, COUNT(*) as amount FROM INVENTORY " +
-                "WHERE INVENTORY.pavage_id IS NULL " +
-                "GROUP BY id_catalogue";
+                            "WHERE INVENTORY.pavage_id IS NULL " +
+                            "GROUP BY id_catalogue";
         try (PreparedStatement stmt = connection.prepareStatement(selectSql)){
             try(ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {

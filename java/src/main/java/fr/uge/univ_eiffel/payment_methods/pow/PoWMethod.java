@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HexFormat;
 
 import com.google.gson.Gson;
-import fr.uge.univ_eiffel.butlers.FactoryClient;
+import fr.uge.univ_eiffel.mediators.FactoryClient;
 import fr.uge.univ_eiffel.payment_methods.PaymentMethod;
 
 /**
@@ -77,9 +77,6 @@ public class PoWMethod implements PaymentMethod {
             ChallengeAnswer answer = solveChallenge(challenge);
             // we submit the answer
             submitAnswer(answer);
-            // we show the current balance for convenience
-            System.out.println("Current account balance: " + client.balance());
-
             // assuming 1 euro per solution, though this might vary
             moneyMade++;
         }
