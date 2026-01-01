@@ -1,4 +1,4 @@
-package fr.uge.univ_eiffel.butlers;
+package fr.uge.univ_eiffel.mediators;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

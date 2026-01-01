@@ -1,10 +1,10 @@
 package fr.uge.univ_eiffel;
 
-import fr.uge.univ_eiffel.butlers.FactoryClient;
+import fr.uge.univ_eiffel.mediators.FactoryClient;
 import fr.uge.univ_eiffel.image_processing.ImageUtils;
 import fr.uge.univ_eiffel.image_processing.downscalers.Downscaler;
-import fr.uge.univ_eiffel.manager.InventoryManager;
-import fr.uge.univ_eiffel.manager.OrderManager;
+import fr.uge.univ_eiffel.mediators.InventoryManager;
+import fr.uge.univ_eiffel.mediators.OrderManager;
 import fr.uge.univ_eiffel.payment_methods.pow.PoWMethod;
 
 import java.awt.image.BufferedImage;
@@ -40,11 +40,16 @@ public class App {
      * Output: A ready-to-use App instance. */
     public static App initialize(String configFile) throws Exception {
         FactoryClient client = FactoryClient.makeFromProps(configFile);
-        InventoryManager inventory = InventoryManager.makeFromProps(configFile);
-        OrderManager orderer = new OrderManager(client, inventory);
-        PoWMethod refiller = new PoWMethod(client);
+        try (InventoryManager inventory = InventoryManager.makeFromProps(configFile)) {
 
-        return new App(client, inventory, orderer, refiller);
+            OrderManager orderer = new OrderManager(client, inventory);
+            PoWMethod refiller = new PoWMethod(client);
+
+            return new App(client, inventory, orderer, refiller);
+
+        } catch (Exception e) {e.printStackTrace();}
+
+        return null;
     }
 
     /** The main pipeline execution.

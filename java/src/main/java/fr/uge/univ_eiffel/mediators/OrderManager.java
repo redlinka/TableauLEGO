@@ -1,9 +1,8 @@
-package fr.uge.univ_eiffel.manager;
+package fr.uge.univ_eiffel.mediators;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import fr.uge.univ_eiffel.Brick;
-import fr.uge.univ_eiffel.butlers.FactoryClient;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

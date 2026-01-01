@@ -1,5 +1,5 @@
 package fr.uge.univ_eiffel;
-import fr.uge.univ_eiffel.manager.InventoryManager;
+import fr.uge.univ_eiffel.mediators.InventoryManager;
 
 import java.nio.charset.StandardCharsets;
 import java.security.*;

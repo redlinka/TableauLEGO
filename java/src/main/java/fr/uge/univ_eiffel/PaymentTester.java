@@ -1,6 +1,6 @@
 package fr.uge.univ_eiffel;
 
-import fr.uge.univ_eiffel.butlers.FactoryClient;
+import fr.uge.univ_eiffel.mediators.FactoryClient;
 import fr.uge.univ_eiffel.payment_methods.PaymentMethod;
 import fr.uge.univ_eiffel.payment_methods.pow.PoWMethod;
 
@@ -12,6 +12,7 @@ public class PaymentTester {
         method = new PoWMethod(client);
 
         System.out.println("Refilling account...");
+        System.out.println("Current account balance: " + client.balance());
         method.pay(1);
         System.out.println("Balance is now: " + client.balance());
 
