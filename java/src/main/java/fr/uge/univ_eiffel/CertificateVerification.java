@@ -8,6 +8,18 @@ import java.util.Base64;
 
 public class CertificateVerification {
 
+    /**
+     * Verifies the authenticity of a brick using its digital certificate and a public key.
+     *
+     * This method reconstructs the signed message from the brick's name and serial number,
+     * then verifies the provided certificate using the Ed25519 signature algorithm.
+     * The public key is expected to be provided in Base64-encoded format.
+     *
+     * @param brick the Brick whose certificate is to be verified
+     * @param base64PublicKey the public key used for verification, encoded in Base64
+     * @return true if the certificate is valid and the signature matches the brick data;
+     *         false otherwise or if an error occurs during verification
+     */
     public static boolean verify(Brick brick, String base64PublicKey) {
         try {
             byte[] nameBytes = brick.name().getBytes(StandardCharsets.US_ASCII);
