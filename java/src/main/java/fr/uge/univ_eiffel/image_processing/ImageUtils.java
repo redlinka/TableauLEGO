@@ -79,4 +79,30 @@ public class ImageUtils {
             throw new IOException("Failed to write image to file: " + outputFile.getAbsolutePath());
         }
     }
+
+    /** Helper to keep color values within the valid 0-255 range.
+     * Input: Value to check and the maximum allowed (usually 255).
+     * Output: The clamped integer value. */
+    public static int clamp(int value, int max) {
+        return Math.max(0, Math.min(max, value));
+    }
+
+    /** Splits a packed 32-bit ARGB integer into its 4 component bytes.
+     * Input: Packed int (0xAARRGGBB).
+     * Output: int array {Alpha, Red, Green, Blue}. */
+    public static int[] extractARGB(int argb) {
+        return new int[] {
+                (argb >> 24) & 0xFF,  // a
+                (argb >> 16) & 0xFF,  // r
+                (argb >> 8) & 0xFF,   // g
+                argb & 0xFF           // b
+        };
+    }
+
+    /** Merges 4 component values back into a single 32-bit integer.
+     * Input: int array {Alpha, Red, Green, Blue}.
+     * Output: Packed ARGB int. */
+    public static int combineARGB(int[] argb) {
+        return (argb[0] << 24) | (argb[1] << 16) | (argb[2] << 8) | argb[3];
+    }
 }

@@ -2,6 +2,8 @@ package fr.uge.univ_eiffel.image_processing.downscalers;
 
 import java.awt.image.BufferedImage;
 
+import static fr.uge.univ_eiffel.image_processing.ImageUtils.*;
+
 /** Implementation of bilinear interpolation for image resizing.
  * Considers the 4 nearest neighbors to calculate pixel color, offering a balance between speed and quality.
  * Fields: None. */

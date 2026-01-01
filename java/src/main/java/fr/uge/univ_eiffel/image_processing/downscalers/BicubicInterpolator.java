@@ -2,6 +2,8 @@ package fr.uge.univ_eiffel.image_processing.downscalers;
 
 import java.awt.image.BufferedImage;
 
+import static fr.uge.univ_eiffel.image_processing.ImageUtils.*;
+
 /** Implementation of bicubic interpolation for image resizing.
  * Provides higher quality results than linear methods but is computationally heavier.
  * Fields: None. */
