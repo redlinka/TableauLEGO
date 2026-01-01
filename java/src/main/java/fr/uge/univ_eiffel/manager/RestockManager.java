@@ -19,7 +19,14 @@ public class RestockManager {
         }
     }
 
-    //calculate daily average sales per product.
+    /**
+     * Calculates the daily average sales per product over the last 7 days.
+     *
+     * This method processes all the orders to determine how often each product has been sold,
+     * and then calculates the average sales per day for each product.
+     *
+     * @return a Map where the key is the product catalog ID and the value is the daily average sales
+     */
     static Map<Integer, Integer> calculateDailyAverage() {
         System.out.println("Calculating daily average...");
         // records the amount of each type of coin used
@@ -45,6 +52,18 @@ public class RestockManager {
         return dailyAverage;
     }
 
+    /**
+     * Calculates the stock that needs to be prepared based on daily sales averages
+     * and the current stock available.
+     *
+     * This method compares the daily average sales for each product to the current stock.
+     * If the stock is below the daily average, it calculates how much more stock is required.
+     * It also considers a minimum stock threshold of 10 units for any product.
+     *
+     * @param dailyAverages a Map where the key is the product catalog ID and the value is the daily average sales
+     * @param stock a Map representing the current stock levels, where the key is the product catalog ID and the value is the stock count
+     * @return a Map where the key is the product catalog ID and the value is the amount of stock to prepare
+     */
     static Map<Integer, Integer> calculateStockToPrepare(Map<Integer, Integer> dailyAverages, Map<Integer, Integer> stock){
         System.out.println("Calculating stock to prepare...");
         Map<Integer, Integer> stockToPrepare = new HashMap<>();
@@ -71,6 +90,16 @@ public class RestockManager {
         return stockToPrepare;
     }
 
+    /**
+     * Parses the stock refill data into a catalog-based invoice.
+     *
+     * This method converts the stock that needs to be refilled into a human-readable format
+     * with product names and quantities to be ordered.
+     *
+     * @param stockToRefill a Map where the key is the product catalog ID and the value is the amount of stock to refill
+     * @param im an InventoryManager used to retrieve the product names from the catalog IDs
+     * @return a Map where the key is the product name and the value is the quantity to be ordered
+     */
     static Map<String, Integer> parseInvoice(Map<Integer, Integer> stockToRefill, InventoryManager im){
         Map<String, Integer> invoice  = new HashMap<>();
         for(int catalogId: stockToRefill.keySet()){
@@ -85,6 +114,19 @@ public class RestockManager {
         return invoice;
     }
 
+    /**
+     * Refills the inventory by ordering the necessary stock based on the provided invoice.
+     *
+     * This method requests a quote from the supplier, confirms the order, and waits for
+     * the delivery status. Once the order is complete, it adds the delivered items to
+     * the inventory, verifying each brick’s certificate before adding.
+     *
+     * @param inventory the InventoryManager used to add bricks to the inventory
+     * @param orderer the OrderManager responsible for handling the order process
+     * @param client the FactoryClient used for client-side operations such as quote requests and verification
+     * @param invoice a Map containing the product names and quantities to be ordered
+     * @throws Exception if any errors occur during the order process or inventory update
+     */
     static void refillInventory(InventoryManager inventory, OrderManager orderer, FactoryClient client, Map<String, Integer> invoice) throws Exception {
         var quote = orderer.requestQuote((HashMap<String, Integer>) invoice);
         System.out.println("currently asking confirmation of quote: " + quote);
@@ -119,6 +161,17 @@ public class RestockManager {
 
     }
 
+    /**
+     * Performs the daily restocking process by analyzing orders, calculating daily averages,
+     * determining the stock needed to prepare, and placing orders to refill the inventory.
+     *
+     * This method is the main entry point for the daily restock procedure. It retrieves orders,
+     * calculates the necessary stock adjustments, and places an order to ensure the inventory is sufficiently stocked.
+     *
+     * @param im the InventoryManager used to retrieve orders and get data
+     * @return true if the restocking process completed successfully, false otherwise
+     * @throws SQLException if a database error occurs while retrieving order or stock data
+     */
     static boolean dailyRestockage(InventoryManager im) throws SQLException {
 
         pieces = new ArrayList<>();

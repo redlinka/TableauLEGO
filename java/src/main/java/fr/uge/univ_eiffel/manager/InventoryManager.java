@@ -331,6 +331,18 @@ public class InventoryManager {
         }
     }
 
+    /**
+     * Retrieves the brick type name associated with a given catalog identifier.
+     *
+     * This method queries the catalog database to obtain the brick dimensions
+     * (width and height) and its color, then formats them into a standardized
+     * brick type name.
+     *
+     * @param id the catalog identifier of the brick
+     * @return a String representing the brick type name in the format
+     *         "width-height/color_hex"
+     * @throws RuntimeException if a database access error occurs or the SQL query fails
+     */
     public String getBrickTypeName(int id){
         System.out.println("Getting brick type name..." );
         StringBuilder brickTypeName = new StringBuilder();
