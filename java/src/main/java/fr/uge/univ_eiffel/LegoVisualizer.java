@@ -35,10 +35,11 @@ public class LegoVisualizer {
                 String[] brickName = parts[0].split("/");
                 String[] dims = brickName[0].split("-");
 
-                int x = Integer.parseInt(parts[1]);
-                int y = Integer.parseInt(parts[2]);
-                int w = Integer.parseInt(dims[0]);
-                int h = Integer.parseInt(dims[1]);
+
+                int x = Integer.parseInt(parts[1].trim());
+                int y = Integer.parseInt(parts[2].trim());
+                int w = Integer.parseInt(dims[0].trim());
+                int h = Integer.parseInt(dims[1].trim());
 
                 maxX = Math.max(maxX, x + w);
                 maxY = Math.max(maxY, y + h);

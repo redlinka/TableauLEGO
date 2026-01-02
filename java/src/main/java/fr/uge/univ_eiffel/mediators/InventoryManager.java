@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.uge.univ_eiffel.Brick;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -159,7 +160,7 @@ public class InventoryManager implements AutoCloseable {
      * Used for storing serials and certificates as binary in DB.
      * Input: Hex string.
      * Output: Byte array. */
-    public static byte[] hexToBytes(String hex) {
+    public static byte @NotNull [] hexToBytes(@NotNull String hex) {
         int len = hex.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
@@ -173,7 +174,7 @@ public class InventoryManager implements AutoCloseable {
      * Links the brick to the correct catalog entry ID.
      * Input: Brick record (name, serial, certificate).
      * Output: True if successful. */
-    public boolean add(Brick brick) throws SQLException {
+    public boolean add(@NotNull Brick brick) throws SQLException {
         // Parse the brick name, ex : "1-1/4d4c52" or "1-1-0123/4d4c52"
         String[] parts = brick.name().split("/");
         if (parts.length != 2) {
@@ -337,7 +338,8 @@ public class InventoryManager implements AutoCloseable {
     /** Factory method to create an instance from a properties file.
      * Input: Filename (e.g., "config.properties").
      * Output: Initialized InventoryManager connected to DB. */
-    public static InventoryManager makeFromProps(String file) {
+    @Contract("_ -> new")
+    public static @NotNull InventoryManager makeFromProps(String file) {
         Properties props = new Properties();
 
         try (InputStream input = InventoryManager.class.getClassLoader().getResourceAsStream(file)) {
