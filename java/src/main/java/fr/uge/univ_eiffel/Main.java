@@ -10,7 +10,6 @@ public class Main {
         FactoryClient client = FactoryClient.makeFromProps("config.properties");
 
         try {
-            inventory.updateCatalog(client);
 
         } catch (Exception e) {
             e.printStackTrace();
