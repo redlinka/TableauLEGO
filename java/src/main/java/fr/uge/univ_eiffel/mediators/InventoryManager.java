@@ -80,6 +80,7 @@ public class InventoryManager implements AutoCloseable {
                         insertStmt.setString(4, name);
                         insertStmt.setString(5, holes);
                         insertStmt.executeUpdate();
+                        System.out.printf("Added %s %d x %d%n", name, w, h);
                     } catch (SQLException e) {
                         // dups are ignored, let DB handle it because it's faster
                         if (e.getErrorCode() != 1062) {
@@ -152,37 +153,6 @@ public class InventoryManager implements AutoCloseable {
             }
         }
         return catPath + ".txt";
-    }
-    /** Factory method to create an instance from a properties file.
-     * Input: Filename (e.g., "config.properties").
-     * Output: Initialized InventoryManager connected to DB. */
-    public static InventoryManager makeFromProps(String file) {
-        Properties props = new Properties();
-
-        try (InputStream input = InventoryManager.class.getClassLoader()
-                .getResourceAsStream(file)) {
-            System.out.println("Trying to load: " + file);
-            if (input == null) {
-                throw new RuntimeException("Properties file '" + file + "' not found.");
-            }
-
-            props.load(input);
-
-            String url = props.getProperty("DB_URL");
-            String user = props.getProperty("DB_USER");
-            String password = props.getProperty("DB_PASSWORD");
-
-            if (url == null || user == null || password == null) {
-                throw new RuntimeException("One of the logins is missing or incorrect in properties file.");
-            }
-
-            return new InventoryManager(url, user, password);
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to connect to database", e);
-        }
     }
 
     /** Helper to convert hex string to byte array.
@@ -361,6 +331,36 @@ public class InventoryManager implements AutoCloseable {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /** Factory method to create an instance from a properties file.
+     * Input: Filename (e.g., "config.properties").
+     * Output: Initialized InventoryManager connected to DB. */
+    public static InventoryManager makeFromProps(String file) {
+        Properties props = new Properties();
+
+        try (InputStream input = InventoryManager.class.getClassLoader().getResourceAsStream(file)) {
+            if (input == null) {
+                throw new RuntimeException("Properties file '" + file + "' not found.");
+            }
+
+            props.load(input);
+
+            String url = props.getProperty("DB_URL");
+            String user = props.getProperty("DB_USER");
+            String password = props.getProperty("DB_PASSWORD");
+
+            if (url == null || user == null || password == null) {
+                throw new RuntimeException("One of the logins is missing or incorrect in properties file.");
+            }
+
+            return new InventoryManager(url, user, password);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to connect to database", e);
         }
     }
 }
