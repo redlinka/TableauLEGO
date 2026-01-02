@@ -1,5 +1,7 @@
 package fr.uge.univ_eiffel.image_processing.downscalers;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.image.BufferedImage;
 
 import static fr.uge.univ_eiffel.image_processing.ImageUtils.*;
@@ -28,7 +30,7 @@ public class BilinearInterpolator implements Downscaler {
      * it takes into account the 4 neighboring pixels to the destination one and averages with coefficients their color values.
      * Input: Source image and blank destination image.
      * Output: void (modifies destination in place). */
-    public void downscale(BufferedImage source, BufferedImage destination) {
+    public void downscale(@NotNull BufferedImage source, @NotNull BufferedImage destination) {
         double widthRatio = (double) destination.getWidth() / source.getWidth();
         double heightRatio = (double) destination.getHeight() / source.getHeight();
 

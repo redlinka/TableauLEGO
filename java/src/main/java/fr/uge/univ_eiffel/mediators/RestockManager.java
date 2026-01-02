@@ -2,6 +2,7 @@ package fr.uge.univ_eiffel.mediators;
 
 import fr.uge.univ_eiffel.Brick;
 import fr.uge.univ_eiffel.CertificateVerification;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -27,7 +28,7 @@ public class RestockManager {
      *
      * @return a Map where the key is the product catalog ID and the value is the daily average sales
      */
-    static Map<Integer, Integer> calculateDailyAverage() {
+    static @NotNull Map<Integer, Integer> calculateDailyAverage() {
         System.out.println("Calculating daily average...");
         // records the amount of each type of coin used
         Map<Integer, Integer> quantity = new HashMap<>();
@@ -64,7 +65,7 @@ public class RestockManager {
      * @param stock a Map representing the current stock levels, where the key is the product catalog ID and the value is the stock count
      * @return a Map where the key is the product catalog ID and the value is the amount of stock to prepare
      */
-    static Map<Integer, Integer> calculateStockToPrepare(Map<Integer, Integer> dailyAverages, Map<Integer, Integer> stock){
+    static @NotNull Map<Integer, Integer> calculateStockToPrepare(Map<Integer, Integer> dailyAverages, Map<Integer, Integer> stock){
         System.out.println("Calculating stock to prepare...");
         Map<Integer, Integer> stockToPrepare = new HashMap<>();
 
@@ -100,7 +101,7 @@ public class RestockManager {
      * @param im an InventoryManager used to retrieve the product names from the catalog IDs
      * @return a Map where the key is the product name and the value is the quantity to be ordered
      */
-    static Map<String, Integer> parseInvoice(Map<Integer, Integer> stockToRefill, InventoryManager im){
+    static @NotNull Map<String, Integer> parseInvoice(@NotNull Map<Integer, Integer> stockToRefill, InventoryManager im){
         Map<String, Integer> invoice  = new HashMap<>();
         for(int catalogId: stockToRefill.keySet()){
             String brickName = im.getBrickTypeName(catalogId);
@@ -127,7 +128,7 @@ public class RestockManager {
      * @param invoice a Map containing the product names and quantities to be ordered
      * @throws Exception if any errors occur during the order process or inventory update
      */
-    static void refillInventory(InventoryManager inventory, OrderManager orderer, FactoryClient client, Map<String, Integer> invoice) throws Exception {
+    static void refillInventory(InventoryManager inventory, @NotNull OrderManager orderer, @NotNull FactoryClient client, Map<String, Integer> invoice) throws Exception {
         var quote = orderer.requestQuote((HashMap<String, Integer>) invoice);
         System.out.println("currently asking confirmation of quote: " + quote);
 
@@ -172,7 +173,7 @@ public class RestockManager {
      * @return true if the restocking process completed successfully, false otherwise
      * @throws SQLException if a database error occurs while retrieving order or stock data
      */
-    static boolean dailyRestockage(InventoryManager im) throws SQLException {
+    public static boolean dailyRestockage(InventoryManager im) throws SQLException {
 
         pieces = new ArrayList<>();
 

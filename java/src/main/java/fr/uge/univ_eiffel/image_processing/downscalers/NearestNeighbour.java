@@ -1,5 +1,7 @@
 package fr.uge.univ_eiffel.image_processing.downscalers;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.image.BufferedImage;
 
 public class NearestNeighbour implements Downscaler {
@@ -11,7 +13,7 @@ public class NearestNeighbour implements Downscaler {
      * Output: void.
      */
 
-    public void downscale(BufferedImage source, BufferedImage destination) {
+    public void downscale(@NotNull BufferedImage source, @NotNull BufferedImage destination) {
         double widthRatio = (double) destination.getWidth() / source.getWidth();
         double heightRatio = (double) destination.getHeight() / source.getHeight();
         for (int x = 0; x < destination.getWidth(); x++) {
