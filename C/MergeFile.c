@@ -157,6 +157,12 @@ static double block_error(Image img, int x, int y, int w, int h, RGBValues color
     return sum;
 }
 
+/* Average color error per pixel for a block. */
+static double block_error_avg(Image img, int x, int y, int w, int h, RGBValues color) {
+    if (w <= 0 || h <= 0) return 0.0;
+    return block_error(img, x, y, w, h, color) / (double)(w * h);
+}
+
 /* Compute mean color and variance for a region. */
 static RegionData avg_and_var(Image reg, int regX, int regY, int w, int h) {
     RegionData rd;
@@ -1051,8 +1057,8 @@ static void algo_blocks2x2(Image img, Catalog catalog, const char* out_name,
     for (int y = 0; y + 1 < H; y += 2) {
         for (int x = 0; x + 1 < W; x += 2) {
             RegionData rd = avg_and_var(img, x, y, 2, 2);
-            int maxd = (int)block_error(img, x, y, 2, 2, rd.averageColor);
-            if (maxd <= threshold) {
+            double avgErr = block_error_avg(img, x, y, 2, 2, rd.averageColor);
+            if (avgErr <= (double)threshold) {
                 blocks[blockCount].x = x;
                 blocks[blockCount].y = y;
                 blocks[blockCount].avg = rd.averageColor;
@@ -1202,7 +1208,7 @@ static BestPiece find_best_piece_any(Image img, int x, int y, int *placed,
         if (b->number <= 0) continue;
 
         if (region_is_free(placed, W, H, x, y, b->width, b->height)) {
-            double err = block_error(img, x, y, b->width, b->height, b->color);
+            double err = block_error_avg(img, x, y, b->width, b->height, b->color);
             if (should_replace_best(err, b->width * b->height, best)) {
                 best.index = i;
                 best.w = b->width;
@@ -1214,7 +1220,7 @@ static BestPiece find_best_piece_any(Image img, int x, int y, int *placed,
 
         if (b->width != b->height &&
             region_is_free(placed, W, H, x, y, b->height, b->width)) {
-            double err = block_error(img, x, y, b->height, b->width, b->color);
+            double err = block_error_avg(img, x, y, b->height, b->width, b->color);
             if (should_replace_best(err, b->height * b->width, best)) {
                 best.index = i;
                 best.w = b->height;
@@ -1239,7 +1245,7 @@ static BestPiece find_best_piece_any_nostock(Image img, int x, int y, int *place
         Brick *b = &catalog->bricks[i];
 
         if (region_is_free(placed, W, H, x, y, b->width, b->height)) {
-            double err = block_error(img, x, y, b->width, b->height, b->color);
+            double err = block_error_avg(img, x, y, b->width, b->height, b->color);
             if (should_replace_best(err, b->width * b->height, best)) {
                 best.index = i;
                 best.w = b->width;
@@ -1251,7 +1257,7 @@ static BestPiece find_best_piece_any_nostock(Image img, int x, int y, int *place
 
         if (b->width != b->height &&
             region_is_free(placed, W, H, x, y, b->height, b->width)) {
-            double err = block_error(img, x, y, b->height, b->width, b->color);
+            double err = block_error_avg(img, x, y, b->height, b->width, b->color);
             if (should_replace_best(err, b->height * b->width, best)) {
                 best.index = i;
                 best.w = b->height;
@@ -1283,7 +1289,7 @@ static BestPiece find_best_piece_combo(Image img, int x, int y, int *placed,
 
         if (is_combo_size(b->width, b->height) &&
             region_is_free(placed, W, H, x, y, b->width, b->height)) {
-            double err = block_error(img, x, y, b->width, b->height, b->color);
+            double err = block_error_avg(img, x, y, b->width, b->height, b->color);
             if (should_replace_best(err, b->width * b->height, best)) {
                 best.index = i;
                 best.w = b->width;
@@ -1296,7 +1302,7 @@ static BestPiece find_best_piece_combo(Image img, int x, int y, int *placed,
         if (b->width != b->height &&
             is_combo_size(b->height, b->width) &&
             region_is_free(placed, W, H, x, y, b->height, b->width)) {
-            double err = block_error(img, x, y, b->height, b->width, b->color);
+            double err = block_error_avg(img, x, y, b->height, b->width, b->color);
             if (should_replace_best(err, b->height * b->width, best)) {
                 best.index = i;
                 best.w = b->height;
@@ -1325,7 +1331,7 @@ static void algo_combo_prefer_large_partial(Image img, Catalog *catalog, FILE *o
             update_stock(catalog, bp.index, stats);
             emit_piece(out, &catalog->bricks[bp.index], x, y, bp.rot);
             stats->price += catalog->bricks[bp.index].price;
-            stats->error += bp.error;
+            stats->error += block_error(img, x, y, bp.w, bp.h, catalog->bricks[bp.index].color);
             mark_region(placed, W, x, y, bp.w, bp.h);
         }
     }
@@ -1349,8 +1355,8 @@ static void algo_blocks2x2_partial(Image img, Catalog *catalog, FILE *out,
         for (int x = 0; x + 1 < W; x += 2) {
             if (!region_is_free(placed, W, H, x, y, 2, 2)) continue;
             RegionData rd = avg_and_var(img, x, y, 2, 2);
-            int maxd = (int)block_error(img, x, y, 2, 2, rd.averageColor);
-            if (maxd <= threshold) {
+            double avgErr = block_error_avg(img, x, y, 2, 2, rd.averageColor);
+            if (avgErr <= (double)threshold) {
                 blocks[blockCount].x = x;
                 blocks[blockCount].y = y;
                 blocks[blockCount].avg = rd.averageColor;
@@ -1569,7 +1575,7 @@ static void algo_any(Image img, Catalog catalog, const char* out_name, AlgoStats
             update_stock(&catalog, bp.index, stats);
             emit_piece(out, &catalog.bricks[bp.index], x, y, bp.rot);
             stats->price += catalog.bricks[bp.index].price;
-            stats->error += bp.error;
+            stats->error += block_error(img, x, y, bp.w, bp.h, catalog.bricks[bp.index].color);
             mark_region(placed, W, x, y, bp.w, bp.h);
         }
     }
@@ -1601,10 +1607,9 @@ static void algo_any_nostock(Image img, Catalog catalog, const char* out_name, A
             if (placed[idx]) continue;
             BestPiece bp = find_best_piece_any_nostock(img, x, y, placed, &catalog);
             if (bp.index < 0) continue;
-            update_stock(&catalog, bp.index, stats);
             emit_piece(out, &catalog.bricks[bp.index], x, y, bp.rot);
             stats->price += catalog.bricks[bp.index].price;
-            stats->error += bp.error;
+            stats->error += block_error(img, x, y, bp.w, bp.h, catalog.bricks[bp.index].color);
             mark_region(placed, W, x, y, bp.w, bp.h);
         }
     }
@@ -1647,6 +1652,7 @@ static void print_usage(const char *prog) {
 }
 
 /* Entry point: parse args, run algorithm, emit outputs. */
+#ifndef MERGEFILE_TEST
 int main(int argc, char *argv[]) {
     if (argc < 5) {
         print_usage(argv[0]);
@@ -1792,3 +1798,4 @@ int main(int argc, char *argv[]) {
     free(img.pixels);
     return 0;
 }
+#endif
