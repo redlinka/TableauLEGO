@@ -3,10 +3,11 @@ package fr.uge.univ_eiffel;
 import fr.uge.univ_eiffel.mediators.FactoryClient;
 import fr.uge.univ_eiffel.mediators.InventoryManager;
 import fr.uge.univ_eiffel.mediators.OrderManager;
+import fr.uge.univ_eiffel.security.OfflineVerifier;
 
 import java.util.HashMap;
 
-public class Main {
+public class OrderTester {
     public static void main(String[] args) {
         System.out.println("🔧 Initializing Manual Order Test...");
 
@@ -44,11 +45,12 @@ public class Main {
 
             // 6. Verify and Store the Bricks
             String publicKey = client.signaturePublicKey();
+            OfflineVerifier verifier = new OfflineVerifier(publicKey);
             int successCount = 0;
 
             for (Brick brick : status.bricks()) {
                 // Offline Cryptographic Check
-                boolean isLegit = CertificateVerification.verify(brick, publicKey);
+                boolean isLegit = verifier.verify(brick);
 
                 if (isLegit) {
                     // Try adding to DB

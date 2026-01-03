@@ -1,4 +1,5 @@
-package fr.uge.univ_eiffel;
+package fr.uge.univ_eiffel.security;
+import fr.uge.univ_eiffel.Brick;
 import fr.uge.univ_eiffel.mediators.InventoryManager;
 
 import java.nio.charset.StandardCharsets;
@@ -6,7 +7,12 @@ import java.security.*;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
-public class CertificateVerification {
+public class OfflineVerifier implements BrickVerifier {
+    private final String publicKey;
+
+    public OfflineVerifier(String publicKey) {
+        this.publicKey = publicKey;
+    }
 
     /**
      * Verifies the authenticity of a brick using its digital certificate and a public key.
@@ -16,11 +22,12 @@ public class CertificateVerification {
      * The public key is expected to be provided in Base64-encoded format.
      *
      * @param brick the Brick whose certificate is to be verified
-     * @param base64PublicKey the public key used for verification, encoded in Base64
      * @return true if the certificate is valid and the signature matches the brick data;
      *         false otherwise or if an error occurs during verification
      */
-    public static boolean verify(Brick brick, String base64PublicKey) {
+
+    @Override
+    public boolean verify(Brick brick) {
         try {
             byte[] nameBytes = brick.name().getBytes(StandardCharsets.US_ASCII);
             byte[] serialBytes = InventoryManager.hexToBytes(brick.serial());
@@ -31,7 +38,7 @@ public class CertificateVerification {
 
             byte[] signatureBytes = InventoryManager.hexToBytes(brick.certificate());
 
-            byte[] keyBytes = Base64.getDecoder().decode(base64PublicKey);
+            byte[] keyBytes = Base64.getDecoder().decode(publicKey);
             PublicKey publicKey = KeyFactory.getInstance("Ed25519")
                     .generatePublic(new X509EncodedKeySpec(keyBytes));
 
@@ -41,7 +48,7 @@ public class CertificateVerification {
             return sig.verify(signatureBytes);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             return false;
         }
     }
