@@ -1,5 +1,7 @@
-package fr.uge.univ_eiffel;
+package fr.uge.univ_eiffel.codebanks;
 
+import fr.uge.univ_eiffel.Brick;
+import fr.uge.univ_eiffel.security.OfflineVerifier;
 import fr.uge.univ_eiffel.mediators.FactoryClient;
 import fr.uge.univ_eiffel.image_processing.ImageUtils;
 import fr.uge.univ_eiffel.image_processing.downscalers.Downscaler;
@@ -167,12 +169,13 @@ public class App {
 
         System.out.println("Order completed. Adding bricks...");
         var publicKey = client.signaturePublicKey();
+        OfflineVerifier verifier = new OfflineVerifier(publicKey);
 
         for (Brick brick : status.bricks()) {
             //Online verification
             boolean valid = client.verify(brick.name(), brick.serial(), brick.certificate());
             // Offline verification
-            boolean offlineVerif = CertificateVerification.verify(brick, publicKey);
+            boolean offlineVerif = verifier.verify(brick);
             boolean added = inventory.add(brick);
 
             if (valid && offlineVerif && added) {

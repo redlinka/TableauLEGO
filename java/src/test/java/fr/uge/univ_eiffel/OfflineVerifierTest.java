@@ -1,9 +1,10 @@
 package fr.uge.univ_eiffel;
 
+import fr.uge.univ_eiffel.security.OfflineVerifier;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-class CertificateVerificationTest {
+class OfflineVerifierTest {
 
     @Test
     void verify_ShouldReject_GarbageSignature() {
@@ -18,7 +19,8 @@ class CertificateVerificationTest {
 
         // ACT
         // This should internally throw a SignatureException or return false
-        boolean result = CertificateVerification.verify(fakeBrick, randomPublicKey);
+        OfflineVerifier verifier = new OfflineVerifier(randomPublicKey);
+        boolean result = verifier.verify(fakeBrick);
 
         // ASSERT
         assertFalse(result, "Verification MUST fail for an invalid signature");
@@ -33,7 +35,8 @@ class CertificateVerificationTest {
         String brokenKey = "Not a key!!";
 
         // ACT
-        boolean result = CertificateVerification.verify(fakeBrick, brokenKey);
+        OfflineVerifier verifier = new OfflineVerifier(brokenKey);
+        boolean result = verifier.verify(fakeBrick);
 
         // ASSERT
         // The method catches exceptions and returns false.
@@ -54,7 +57,8 @@ class CertificateVerificationTest {
         String validFormatKey = "MCowBQYDK2VwAyEAqm4+8sX8d7s7d7s7d7s7d7s7d7s7d7s7d7s7d7s=";
 
         // ACT
-        boolean result = CertificateVerification.verify(tamperedBrick, validFormatKey);
+        OfflineVerifier verifier = new OfflineVerifier(validFormatKey);
+        boolean result = verifier.verify(tamperedBrick);
 
         // ASSERT
         assertFalse(result, "Should fail if the data doesn't match the signature");

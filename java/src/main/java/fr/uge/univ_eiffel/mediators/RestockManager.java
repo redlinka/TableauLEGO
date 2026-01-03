@@ -1,7 +1,8 @@
 package fr.uge.univ_eiffel.mediators;
 
 import fr.uge.univ_eiffel.Brick;
-import fr.uge.univ_eiffel.CertificateVerification;
+import fr.uge.univ_eiffel.security.OfflineVerifier;
+import fr.uge.univ_eiffel.security.OnlineVerifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
@@ -145,12 +146,14 @@ public class RestockManager {
 
         System.out.println("Order completed. Adding bricks...");
         var publicKey = client.signaturePublicKey();
+        OfflineVerifier offline = new OfflineVerifier(publicKey);
+        OnlineVerifier online = new OnlineVerifier(client);
 
         for (Brick brick : status.bricks()) {
             //Online verification
-            boolean valid = client.verify(brick.name(), brick.serial(), brick.certificate());
+            boolean valid = online.verify(brick);
             // Offline verification
-            boolean offlineVerif = CertificateVerification.verify(brick, publicKey);
+            boolean offlineVerif = offline.verify(brick);
             boolean added = inventory.add(brick);
 
             if (valid && offlineVerif && added) {
