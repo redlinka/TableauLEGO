@@ -73,6 +73,14 @@ Ce document decrit le role de chaque partie du code.
   - accepte des briques avec diff <= (meilleur + tol%).
   - choisit la moins chere parmi ces candidates.
 
+### Pavage 4x2 + 1x1
+
+- `solve_4x2_mix`:
+  - parcourt l image de gauche a droite, haut en bas.
+  - tente d'abord une piece 4x2 ou 2x4 (rotation possible) si la zone est libre.
+  - choisit la brique qui minimise l erreur de couleur sur toute la region.
+  - si aucune 4x2/2x4 n est possible, retombe sur une 1x1.
+
 ### Pavage 1x1
 
 - `solve_1x1`:
@@ -94,10 +102,11 @@ Ce document decrit le role de chaque partie du code.
 1. Parse les arguments:
    - image, catalogue, seuils, dossier de sortie.
 2. Charge l image et le catalogue.
-3. Clone le catalogue 4 fois (chaque solution consomme son propre stock).
-4. Calcule 4 solutions:
+3. Clone le catalogue 6 fois (chaque solution consomme son propre stock).
+4. Calcule 6 solutions:
    - 1x1 strict / relax
    - quadtree strict (match couleur) / quadtree relax (biais prix)
+   - 4x2+1x1 strict / relax
 5. Ecrit les fichiers de solution + resume stdout.
 6. Libere toute la memoire.
 
@@ -106,3 +115,15 @@ Ce document decrit le role de chaque partie du code.
 - Le quadtree s arrete si la region n existe pas dans le catalogue, si la variance est faible, ou si la region depasse 16x16.
 - Le padding au carre 2^n facilite les decoupages par 2, mais peut ajouter des zones "nulles".
 - Le mode `STOCK_RELAX` permet de produire une solution meme si stock insuffisant (on compte les ruptures).
+
+### Thresholds quadtree
+
+- `threshold_low` (quadtree strict): seuil de variance qui declenche un split.
+- `threshold_high` (quadtree relax): meme logique, avec biais prix.
+- Plus bas: plus de decoupage, plus de pieces, meilleure fidelite couleur.
+- Plus haut: moins de decoupage, moins de pieces, rendu plus grossier.
+
+### Strict vs relax (stock)
+
+- `STOCK_STRICT`: refuse une piece si son stock est a 0 ou negatif, donc la solution peut echouer localement.
+- `STOCK_RELAX`: autorise de descendre sous 0 (stock manquant), et compte le nombre de ruptures.

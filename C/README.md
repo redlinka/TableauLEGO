@@ -9,6 +9,8 @@ Il produit 4 solutions:
 - 1x1 relax (stock autorise a passer en negatif)
 - quadtree strict (stock respecte, match couleur)
 - quadtree relax (biais prix, tolere une petite perte de qualite)
+- 4x2+1x1 strict (prefere 4x2/2x4, stock respecte)
+- 4x2+1x1 relax (prefere 4x2/2x4, stock autorise a passer en negatif)
 
 ## Compilation
 
@@ -55,11 +57,13 @@ gcc -O2 -o merge MergeFile.c -lm
 
 ## Sorties
 
-Le programme ecrit 4 fichiers dans `outdir`:
+Le programme ecrit 6 fichiers dans `outdir`:
 - `solution_1x1_strict.txt`
 - `solution_1x1_relax.txt`
 - `solution_quadtree_strict.txt`
 - `solution_quadtree_relax.txt`
+- `solution_4x2_strict.txt`
+- `solution_4x2_relax.txt`
 
 Chaque ligne: `brick_name,x,y`
 

@@ -106,6 +106,8 @@ enum {
 static int catalog_has_piece(const Catalog* catalog, int w, int h);
 static int catalog_has_piece_in_stock(const Catalog* catalog, int w, int h);
 static BestMatch find_best_match_price_bias(RGBValues color, int w, int h, const Catalog* catalog, int stock_mode, int tol_pct);
+static int region_can_place(const Image* image, const unsigned char* covered, int x, int y, int w, int h);
+static void mark_region(unsigned char* covered, const Image* image, int x, int y, int w, int h);
 
 /* a function that returns the closest power of 2 greater than or equal to n.
  * Input: n (integer to check)
@@ -394,6 +396,27 @@ static long piece_error_region(const Image* img, int x, int y, int w, int h, RGB
         }
     }
     return total;
+}
+
+static int region_can_place(const Image* image, const unsigned char* covered, int x, int y, int w, int h) {
+    if (x < 0 || y < 0) return 0;
+    if (x + w > image->width || y + h > image->height) return 0;
+    for (int iy = y; iy < y + h; iy++) {
+        for (int ix = x; ix < x + w; ix++) {
+            int idx = iy * image->canvasDims + ix;
+            if (covered[idx]) return 0;
+            if (image->pixels[idx].r < 0) return 0;
+        }
+    }
+    return 1;
+}
+
+static void mark_region(unsigned char* covered, const Image* image, int x, int y, int w, int h) {
+    for (int iy = y; iy < y + h; iy++) {
+        for (int ix = x; ix < x + w; ix++) {
+            covered[iy * image->canvasDims + ix] = 1;
+        }
+    }
 }
 
 /* Writes a complete invoice based on the missing bricks in a given catalog into a CSV file
@@ -728,6 +751,92 @@ int solve_1x1(const Image* image, Catalog* catalog, Solution* out, int mode_stoc
     return 1;
 }
 
+/* Greedy tiling preferring 4x2/2x4 bricks, falling back to 1x1.
+ * Input: Image, Catalog, output solution, and stock mode.
+ * Output: 1 on success, 0 on failure. */
+int solve_4x2_mix(const Image* image, Catalog* catalog, Solution* out, int mode_stock) {
+    solution_init(out, "sol_4x2_mix");
+
+    unsigned char* covered = calloc(image->canvasDims * image->canvasDims, sizeof(unsigned char));
+    if (!covered) return 0;
+
+    for (int y = 0; y < image->height; y++) {
+        for (int x = 0; x < image->width; x++) {
+            int idx = y * image->canvasDims + x;
+            if (covered[idx]) continue;
+            if (image->pixels[idx].r < 0) continue;
+
+            int best_w = 0;
+            int best_h = 0;
+            int best_id = -1;
+            long best_err = LONG_MAX;
+
+            const int cand_w[2] = {4, 2};
+            const int cand_h[2] = {2, 4};
+            for (int c = 0; c < 2; c++) {
+                int w = cand_w[c];
+                int h = cand_h[c];
+                if (!region_can_place(image, covered, x, y, w, h)) continue;
+
+                RegionData rd = avg_and_var(*image, x, y, w, h);
+                if (rd.count == 0) continue;
+
+                BestMatch best = (mode_stock == STOCK_STRICT)
+                    ? find_best_match_in_stock(rd.averageColor, w, h, catalog)
+                    : find_best_match_any(rd.averageColor, w, h, catalog);
+                if (best.index < 0) continue;
+
+                long err = piece_error_region(image, x, y, w, h, catalog->bricks[best.index].color);
+                if (err < best_err) {
+                    best_err = err;
+                    best_id = best.index;
+                    best_w = w;
+                    best_h = h;
+                }
+            }
+
+            if (best_id >= 0) {
+                if (!consume_stock(catalog, best_id, mode_stock, &out->stock_breaks)) {
+                    free(covered);
+                    return 0;
+                }
+                Brick* b = &catalog->bricks[best_id];
+                out->price_cents += price_to_cents(b->price);
+                out->quality += best_err;
+                if (!solution_push(out, b->name, x, y, 0)) {
+                    free(covered);
+                    return 0;
+                }
+                mark_region(covered, image, x, y, best_w, best_h);
+                continue;
+            }
+
+            BestMatch best1 = (mode_stock == STOCK_STRICT)
+                ? find_best_match_in_stock(image->pixels[idx], 1, 1, catalog)
+                : find_best_match_any(image->pixels[idx], 1, 1, catalog);
+            if (best1.index < 0) {
+                free(covered);
+                return 0;
+            }
+            if (!consume_stock(catalog, best1.index, mode_stock, &out->stock_breaks)) {
+                free(covered);
+                return 0;
+            }
+            Brick* b1 = &catalog->bricks[best1.index];
+            out->price_cents += price_to_cents(b1->price);
+            out->quality += best1.diff;
+            if (!solution_push(out, b1->name, x, y, 0)) {
+                free(covered);
+                return 0;
+            }
+            covered[idx] = 1;
+        }
+    }
+
+    free(covered);
+    return 1;
+}
+
 /* The core recursive function. Splits regions based on variance and matches bricks to leaves.
  * Input: Image, current recursion coords (x,y,w,h), threshold, file pointer, catalog.
  * Output: Returns the current Node* (links children to parents). */
@@ -816,15 +925,19 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    Catalog cat1, cat2, cat3, cat4;
+    Catalog cat1, cat2, cat3, cat4, cat5, cat6;
     cat1.bricks = NULL; cat1.size = 0;
     cat2.bricks = NULL; cat2.size = 0;
     cat3.bricks = NULL; cat3.size = 0;
     cat4.bricks = NULL; cat4.size = 0;
+    cat5.bricks = NULL; cat5.size = 0;
+    cat6.bricks = NULL; cat6.size = 0;
     if (!catalog_clone(&base, &cat1) ||
         !catalog_clone(&base, &cat2) ||
         !catalog_clone(&base, &cat3) ||
-        !catalog_clone(&base, &cat4)) {
+        !catalog_clone(&base, &cat4) ||
+        !catalog_clone(&base, &cat5) ||
+        !catalog_clone(&base, &cat6)) {
         fprintf(stderr, "Catalog clone failed\n");
         free(base.bricks);
         free(img.pixels);
@@ -832,14 +945,18 @@ int main(int argc, char *argv[]) {
         free(cat2.bricks);
         free(cat3.bricks);
         free(cat4.bricks);
+        free(cat5.bricks);
+        free(cat6.bricks);
         return 1;
     }
 
-    Solution sol1, sol2, sol3, sol4;
+    Solution sol1, sol2, sol3, sol4, sol5, sol6;
     solution_init(&sol1, "sol_1x1_strict");
     solution_init(&sol2, "sol_1x1_relax");
     solution_init(&sol3, "sol_quadtree_strict");
     solution_init(&sol4, "sol_quadtree_relax");
+    solution_init(&sol5, "sol_4x2_strict");
+    solution_init(&sol6, "sol_4x2_relax");
 
     if (!solve_1x1(&img, &cat1, &sol1, STOCK_STRICT)) {
         fprintf(stderr, "solve_1x1 strict failed\n");
@@ -865,21 +982,38 @@ int main(int argc, char *argv[]) {
         solution_init(&sol4, "sol_quadtree_relax");
     }
 
-    char path1[256], path2[256], path3[256], path4[256];
+    if (!solve_4x2_mix(&img, &cat5, &sol5, STOCK_STRICT)) {
+        fprintf(stderr, "solve_4x2 strict failed\n");
+        solution_free(&sol5);
+        solution_init(&sol5, "sol_4x2_strict");
+    }
+    if (!solve_4x2_mix(&img, &cat6, &sol6, STOCK_RELAX)) {
+        fprintf(stderr, "solve_4x2 relax failed\n");
+        solution_free(&sol6);
+        solution_init(&sol6, "sol_4x2_relax");
+    }
+
+    char path1[256], path2[256], path3[256], path4[256], path5[256], path6[256];
     build_path(path1, sizeof(path1), outdir, "solution_1x1_strict.txt");
     build_path(path2, sizeof(path2), outdir, "solution_1x1_relax.txt");
     build_path(path3, sizeof(path3), outdir, "solution_quadtree_strict.txt");
     build_path(path4, sizeof(path4), outdir, "solution_quadtree_relax.txt");
+    build_path(path5, sizeof(path5), outdir, "solution_4x2_strict.txt");
+    build_path(path6, sizeof(path6), outdir, "solution_4x2_relax.txt");
 
     if (!write_solution_file(&sol1, path1)) fprintf(stderr, "Failed to write %s\n", path1);
     if (!write_solution_file(&sol2, path2)) fprintf(stderr, "Failed to write %s\n", path2);
     if (!write_solution_file(&sol3, path3)) fprintf(stderr, "Failed to write %s\n", path3);
     if (!write_solution_file(&sol4, path4)) fprintf(stderr, "Failed to write %s\n", path4);
+    if (!write_solution_file(&sol5, path5)) fprintf(stderr, "Failed to write %s\n", path5);
+    if (!write_solution_file(&sol6, path6)) fprintf(stderr, "Failed to write %s\n", path6);
 
     print_solution_summary_stdout(path1, &sol1);
     print_solution_summary_stdout(path2, &sol2);
     print_solution_summary_stdout(path3, &sol3);
     print_solution_summary_stdout(path4, &sol4);
+    print_solution_summary_stdout(path5, &sol5);
+    print_solution_summary_stdout(path6, &sol6);
 
     free_QUADTREE(root1);
     free_QUADTREE(root2);
@@ -887,12 +1021,16 @@ int main(int argc, char *argv[]) {
     solution_free(&sol2);
     solution_free(&sol3);
     solution_free(&sol4);
+    solution_free(&sol5);
+    solution_free(&sol6);
     free(img.pixels);
     free(base.bricks);
     free(cat1.bricks);
     free(cat2.bricks);
     free(cat3.bricks);
     free(cat4.bricks);
+    free(cat5.bricks);
+    free(cat6.bricks);
 
     return 0;
 }
