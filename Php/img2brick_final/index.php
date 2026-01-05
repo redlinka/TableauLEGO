@@ -1,4 +1,5 @@
 <?php
+echo "";
 session_start();
 global $cnx;
 include("./config/cnx.php");
