@@ -14,7 +14,7 @@ $host = $_ENV["HOST"];
 // Establish database connection using PDO
 try {
     $cnx = new PDO(
-        "mysql:host=$host;dbname=$db;",
+        "mysql:host=$host;dbname=$db;charset=utf8mb4",
         $user,
         $pass
     );
@@ -154,7 +154,7 @@ function deleteDescendants($cnx, $imageId, $imgDir, $tilingDir, $keepSelf = fals
     if (!$imageId) return;
 
     // Fetch children IDs to recurse
-    $stmt = $cnx->prepare("SELECT id_image, filename FROM Images WHERE parent_id = ?");
+    $stmt = $cnx->prepare("SELECT image_id, filename FROM IMAGE WHERE img_parent = ?");
     $stmt->execute([$imageId]);
     $children = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -174,7 +174,7 @@ function deleteDescendants($cnx, $imageId, $imgDir, $tilingDir, $keepSelf = fals
     // Delete the node itself unless requested otherwise (e.g., when updating crop but keeping the ID)
     if (!$keepSelf) {
         // Fetch filename to delete physical files
-        $stmtMe = $cnx->prepare("SELECT filename FROM Images WHERE id_image = ?");
+        $stmtMe = $cnx->prepare("SELECT filename FROM IMAGE WHERE image_id = ?");
         $stmtMe->execute([$imageId]);
         $myFile = $stmtMe->fetchColumn();
 
@@ -195,7 +195,7 @@ function deleteDescendants($cnx, $imageId, $imgDir, $tilingDir, $keepSelf = fals
         }
 
         // Delete record from Database
-        $cnx->prepare("DELETE FROM Images WHERE id_image = ?")->execute([$imageId]);
+        $cnx->prepare("DELETE FROM IMAGE WHERE image_id = ?")->execute([$imageId]);
     }
 }
 
@@ -218,7 +218,7 @@ function cleanStorage($cnx, $imgDir, $brickDir) {
     // Clean Abandoned Guest Data
     // Find root images (no parent) belonging to guests (no user_id)
     try {
-        $stmt = $cnx->query("SELECT id_image, filename FROM Images WHERE user_id IS NULL AND parent_id IS NULL");
+        $stmt = $cnx->query("SELECT image_id, filename FROM IMAGE WHERE user_id IS NULL AND img_parent IS NULL"); //
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $filePath = $imgDir . '/' . $row['filename'];
             $brickPath = $brickDir . '/' . $row['filename'];
