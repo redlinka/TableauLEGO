@@ -80,8 +80,7 @@ Chaque ligne correspond à ce format :
 
 \<filename\> :  Le nom du fichier output.  
 \<price\_cents\> : Le prix en centimes.  
-\<quality\> : score de qualité (plus il est élevé, plus la correspondance couleur est bonne).  
-Calculé à partir de la distance couleur cumulée.  
+\<quality\> : score de qualité (plus il est élevé, plus la correspondance couleur est bonne).   
 \<stock\_breaks\> : Si le stock à été dépassé ou non.
 
 Exemple : 
