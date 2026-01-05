@@ -1,0 +1,31 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ "dev" ]  # Trigger only when you push to dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy using SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: root
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            # Go to the folder
+            cd /var/www/html/TableauLEGO
+            
+            # Pull the latest changes
+            git fetch origin
+            git checkout -f dev
+            git pull origin dev
+            
+            # Install new dependencies (just in case)
+            cd /var/www/html/TableauLEGO/Php/img2brick_final
+            composer install --no-dev --optimize-autoloader
+            
+            # Fix permissions (CRITICAL step)
+            chown -R www-data:www-data /var/www/html/TableauLEGO
