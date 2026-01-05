@@ -71,14 +71,14 @@ typedef struct Node {
     RGBValues avg;
     struct Node* child[4];
 } Node;
-
+//a struct to make the placement easier to use containing the coordinates and rotation
 typedef struct {
     char brick_name[32];
     int x;
     int y;
     int rot;
 } Placement;
-
+//struct that will be used in the output to showcase details about the output
 typedef struct {
     char name[64];
     Placement* placements;
@@ -659,7 +659,7 @@ BestMatch find_best_match_any(RGBValues color, int w, int h, const Catalog* cata
     BestMatch result = {minIndex, minDiff};
     return result;
 }
-
+//uses stock left to find the best match
 BestMatch find_best_match_in_stock(RGBValues color, int w, int h, const Catalog* catalog) {
 
     long minDiff = LONG_MAX;
@@ -679,7 +679,7 @@ BestMatch find_best_match_in_stock(RGBValues color, int w, int h, const Catalog*
     BestMatch result = {minIndex, minDiff};
     return result;
 }
-
+//uses stock left to find the best match while caring about the price
 static BestMatch find_best_match_price_bias(RGBValues color, int w, int h, const Catalog* catalog, int stock_mode, int tol_pct) {
     long bestDiff = LONG_MAX;
     int bestIndex = -1;
