@@ -160,7 +160,7 @@ function deleteDescendants($cnx, $imageId, $imgDir, $tilingDir, $keepSelf = fals
 
     foreach ($children as $child) {
         // Recurse into children to ensure bottom-up deletion
-        deleteDescendants($cnx, $child['id_image'], $imgDir, $tilingDir, false);
+        deleteDescendants($cnx, $child['image_id'], $imgDir, $tilingDir, false);
     }
 
     // Clean specific temp files associated with this image ID (e.g., algorithmic variations)
@@ -232,7 +232,7 @@ function cleanStorage($cnx, $imgDir, $brickDir) {
                 }
 
                 // Recursively delete the entire tree (Image + Children + DB Rows)
-                deleteDescendants($cnx, $row['id_image'], $imgDir, $brickDir);
+                deleteDescendants($cnx, $row['image_id'], $imgDir, $brickDir);
             }
         }
     } catch (Exception $e) {}
