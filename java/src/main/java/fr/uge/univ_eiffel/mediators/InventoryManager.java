@@ -170,45 +170,50 @@ public class InventoryManager implements AutoCloseable {
         return data;
     }
 
-    /** Adds a newly delivered brick into the inventory table.
-     * Links the brick to the correct catalog entry ID.
-     * Input: Brick record (name, serial, certificate).
-     * Output: True if successful. */
-    public boolean add(@NotNull Brick brick) throws SQLException {
-        // Parse the brick name, ex : "1-1/4d4c52" or "1-1-0123/4d4c52"
-        String[] parts = brick.name().split("/");
+    public int getCatalogId(String brickName) throws SQLException {
+        String[] parts = brickName.split("/");
         if (parts.length != 2) {
-            throw new IllegalArgumentException("Invalid brick name format: " + brick.name());
+            throw new IllegalArgumentException("Invalid brick name format: " + brickName);
         }
         String sizePart = parts[0];
         String hex = parts[1];
 
         String[] sizeTokens = sizePart.split("-");
         if (sizeTokens.length < 2) {
-            throw new IllegalArgumentException("Invalid brick size in name: " + brick.name());
+            throw new IllegalArgumentException("Invalid brick size in name: " + brickName);
         }
         int width = Integer.parseInt(sizeTokens[0]);
         int height = Integer.parseInt(sizeTokens[1]);
+
         String holes = "-1";
         if (sizeTokens.length > 2) {
             holes = sizeTokens[2];
         }
 
         String selectSql = "SELECT id_catalogue FROM CATALOG WHERE width = ? AND height = ? AND holes = ? AND color_hex = ?";
-        Integer catalogId = null;
         try (PreparedStatement stmt = connection.prepareStatement(selectSql)) {
             stmt.setInt(1, width);
             stmt.setInt(2, height);
             stmt.setString(3, holes);
             stmt.setString(4, hex);
+
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    catalogId = rs.getInt("id_catalogue");
-                } else {
-                    throw new SQLException("No matching catalog entry found for brick: " + brick.name());
-                }
+                    if (rs.next()) {
+                        return rs.getInt("id_catalogue");
+                    } else {
+                        throw new SQLException("No matching catalog entry found for brick: " + brickName);
+                    }
             }
         }
+    }
+
+    /** Adds a newly delivered brick into the inventory table.
+     * Links the brick to the correct catalog entry ID.
+     * Input: Brick record (name, serial, certificate).
+     * Output: True if successful. */
+    public boolean add(@NotNull Brick brick) throws SQLException {
+        // Parse the brick name, ex : "1-1/4d4c52" or "1-1-0123/4d4c52"
+        Integer catalogId = getCatalogId(brick.name());
 
         // Insert the brick into inventory
         String insertSql = "INSERT INTO INVENTORY (serial_num, id_catalogue, certificate, unit_price) VALUES (?, ?, ?, ?)";
@@ -365,4 +370,103 @@ public class InventoryManager implements AutoCloseable {
             throw new RuntimeException("Failed to connect to database", e);
         }
     }
+
+    /**
+     * Retrieves the unit price of a catalog item from the inventory.
+     *
+     * This method queries the INVENTORY table to obtain the most recent
+     * unit price associated with the given catalog identifier. The latest
+     * price is determined by ordering inventory entries by their identifier
+     * in descending order and selecting the first result.
+     *
+     * @param idCatalogue the catalog identifier of the brick
+     * @return the unit price of the brick
+     * @throws SQLException if no price is found for the given catalog identifier
+     *                      or if a database access error occurs
+     */
+    private double getUnitPrice(int idCatalogue) throws SQLException {
+        String sql =" SELECT unit_price FROM INVENTORY" +
+                " WHERE id_catalogue = ?" +
+                " ORDER BY id_inventory DESC" +
+                " LIMIT 1;";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, idCatalogue);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("unit_price");
+                } else {
+                    throw new SQLException("No unit_price found for id_catalogue=" + idCatalogue);
+                }
+            }
+        }
+    }
+
+    /**
+     * Adds a restocking history entry and its associated inventory entries.
+     *
+     * This method creates a new stock entry with the current date and time,
+     * then inserts one entry per brick type to be restocked. For each brick,
+     * it retrieves the corresponding catalog identifier, determines the unit
+     * price from the inventory, computes the total price, and stores the
+     * information in the ENTRY table.
+     *
+     * @param stockToRefill a map associating brick type names with quantities
+     *                      to be restocked, formatted as "width-height/color_hex"
+     * @return true if the restock history is successfully added
+     * @throws RuntimeException if a database access error occurs during the process
+     */
+    public boolean addRestockHistory(Map<String, Integer> stockToRefill){
+        System.out.println("Adding restock history..." );
+
+
+        String insertStockEntrySql = "INSERT INTO STOCK_ENTRY (date_stock) VALUES (NOW())";
+
+        int stockEntryId;
+
+        try (PreparedStatement stmt = connection.prepareStatement( insertStockEntrySql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.executeUpdate();
+            // Get the entry id
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    stockEntryId = rs.getInt(1);
+                } else {
+                    throw new SQLException("Cannot get the id_stock_entry");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        for(Map.Entry<String, Integer> entry : stockToRefill.entrySet()){
+            String insertEntrySql = "INSERT INTO `entry` (id_catalogue, id_stock_entry, quantity, total_price) " +
+                    "VALUES (?, ?, ?, ?)";
+
+            try (PreparedStatement stmt = connection.prepareStatement(insertEntrySql)) {
+                int idCatalog = getCatalogId(entry.getKey());
+                int amount = entry.getValue();
+
+                stmt.setInt(1, idCatalog);       // id_catalogue
+                stmt.setInt(2, stockEntryId);    // id_stock_entry
+                stmt.setInt(3, amount);          // quantity
+                stmt.setDouble(4, amount * getUnitPrice(idCatalog));     // total_price
+
+                stmt.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return true;
+    }
+
+
+//    public static void main(String[] args) throws SQLException {
+//        InventoryManager im = makeFromProps("config.properties");
+//        Map<String, Integer> stockMap = new HashMap<>();
+//
+//        stockMap.put("1-1/0020a0", 10);
+//        im.addRestockHistory(stockMap);
+//    }
 }

@@ -202,6 +202,7 @@ public class RestockManager {
             }
             var client = FactoryClient.makeFromProps("config.properties");
             refillInventory(im, new OrderManager(client, im), client, invoice);
+            im.addRestockHistory(invoice);
             return true;
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -210,10 +211,10 @@ public class RestockManager {
         }
     }
 
-    public static void main(String[] args) throws SQLException {
-
-        if(!dailyRestockage(InventoryManager.makeFromProps("config.properties"))){
-            System.err.println("Error during daily restocking");
-        }
-    }
+//    public static void main(String[] args) throws SQLException {
+//
+//        if(!dailyRestockage(InventoryManager.makeFromProps("config.properties"))){
+//            System.err.println("Error during daily restocking");
+//        }
+//    }
 }
