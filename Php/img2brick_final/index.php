@@ -1,4 +1,5 @@
 <?php
+echo "wowowowow";
 session_start();
 global $cnx;
 include("./config/cnx.php");
