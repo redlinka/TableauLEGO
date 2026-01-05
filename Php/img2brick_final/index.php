@@ -106,13 +106,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     try {
                         // Assign NULL user ID for guests
                         $userId = $_SESSION['userId'] ?? NULL;
+                        $relativePath = 'users/imgs/' . $safeName;
+                        $width = (int)$size[0];
+                        $height = (int)$size[1];
 
-                        $stmt = $cnx->prepare("INSERT INTO IMAGE (user_id, filename, path, created_at, img_parent) VALUES (IFNULL(?, 1), ?, ?, NOW(), NULL)");
-                        $stmt->execute([
-                                $userId, 
-                                $safeName,
-                                $img['name'],
-                        ]);
+                        $stmt = $cnx->prepare("INSERT INTO IMAGE (user_id, filename, path, width, height, created_at, img_parent) VALUES (:userId, :filename, :path, :width, :height, NOW(), NULL)");
+                        $stmt->bindParam(":userId", $userId);
+                        $stmt->bindParam(":filename", $safeName);
+                        $stmt->bindParam(":path", $relativePath); // avant sa utilisait $img['name'] pour le path
+                        $stmt->bindParam(":width", $width);
+                        $stmt->bindParam(":height", $height);
+
+                        $stmt->execute();
 
                         // Store image ID for next step
                         $_SESSION['step0_image_id'] = $cnx->lastInsertId();
