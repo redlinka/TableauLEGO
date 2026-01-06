@@ -73,9 +73,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         } else {
                             // Insert new row
-                            $stmt = $cnx->prepare("INSERT INTO IMAGE (user_id, filename, path, created_at, img_parent) VALUES (IFNULL(?, 1), ?, CONCAT('uploads/', ?), NOW(), ?)");
+                            $stmt = $cnx->prepare("INSERT INTO IMAGE (user_id, filename, path, created_at, img_parent) VALUES (:user_id, :filename, :path, NOW(), :img_parent)");
                             $userId = $_SESSION['userId'] ?? NULL;
-                            $stmt->execute([$userId, $targetFilename, "Cropped_Image", $parentId]);
+                            $relativePath = $imgDir . $targetFilename; // 'users/imgs/nom_fichier.jpg'
+
+                            $stmt->execute([
+                                    ':user_id'    => $userId,
+                                    ':filename'   => $targetFilename,
+                                    ':path'       => $relativePath,
+                                    ':img_parent' => $parentId
+                            ]);
 
                             $_SESSION['step1_image_id'] = $cnx->lastInsertId();
                         }
@@ -86,8 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     } catch (PDOException $e) {
                         // Rollback file if insert failed (only matters for new inserts)
-                        if (!$isUpdate && file_exists(__DIR__ . 'crop_selection.php/' . $targetPath)) {
-                            unlink(__DIR__ . 'crop_selection.php/' . $targetPath);
+                        if (!$isUpdate && file_exists(__DIR__ . $targetPath)) {
+                            unlink(__DIR__ . $targetPath);
                         }
                         http_response_code(500);
                         $errors[] = "Database error: " . $e->getMessage();
