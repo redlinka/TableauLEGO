@@ -40,13 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Check if we are updating (Going back/forward)
                 if ($existingId) {
-                    $stmt = $cnx->prepare("SELECT filename FROM IMAGE WHERE image_id = ? AND img_parent = ?");
+                    $stmt = $cnx->prepare("SELECT path FROM IMAGE WHERE image_id = ? AND img_parent = ?");
                     $stmt->execute([$existingId, $parentId]);
                     $existingRow = $stmt->fetch();
 
                     if ($existingRow) {
                         $isUpdate = true;
-                        $targetFilename = $existingRow['filename']; // Reuse name
+                        $targetFilename = $existingRow['path']; // Reuse name
                     }
                 }
                 // If no existing file to update, generate a new random name
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     try {
                         if ($isUpdate) {
                             // Update existing row
-                            $stmt = $cnx->prepare("UPDATE IMAGE SET created_at = NOW() WHERE image_id = ?");
+                            $stmt = $cnx->prepare("UPDATE IMAGE SET filename = 'Cropped Image', created_at = NOW() WHERE image_id = ?");
                             $stmt->execute([$existingId]);
 
                             // Clean up forward history since crop changed
@@ -73,14 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         } else {
                             // Insert new row
-                            $stmt = $cnx->prepare("INSERT INTO IMAGE (user_id, filename, path, created_at, img_parent) VALUES (:user_id, :filename, :path, NOW(), :img_parent)");
+                            $stmt = $cnx->prepare("INSERT INTO IMAGE (user_id, filename, path, created_at, img_parent) VALUES (:user_id, 'Cropped Image', :path, NOW(), :img_parent)");
                             $userId = $_SESSION['userId'] ?? NULL;
-                            $relativePath = $imgDir . $targetFilename; // 'users/imgs/nom_fichier.jpg'
 
                             $stmt->execute([
                                     ':user_id'    => $userId,
-                                    ':filename'   => $targetFilename,
-                                    ':path'       => $relativePath,
+                                    ':path'       => $targetFilename,
                                     ':img_parent' => $parentId
                             ]);
 
@@ -93,8 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     } catch (PDOException $e) {
                         // Rollback file if insert failed (only matters for new inserts)
-                        if (!$isUpdate && file_exists(__DIR__ . $targetPath)) {
-                            unlink(__DIR__ . $targetPath);
+                        if (!$isUpdate && file_exists(__DIR__ . '/' . $targetPath)) {
+                            unlink(__DIR__ . '/' . $targetPath);
                         }
                         http_response_code(500);
                         $errors[] = "Database error: " . $e->getMessage();
@@ -110,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Get request: fetch and display image
 try {
-    $stmt = $cnx->prepare("SELECT filename FROM IMAGE WHERE image_id = ?");
+    $stmt = $cnx->prepare("SELECT path FROM IMAGE WHERE image_id = ?");
     $stmt->execute([$parentId]);
     $image = $stmt->fetch();
 
@@ -119,7 +117,7 @@ try {
         die("Image not found");
     }
     // Add timestamp to prevent caching
-    $displayPath = $imgDir . $image['filename'] . '?t=' . time();
+    $displayPath = $imgDir . $image['path'] . '?t=' . time();
 
 } catch (PDOException $e) {
     http_response_code(500);

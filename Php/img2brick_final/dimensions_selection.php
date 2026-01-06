@@ -16,12 +16,12 @@ $errors = [];
 
 // Fetch parent image for preview and dimensions
 try {
-    $stmt = $cnx->prepare("SELECT filename FROM IMAGE WHERE image_id = ?");
+    $stmt = $cnx->prepare("SELECT path FROM IMAGE WHERE image_id = ?");
     $stmt->execute([$parentId]);
     $image = $stmt->fetch();
     if (!$image) die("Image not found");
 
-    $sourceImg = $imgDir . $image['filename'];
+    $sourceImg = $imgDir . $image['path'];
     $fullSourcePath = __DIR__ . '/' . $sourceImg;
 
     if (!file_exists($fullSourcePath)) {
