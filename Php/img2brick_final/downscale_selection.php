@@ -22,8 +22,8 @@ $errors = [];
 $algos  = ['nearest', 'bilinear', 'bicubic'];
 $generatedImages = [];
 
-// Retrieve parent image filename (IMPORTANT: filename only, no path prefix)
-$stmt = $cnx->prepare("SELECT filename FROM IMAGE WHERE image_id = ?");
+// Retrieve parent image file
+$stmt = $cnx->prepare("SELECT path FROM IMAGE WHERE image_id = ?");
 $stmt->execute([$parentId]);
 $sourceFile = $stmt->fetchColumn();
 
@@ -69,13 +69,13 @@ if (empty($errors)) {
         if ($libDir === false) $errors[] = "dossier lib introuvable";
 
         // Windows => PATH_SEPARATOR = ;
-        $cp = $jarPath . PATH_SEPARATOR . ($libDir . DIRECTORY_SEPARATOR . '*');
+        $cp = $jarPath . PATH_SEPARATOR . $libDir . DIRECTORY_SEPARATOR . '*';
 
         // DEBUG (temporaire)
         $errors[] = "DEBUG CP=" . $cp;
 
         $cmd = sprintf(
-            '%s -cp %s fr.uge.univ_eiffel.Main %s %s %d %d %s 2>&1',
+            '%s -cp %s fr.uge.univ_eiffel.ImageRescaler %s %s %d %d %s 2>&1',
             $javaCmd,
             escapeshellarg($cp),
             escapeshellarg($sourcePath),
@@ -117,13 +117,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // If a step2 image already exists, reuse its filename
             if ($existingId) {
                 // FIX: correct placeholders + fetch filename
-                $stmt = $cnx->prepare("SELECT filename FROM IMAGE WHERE image_id = ? AND img_parent = ?");
+                $stmt = $cnx->prepare("SELECT path FROM IMAGE WHERE image_id = ? AND img_parent = ?");
                 $stmt->execute([$existingId, $parentId]);
                 $existingRow = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                if ($existingRow && !empty($existingRow['filename'])) {
+                if ($existingRow && !empty($existingRow['path'])) {
                     $isUpdate = true;
-                    $finalName = $existingRow['filename'];
+                    $finalName = $existingRow['path'];
                 }
             }
 
@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 try {
                     if ($isUpdate) {
                         // Update existing database record
-                        $stmt = $cnx->prepare("UPDATE IMAGE SET path = ?, created_at = NOW() WHERE image_id = ?");
+                        $stmt = $cnx->prepare("UPDATE IMAGE SET filename = ?, created_at = NOW() WHERE image_id = ?");
                         $stmt->execute([$selectedAlgo, $existingId]);
 
                         // Invalidate downstream steps
@@ -150,10 +150,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         // Insert new database record (guest allowed)
                         $stmt = $cnx->prepare("
                             INSERT INTO IMAGE (user_id, filename, path, created_at, img_parent)
-                            VALUES (IFNULL(?, 1), ?, ?, NOW(), ?)
+                            VALUES (?, ?, ?, NOW(), ?)
                         ");
                         $userId = $_SESSION['userId'] ?? NULL;
-                        $stmt->execute([$userId, $finalName, $selectedAlgo, $parentId]);
+                        $stmt->execute([$userId, $selectedAlgo, $finalName, $parentId]);
                         $_SESSION['step2_image_id'] = $cnx->lastInsertId();
                     }
 
