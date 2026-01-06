@@ -106,14 +106,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     try {
                         // Assign NULL user ID for guests
                         $userId = $_SESSION['userId'] ?? NULL;
-                        $relativePath = 'users/imgs/' . $safeName;
                         $width = (int)$size[0];
                         $height = (int)$size[1];
 
                         $stmt = $cnx->prepare("INSERT INTO IMAGE (user_id, filename, path, width, height, created_at, img_parent) VALUES (:userId, :filename, :path, :width, :height, NOW(), NULL)");
                         $stmt->bindParam(":userId", $userId);
-                        $stmt->bindParam(":filename", $safeName);
-                        $stmt->bindParam(":path", $relativePath); // avant sa utilisait $img['name'] pour le path
+                        $stmt->bindParam(":filename", $img['name']);
+                        $stmt->bindParam(":path", $safeName);
                         $stmt->bindParam(":width", $width);
                         $stmt->bindParam(":height", $height);
 
