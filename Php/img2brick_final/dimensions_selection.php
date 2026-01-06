@@ -21,8 +21,11 @@ try {
     $image = $stmt->fetch();
     if (!$image) die("Image not found");
 
-    $sourceImg = $imgDir . $image['filename'];
+    $sourceImg = $image['path'];
     $fullSourcePath = __DIR__ . '/' . $sourceImg;
+    if (!file_exists($fullSourcePath)) {
+        die("File missing on server: " . htmlspecialchars($fullSourcePath));
+    }
 
     // Get original dimensions for the "Keep Ratio" logic
     list($origW, $origH) = getimagesize($fullSourcePath);
