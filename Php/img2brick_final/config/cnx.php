@@ -174,7 +174,7 @@ function deleteDescendants($cnx, $imageId, $imgDir, $tilingDir, $keepSelf = fals
     // Delete the node itself unless requested otherwise (e.g., when updating crop but keeping the ID)
     if (!$keepSelf) {
         // Fetch filename to delete physical files
-        $stmtMe = $cnx->prepare("SELECT filename FROM IMAGE WHERE image_id = ?");
+        $stmtMe = $cnx->prepare("SELECT path FROM IMAGE WHERE image_id = ?");
         $stmtMe->execute([$imageId]);
         $myFile = $stmtMe->fetchColumn();
 
@@ -218,10 +218,11 @@ function cleanStorage($cnx, $imgDir, $brickDir) {
     // Clean Abandoned Guest Data
     // Find root images (no parent) belonging to guests (no user_id)
     try {
-        $stmt = $cnx->query("SELECT image_id, filename FROM IMAGE WHERE user_id IS NULL AND img_parent IS NULL"); //
+        $stmt = $cnx->query("SELECT image_id, path FROM IMAGE WHERE user_id IS NULL AND img_parent IS NULL"); //
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $filePath = $imgDir . '/' . $row['filename'];
-            $brickPath = $brickDir . '/' . $row['filename'];
+            $filePath = $imgDir . '/' . $row['path'];
+            $baseName = pathinfo($row['path'], PATHINFO_FILENAME);
+            $brickPath = $brickDir . '/' . $baseName . '.txt';
 
             // If file is older than 1 hour, assume session abandoned
             if (file_exists($filePath) && ($now - filemtime($filePath) > 3600)) {
