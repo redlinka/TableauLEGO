@@ -21,8 +21,9 @@ try {
     $image = $stmt->fetch();
     if (!$image) die("Image not found");
 
-    $sourceImg = $image['path'];
+    $sourceImg = $imgDir . $image['filename'];
     $fullSourcePath = __DIR__ . '/' . $sourceImg;
+
     if (!file_exists($fullSourcePath)) {
         die("File missing on server: " . htmlspecialchars($fullSourcePath));
     }
