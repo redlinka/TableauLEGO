@@ -271,7 +271,7 @@ try {
         if (!canvas) return;
 
         // Put data into Hidden Input
-        const base64 = canvas.toDataURL('image/jpeg', 0.9);
+        const base64 = canvas.toDataURL('image/png', 0.9);
         document.getElementById('hiddenImage').value = base64;
 
         // Submit Form
