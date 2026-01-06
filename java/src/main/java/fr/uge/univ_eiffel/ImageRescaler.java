@@ -45,8 +45,10 @@ public class ImageRescaler {
             BufferedImage dest = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
             method.downscale(src, dest);
 
+
             // 4. Save
-            ImageUtils.bufferedToImage(outputPath, dest);
+            ImageUtils.bufferedToImage(outputPath + ".png", dest);
+            ImageUtils.bufferedToHexMatrix(outputPath +".txt", dest);
             System.out.println("SUCCESS");
 
         } catch (Exception e) {
