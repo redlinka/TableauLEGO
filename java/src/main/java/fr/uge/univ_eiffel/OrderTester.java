@@ -24,7 +24,7 @@ public class OrderTester {
             final RestockManager restorer = new RestockManager(inventory, client, orderer, payer, verifier);
 
             String solutionPath = "output.txt";
-            int imageId = 1;
+            int imageId = 3;
             int lastId = inventory.newConfirmedTiling(solutionPath, imageId);
 
             restorer.reactiveRestockage(solutionPath, lastId);

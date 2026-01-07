@@ -117,7 +117,7 @@ public class InventoryManager implements AutoCloseable {
     public String exportCatalog(String catPath) throws Exception {
 
         // count lines
-        String countQuery = "SELECT COUNT(*) FROM CATALOG";
+        String countQuery = "SELECT COUNT(*) FROM catalog_with_price_and_stock";
         Statement countStmt = connection.createStatement();
         ResultSet countRs = countStmt.executeQuery(countQuery);
 
@@ -139,12 +139,12 @@ public class InventoryManager implements AutoCloseable {
                 String holes = result.getString("holes");
                 String hex = result.getString("color_hex");
                 double price = result.getDouble("unit_price");
-                int stock = 100; //result.getInt("stock");
+                int stock = result.getInt("stock");
 
                 writer.printf(Locale.US,"%d,%d,%s,%s,%.5f,%d%n", width, height, holes, hex, price, stock);
             }
         }
-        return catPath + ".txt";
+        return catPath;
     }
 
     /** Helper to convert hex string to byte array.
@@ -253,17 +253,15 @@ public class InventoryManager implements AutoCloseable {
         // Insert the brick into inventory
         String insertSql = "INSERT INTO INVENTORY (certificate, serial_num, unit_price, pavage_id, id_catalogue) VALUES (?, ?, ?, ?, ?)";
 
-        byte[] certBytes = hexToBytes(brick.certificate());
-        byte[] serialBytes = hexToBytes(brick.serial());
-
         try (PreparedStatement stmt = connection.prepareStatement(insertSql)) {
-            stmt.setBytes(1, certBytes);
-            stmt.setBytes(2, serialBytes);
+            stmt.setString(1, brick.certificate());
+            stmt.setString(2, brick.serial());
             stmt.setDouble(3, getUnitPrice(catalogId));
             stmt.setInt(4, tilingID);
             stmt.setInt(5, catalogId);
             stmt.executeUpdate();
         }
+        System.out.println("Adding brick " + brick.name() + " to inventory...");
         return true;
     }
 
