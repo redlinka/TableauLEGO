@@ -1,12 +1,13 @@
 <?php
+require_once __DIR__ . '/i18n.php';
 $isLoggedIn = isset($_SESSION['userId']);
-$navUsername = $_SESSION['username'] ?? 'Account';
+$navUsername = $_SESSION['username'] ?? tr('nav.account_guest', 'Account');
 $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
     <div class="container-fluid px-3">
-        <a class="navbar-brand fw-bold" href="index.php">🧱 Img2Brick</a>
+        <a class="navbar-brand fw-bold" href="index.php" data-i18n="brand.name">Img2Brick</a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -20,25 +21,35 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 mt-3 mt-lg-0">
                 <?php if ($isLoggedIn): ?>
 
-                    <a href="my_orders.php" class="btn btn-outline-secondary <?= ($currentPage == 'my_orders.php') ? 'active' : '' ?>">
-                        📦 My Orders
+                    <a href="my_orders.php" class="btn btn-outline-secondary <?= ($currentPage == 'my_orders.php') ? 'active' : '' ?>" data-i18n="nav.my_orders">
+                        My Orders
                     </a>
 
                     <a href="my_account.php" class="btn btn-outline-secondary <?= ($currentPage == 'my_account.php') ? 'active' : '' ?>">
-                        👤 <?= htmlspecialchars($navUsername) ?>
+                        <?= htmlspecialchars($navUsername) ?>
                     </a>
 
-                    <a href="logout.php" class="btn btn-outline-danger">Log Out</a>
+                    <a href="logout.php" class="btn btn-outline-danger" data-i18n="nav.logout">Log Out</a>
 
                 <?php else: ?>
 
-                    <a href="connexion.php" class="btn btn-outline-primary">Log In</a>
-                    <a href="creation.php" class="btn btn-primary">Sign Up</a>
+                    <a href="connexion.php" class="btn btn-outline-primary" data-i18n="nav.login">Log In</a>
+                    <a href="creation.php" class="btn btn-primary" data-i18n="nav.signup">Sign Up</a>
 
                 <?php endif; ?>
+
+                <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
+                    <label class="small text-muted mb-0" for="langSelect" data-i18n="nav.language">Language</label>
+                    <select id="langSelect" class="form-select form-select-sm w-auto">
+                        <option value="fr" data-i18n="nav.lang.fr">Francais</option>
+                        <option value="en" data-i18n="nav.lang.en">English</option>
+                        <option value="es" data-i18n="nav.lang.es">Espanol</option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/i18n.js"></script>
