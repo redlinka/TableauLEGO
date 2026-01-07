@@ -11,31 +11,26 @@ if (!isset($_SESSION['step1_image_id']) || !isset($_SESSION['target_width'])) {
 
 $parentId = $_SESSION['step1_image_id'];
 $_SESSION['redirect_after_login'] = 'downscale_selection.php';
-
 $width  = $_SESSION['target_width'];
 $height = $_SESSION['target_height'];
-
 $imgDir    = 'users/imgs/';
 $tilingDir = 'users/tilings/';
-
 $errors = [];
-$algos  = ['nearest', 'bilinear', 'bicubic'];
+$algos  = ['nearest', 'bilinear', 'bicubic']; // add the algos here
 $generatedImages = [];
 
 // Retrieve parent image file
 $stmt = $cnx->prepare("SELECT path FROM IMAGE WHERE image_id = ?");
 $stmt->execute([$parentId]);
 $sourceFile = $stmt->fetchColumn();
-
 if (!$sourceFile) {
     $errors[] = "Database Error: parent image not found (image_id=$parentId).";
 }
 
 // Generate downscaled variations
-$jarPath = __DIR__ . '/brain.jar';
-
-// Build source path ONCE: __DIR__/users/imgs/<filename>
+$jarPath = realpath(__DIR__ . '/java2BrickFusion-1.0-SNAPSHOT.jar');
 $sourcePath = __DIR__ . '/' . $imgDir . $sourceFile;
+$libDir = realpath(__DIR__ . '/lib');
 
 // Detect Java executable
 $javaCmd = 'java';
@@ -49,7 +44,7 @@ if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
 // Extra safety checks (helps pinpoint "chemin introuvable")
 if (empty($errors)) {
     if (!file_exists($jarPath)) {
-        $errors[] = "File Error: brain.jar not found at: " . $jarPath;
+        $errors[] = "File Error: file.jar not found at: " . $jarPath;
     }
     if (!file_exists($sourcePath)) {
         $errors[] = "File Error: source image not found at: " . $sourcePath;
@@ -59,20 +54,13 @@ if (empty($errors)) {
 if (empty($errors)) {
     foreach ($algos as $algo) {
         // Define temporary output path
-        $tempName = 'temp_' . $algo . '_' . $parentId . '.png';
+        $tempName = 'temp_' . $algo . '_' . $parentId;
         $destPath = __DIR__ . '/' . $imgDir . $tempName;
-
-        $jarPath = realpath(__DIR__ . '/brain.jar');
-        if ($jarPath === false) $errors[] = "brain.jar introuvable";
-
-        $libDir = realpath(__DIR__ . '/lib');
-        if ($libDir === false) $errors[] = "dossier lib introuvable";
 
         // Windows => PATH_SEPARATOR = ;
         $cp = $jarPath . PATH_SEPARATOR . $libDir . DIRECTORY_SEPARATOR . '*';
 
-        // DEBUG (temporaire)
-        $errors[] = "DEBUG CP=" . $cp;
+        //$errors[] = "DEBUG CP=" . $cp; // debug
 
         $cmd = sprintf(
             '%s -cp %s fr.uge.univ_eiffel.ImageRescaler %s %s %d %d %s 2>&1',
@@ -87,11 +75,10 @@ if (empty($errors)) {
 
         $output = [];
         $returnCode = 0;
-
         exec($cmd, $output, $returnCode);
 
         if ($returnCode === 0) {
-            $generatedImages[$algo] = $tempName . '?t=' . time();
+            $generatedImages[$algo] = $tempName . '.png?t=' . time();
         } else {
             $errors[] = "Failed to generate $algo: " . implode(" ", $output);
         }
