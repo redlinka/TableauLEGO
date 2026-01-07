@@ -1,18 +1,35 @@
 package fr.uge.univ_eiffel.mediators;
 
 import fr.uge.univ_eiffel.Brick;
+import fr.uge.univ_eiffel.payment_methods.PaymentMethod;
+import fr.uge.univ_eiffel.security.BrickVerifier;
 import fr.uge.univ_eiffel.security.OfflineVerifier;
 import fr.uge.univ_eiffel.security.OnlineVerifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RestockManager {
 
     private static List<Integer> orders;
     private static List<List<Piece>> pieces;
     private static int RANGE = 7;
+
+    private final InventoryManager inventory;
+    private final OrderManager orderer;
+    private final FactoryClient client;
+    private final PaymentMethod paymentMethod;
+    private final BrickVerifier verifier;
+
+    public RestockManager(InventoryManager inventory, OrderManager orderer, FactoryClient client, PaymentMethod paymentMethod, BrickVerifier verifier) {
+        this.inventory = inventory;
+        this.orderer = orderer;
+        this.client = client;
+        this.paymentMethod = paymentMethod;
+        this.verifier = verifier;
+    }
 
     public static record Piece(int idInventory, int pavageId, int idCatalog){
         @Override
@@ -31,7 +48,7 @@ public class RestockManager {
      */
     static @NotNull Map<Integer, Integer> calculateDailyAverage() {
         System.out.println("Calculating daily average...");
-        // records the amount of each type of coin used
+        // records the amount of each type of brick used
         Map<Integer, Integer> quantity = new HashMap<>();
         for(List<Piece> orderPieces : pieces){
             for(Piece piece : orderPieces) {
@@ -62,16 +79,16 @@ public class RestockManager {
      * If the stock is below the daily average, it calculates how much more stock is required.
      * It also considers a minimum stock threshold of 10 units for any product.
      *
-     * @param dailyAverages a Map where the key is the product catalog ID and the value is the daily average sales
+     * @param need a Map where the key is the product catalog ID and the value is the daily average sales
      * @param stock a Map representing the current stock levels, where the key is the product catalog ID and the value is the stock count
      * @return a Map where the key is the product catalog ID and the value is the amount of stock to prepare
      */
-    static @NotNull Map<Integer, Integer> calculateStockToPrepare(Map<Integer, Integer> dailyAverages, Map<Integer, Integer> stock){
+    public static @NotNull Map<Integer, Integer> calculateRestock(Map<Integer, Integer> need, Map<Integer, Integer> stock){
         System.out.println("Calculating stock to prepare...");
         Map<Integer, Integer> stockToPrepare = new HashMap<>();
 
         // for each daily average amount of piece
-        for(Map.Entry<Integer, Integer> a : dailyAverages.entrySet()){
+        for(Map.Entry<Integer, Integer> a : need.entrySet()){
 
             //if there is no piece in stock, we set 0 by default
             int pieceAmount = stock.get(a.getKey()) != null ?  stock.get(a.getKey()) : 0 ;
@@ -99,13 +116,12 @@ public class RestockManager {
      * with product names and quantities to be ordered.
      *
      * @param stockToRefill a Map where the key is the product catalog ID and the value is the amount of stock to refill
-     * @param im an InventoryManager used to retrieve the product names from the catalog IDs
      * @return a Map where the key is the product name and the value is the quantity to be ordered
      */
-    static @NotNull Map<String, Integer> parseInvoice(@NotNull Map<Integer, Integer> stockToRefill, InventoryManager im){
+    public @NotNull Map<String, Integer> makeOrder(@NotNull Map<Integer, Integer> stockToRefill){
         Map<String, Integer> invoice  = new HashMap<>();
         for(int catalogId: stockToRefill.keySet()){
-            String brickName = im.getBrickTypeName(catalogId);
+            String brickName = inventory.getBrickTypeName(catalogId);
             invoice.put(brickName, stockToRefill.get(catalogId));
         }
 
@@ -123,23 +139,25 @@ public class RestockManager {
      * the delivery status. Once the order is complete, it adds the delivered items to
      * the inventory, verifying each brick’s certificate before adding.
      *
-     * @param inventory the InventoryManager used to add bricks to the inventory
-     * @param orderer the OrderManager responsible for handling the order process
-     * @param client the FactoryClient used for client-side operations such as quote requests and verification
      * @param invoice a Map containing the product names and quantities to be ordered
      * @throws Exception if any errors occur during the order process or inventory update
      */
-    static void refillInventory(InventoryManager inventory, @NotNull OrderManager orderer, @NotNull FactoryClient client, Map<String, Integer> invoice) throws Exception {
+    public void refillInventory(Map<String, Integer> invoice) throws Exception {
         var quote = orderer.requestQuote((HashMap<String, Integer>) invoice);
         System.out.println("currently asking confirmation of quote: " + quote);
+
+        if (quote.price() > client.balance()) {
+            System.err.println("Insufficient balance to place the order. Required: " + quote.price() + ", Available: " + client.balance());
+
+        }
 
         orderer.confirmOrder(quote.id());
 
         OrderManager.Delivery status;
 
         do {
-            //we check every 500 millisecs
-            Thread.sleep(500);
+            //we check every 5 secs
+            Thread.sleep(5000);
             status = orderer.deliveryStatus(quote.id());
             System.out.println("pending bricks :" + status.pendingBricks());
         } while (!status.completed());
@@ -154,9 +172,9 @@ public class RestockManager {
             boolean valid = online.verify(brick);
             // Offline verification
             boolean offlineVerif = offline.verify(brick);
-            boolean added = inventory.add(brick);
 
-            if (valid && offlineVerif && added) {
+            if (valid && offlineVerif) {
+                boolean added = inventory.add(brick);
                 System.out.println("Brick " + brick.name() + " added to inventory");
             } else {
                 System.out.println("Brick " + brick.name() + " failed verification or already exists");
@@ -166,43 +184,74 @@ public class RestockManager {
     }
 
     /**
+     * Performs reactive restocking based on the inputed tiling solution.
+     * This method analyzes the provided tiling solution to determine
+     * which pieces need to be restocked in the inventory.
+     * @param solutionPath the path to the tiling solution file
+     * @return true if the restocking process completed successfully, false otherwise
+     * @throws Exception if any errors occur during the restocking process
+     */
+    public boolean reactiveRestockage(String solutionPath) throws Exception {
+        Map<Integer, Integer> stock = inventory.getStock();
+        Map<Integer, Integer> needed = OrderManager.parseSolutionCounts(solutionPath).entrySet().stream().collect(Collectors.toMap(
+                e -> {
+                    try {
+                        return inventory.getCatalogId(e.getKey());
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                },
+                Map.Entry::getValue,
+                Integer::sum
+        ));
+        //order the pieces
+        Map<String, Integer> order = makeOrder(needed);
+        if(order.isEmpty()){
+            System.out.println("No bricks found");
+            return true;
+        }
+        System.out.println("Order: " + order);
+        refillInventory(order);
+        inventory.addRestockHistory(order);
+        return true;
+    }
+
+    /**
      * Performs the daily restocking process by analyzing orders, calculating daily averages,
      * determining the stock needed to prepare, and placing orders to refill the inventory.
      *
      * This method is the main entry point for the daily restock procedure. It retrieves orders,
      * calculates the necessary stock adjustments, and places an order to ensure the inventory is sufficiently stocked.
      *
-     * @param im the InventoryManager used to retrieve orders and get data
      * @return true if the restocking process completed successfully, false otherwise
      * @throws SQLException if a database error occurs while retrieving order or stock data
      */
-    public static boolean dailyRestockage(InventoryManager im) throws SQLException {
+    public boolean dailyRestockage() throws SQLException {
 
         pieces = new ArrayList<>();
 
         try {
             //retrieve orders from the last RANGE days
-            orders = im.getOrders(RANGE);
+            orders = inventory.getOrders(RANGE);
             System.out.println("Getting orders pieces");
             //retrieve the items used in each order
             for(int x : orders){
-                List<Piece> c = im.getOrderPieces(x);
+                List<Piece> c = inventory.getOrderPieces(x);
                 pieces.add(c);
             }
             // calculates the average of the different types of coins used per day
             Map<Integer, Integer> cda = calculateDailyAverage();
             // calculates the number of parts to be ordered for each type
-            Map<Integer, Integer> cstp = calculateStockToPrepare(cda,  im.getStock());
+            Map<Integer, Integer> cstp = calculateRestock(cda,  inventory.getStock());
 
             //order the pieces
-            var invoice = parseInvoice(cstp, im);
+            Map<String, Integer> invoice = makeOrder(cstp);
             if(invoice.isEmpty()){
                 System.out.println("No bricks found");
                 return true;
             }
-            var client = FactoryClient.makeFromProps("config.properties");
-            refillInventory(im, new OrderManager(client, im), client, invoice);
-            im.addRestockHistory(invoice);
+            refillInventory(invoice);
+            inventory.addRestockHistory(invoice);
             return true;
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -210,11 +259,4 @@ public class RestockManager {
             throw new RuntimeException(e);
         }
     }
-
-//    public static void main(String[] args) throws SQLException {
-//
-//        if(!dailyRestockage(InventoryManager.makeFromProps("config.properties"))){
-//            System.err.println("Error during daily restocking");
-//        }
-//    }
 }

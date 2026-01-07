@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OrderManager {
     private final FactoryClient client;
@@ -24,35 +25,41 @@ public class OrderManager {
         this.inventory = inventory;
     }
 
-    public HashMap<String, Integer> parseInvoice(String invoicePath) {
+    /**
+     * Parses a solution output file and counts the occurrences of each brick.
+     * * @param filePath The path to the solution file (e.g., "output.txt").
+     * @return A Map where Key = Brick Name (e.g., "6-24/1591cb") and Value = Quantity.
+     */
+    public static HashMap<String, Integer> parseSolutionCounts(String filePath) {
+        HashMap<String, Integer> brickCounts = new HashMap<>();
 
-        if (invoicePath == null || invoicePath.trim().isEmpty()) {
-            return null;
-        }
-        HashMap<String, Integer> missing = new HashMap<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            // 1. Skip the header line (Price and Quality scores)
+            reader.readLine();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(invoicePath))) {
             String line;
-            while ((line = br.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
 
-                if (line == null || line.trim().isEmpty()) {
-                    throw new IllegalArgumentException("Empty line detected in invoice");
-                }
-                String[] parts = line.split(",");
+                // 2. Extract the brick name
+                // Format is: Name,Rotation,X,Y -> We grab everything before the first comma
+                int commaIndex = line.indexOf(',');
+                if (commaIndex != -1) {
+                    String brickName = line.substring(0, commaIndex);
 
-                if (parts.length != 2) {
-                    throw new IllegalArgumentException("Invalid format in " + line);
+                    // 3. Update the count in the map
+                    // If it exists, add 1. If not, set to 1.
+                    brickCounts.merge(brickName, 1, Integer::sum);
                 }
-                String blockKey = parts[0].trim().toLowerCase();
-                int qte = Integer.parseInt(parts[1].trim());
-                missing.put(blockKey, qte);
             }
         } catch (IOException e) {
-            System.err.println("Error reading invoice file: " + invoicePath);
-            e.printStackTrace();
-            return null;
+            System.err.println("Error parsing solution file: " + e.getMessage());
+            // Depending on how you want to handle errors, you can throw a RuntimeException here
+            return new HashMap<>();
         }
-        return missing;
+
+        return brickCounts;
     }
 
     public Quote requestQuote(HashMap<String, Integer> bricks) throws IOException {

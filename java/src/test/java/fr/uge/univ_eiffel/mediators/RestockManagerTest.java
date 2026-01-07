@@ -15,7 +15,7 @@ class RestockManagerTest {
      * (Above minimum buffer of 10, so simple subtraction).
      */
     @Test
-    void calculateStockToPrepare_StandardRefill() {
+    void calculateRestock_StandardRefill() {
         // ARRANGE
         Map<Integer, Integer> dailyAvg = new HashMap<>();
         dailyAvg.put(101, 50); // Catalog ID 101, needs 50/day
@@ -24,7 +24,7 @@ class RestockManagerTest {
         currentStock.put(101, 20); // Catalog ID 101, has 20
 
         // ACT
-        Map<Integer, Integer> result = RestockManager.calculateStockToPrepare(dailyAvg, currentStock);
+        Map<Integer, Integer> result = RestockManager.calculateRestock(dailyAvg, currentStock);
 
         // ASSERT
         assertTrue(result.containsKey(101), "Should return an order for item 101");
@@ -40,13 +40,13 @@ class RestockManagerTest {
      * Result: 48 + 10 = 58.
      */
     @Test
-    void calculateStockToPrepare_CriticalLow_AddsBuffer() {
+    void calculateRestock_CriticalLow_AddsBuffer() {
         // ARRANGE
         Map<Integer, Integer> dailyAvg = Map.of(101, 50);
         Map<Integer, Integer> currentStock = Map.of(101, 2); // Only 2 left!
 
         // ACT
-        Map<Integer, Integer> result = RestockManager.calculateStockToPrepare(dailyAvg, currentStock);
+        Map<Integer, Integer> result = RestockManager.calculateRestock(dailyAvg, currentStock);
 
         // ASSERT
         // Expected: (50 - 2) + 10 buffer = 58
@@ -66,7 +66,7 @@ class RestockManagerTest {
         Map<Integer, Integer> currentStock = Map.of(101, 100);
 
         // ACT
-        Map<Integer, Integer> result = RestockManager.calculateStockToPrepare(dailyAvg, currentStock);
+        Map<Integer, Integer> result = RestockManager.calculateRestock(dailyAvg, currentStock);
 
         // ASSERT
         assertFalse(result.containsKey(101), "Should not create an order entry if stock is sufficient");
@@ -84,7 +84,7 @@ class RestockManagerTest {
         Map<Integer, Integer> currentStock = new HashMap<>(); // Empty stock
 
         // ACT
-        Map<Integer, Integer> result = RestockManager.calculateStockToPrepare(dailyAvg, currentStock);
+        Map<Integer, Integer> result = RestockManager.calculateRestock(dailyAvg, currentStock);
 
         // ASSERT
         // Logic: (5 - 0) + 10 (buffer because 0 < 10) = 15

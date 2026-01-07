@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 
 /** The big class that orchestrates the entire application flow.
  * WARNING: This code is heavily tailored for MY local MariaDB setup.
@@ -146,7 +147,7 @@ public class App {
      * Output: void (Updates DB with new bricks). */
     private void handleOrders(String invoicePath) throws Exception {
 
-        var invoice = orderer.parseInvoice(invoicePath);
+        var invoice = orderer.parseSolutionCounts(invoicePath);
         if (invoice == null || invoice.isEmpty()) {
             System.out.println("No invoice detected. Skipping order.");
             return;
@@ -154,7 +155,7 @@ public class App {
 
         System.out.println("Invoice parsed: " + invoice);
 
-        var quote = orderer.requestQuote(invoice);
+        var quote = orderer.requestQuote((HashMap<String, Integer>)invoice);
         System.out.println("currently asking confirmation of quote: " + quote);
 
         orderer.confirmOrder(quote.id());
