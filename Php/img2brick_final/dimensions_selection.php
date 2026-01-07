@@ -213,6 +213,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script>
+    function formatText(key, vars, fallback) {
+        if (window.I18N && typeof window.I18N.format === 'function') {
+            return window.I18N.format(key, vars, fallback);
+        }
+        var text = fallback || key;
+        if (!vars) return text;
+        return text.replace(/\{(\w+)\}/g, function (match, k) {
+            return Object.prototype.hasOwnProperty.call(vars, k) ? vars[k] : match;
+        });
+    }
+
     // Original image dimensions from PHP
     const origW = <?= $origW ?>;
     const origH = <?= $origH ?>;
@@ -289,11 +300,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (w < 16) w = 16;
             if (h < 16) h = 16;
 
-            document.getElementById('sliderValDisplay').innerText = longSide + ' studs (Longest Side)';
+            document.getElementById('sliderValDisplay').innerText = formatText(
+                'dims.longest_side',
+                { count: longSide },
+                longSide + ' studs (Longest Side)'
+            );
         }
 
         // Update UI Text
-        displayDims.innerText = `${w} x ${h}`;
+        displayDims.innerText = formatText('dims.size_format', { w: w, h: h }, w + ' x ' + h);
 
         // Update Hidden Inputs
         wInput.value = w;

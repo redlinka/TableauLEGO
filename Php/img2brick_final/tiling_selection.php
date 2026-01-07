@@ -344,7 +344,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (val && val > 0) {
             thresholdInput.value = val;
         } else {
-            alert("Please enter a valid number");
+            if (window.I18N && typeof window.I18N.t === 'function') {
+                alert(window.I18N.t('tiling.valid_number', 'Please enter a valid number'));
+            } else {
+                alert("Please enter a valid number");
+            }
         }
     }
 

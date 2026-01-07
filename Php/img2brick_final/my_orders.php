@@ -210,6 +210,34 @@ try {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    function t(key, fallback) {
+        if (window.I18N && typeof window.I18N.t === 'function') {
+            return window.I18N.t(key, fallback);
+        }
+        return fallback || key;
+    }
+
+    function formatText(key, vars, fallback) {
+        if (window.I18N && typeof window.I18N.format === 'function') {
+            return window.I18N.format(key, vars, fallback);
+        }
+        var text = fallback || key;
+        if (!vars) return text;
+        return text.replace(/\{(\w+)\}/g, function (match, k) {
+            return Object.prototype.hasOwnProperty.call(vars, k) ? vars[k] : match;
+        });
+    }
+
+    function translateStatus(status) {
+        var map = {
+            PREPARATION: 'orders.status.preparation',
+            SHIPPED: 'orders.status.shipped',
+            DELIVERED: 'orders.status.delivered',
+            CANCELLED: 'orders.status.cancelled'
+        };
+        return t(map[status] || '', status);
+    }
+
     const orderModal = document.getElementById('orderModal');
     if (orderModal) {
         orderModal.addEventListener('show.bs.modal', function (event) {
@@ -230,12 +258,16 @@ try {
             // Inject data into modal
             document.getElementById('modalRef').textContent = ref;
             document.getElementById('modalDate').textContent = date;
-            document.getElementById('modalStatus').textContent = status;
+            document.getElementById('modalStatus').textContent = translateStatus(status);
             document.getElementById('modalPrice').textContent = price;
             document.getElementById('modalAddress').textContent = address;
             document.getElementById('modalContact').textContent = contact;
             document.getElementById('modalImg').src = imgPath;
-            document.getElementById('modalDims').textContent = dims + ' studs';
+            document.getElementById('modalDims').textContent = formatText(
+                'dims.studs_suffix',
+                { value: dims },
+                dims + ' studs'
+            );
 
             // Configure download buttons
             const btnImg = document.getElementById('btnDownloadImg');
@@ -246,12 +278,12 @@ try {
                 btnTxt.href = txtPath;
                 btnTxt.classList.remove('disabled', 'btn-light');
                 btnTxt.classList.add('btn-outline-secondary');
-                btnTxt.innerHTML = '📄 Brick List (.txt)';
+                btnTxt.innerHTML = t('orders.brick_list', 'Brick List (.txt)');
             } else {
                 btnTxt.href = '#';
                 btnTxt.classList.remove('btn-outline-secondary');
                 btnTxt.classList.add('disabled', 'btn-light');
-                btnTxt.innerHTML = '🚫 List Unavailable';
+                btnTxt.innerHTML = t('orders.list_unavailable', 'List Unavailable');
             }
         });
     }
