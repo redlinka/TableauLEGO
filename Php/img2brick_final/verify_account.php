@@ -2,6 +2,7 @@
 session_start();
 global $cnx;
 include("./config/cnx.php");
+require_once __DIR__ . '/includes/i18n.php';
 
 $status = 'processing';
 $message = '';
@@ -9,7 +10,7 @@ $message = '';
 // Validate input Ensure token presence
 if (!isset($_GET['token'])) {
     $status = 'error';
-    $message = "No token provided.";
+    $message = tr('verify_account.no_token', 'No token provided.');
 } else {
     try {
         // Query token Verify validity and expiration
@@ -22,10 +23,10 @@ if (!isset($_GET['token'])) {
 
         if (!$result) {
             $status = 'error';
-            $message = "Invalid or expired verification link.";
+            $message = tr('verify_account.invalid_link', 'Invalid or expired verification link.');
         } elseif ((int)$result['age_minutes'] > 10) {
             $status = 'error';
-            $message = "This link has expired. Please request a new one.";
+            $message = tr('verify_account.expired', 'This link has expired. Please request a new one.');
         } else {
             // Invalidate token Prevent reuse
             $updateStmt = $cnx->prepare("UPDATE Tokens2FA SET is_used = 1 WHERE token = ?");
@@ -41,11 +42,11 @@ if (!isset($_GET['token'])) {
             unset($_SESSION['last_email_sent']);
 
             $status = 'success';
-            $message = "Your account has been successfully verified!";
+            $message = tr('verify_account.success_message', 'Your account has been successfully verified!');
         }
     } catch (Exception $e) {
         $status = 'error';
-        $message = 'System error. Please try again later.';
+        $message = tr('verify_account.system_error', 'System error. Please try again later.');
     }
 }
 ?>
@@ -54,7 +55,7 @@ if (!isset($_GET['token'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Account Verification</title>
+    <title><?= htmlspecialchars(tr('verify_account.page_title', 'Account Verification')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .icon-box { font-size: 3rem; margin-bottom: 1rem; }
@@ -71,18 +72,18 @@ if (!isset($_GET['token'])) {
         <div class="card-body p-5">
 
             <?php if ($status === 'success'): ?>
-                <div class="icon-box text-success-custom">🎉</div>
-                <h2 class="fw-bold mb-3">Verified!</h2>
+                <div class="icon-box text-success-custom">OK</div>
+                <h2 class="fw-bold mb-3" data-i18n="verify_account.success_title">Verified!</h2>
                 <p class="text-muted mb-4"><?= htmlspecialchars($message) ?></p>
-                <a href="connexion.php" class="btn btn-primary btn-lg w-100">Log In Now</a>
+                <a href="connexion.php" class="btn btn-primary btn-lg w-100" data-i18n="verify_account.login_now">Log In Now</a>
 
             <?php elseif ($status === 'error'): ?>
-                <div class="icon-box text-danger-custom">⚠️</div>
-                <h2 class="fw-bold mb-3">Verification Failed</h2>
+                <div class="icon-box text-danger-custom">X</div>
+                <h2 class="fw-bold mb-3" data-i18n="verify_account.error_title">Verification Failed</h2>
                 <p class="text-muted mb-4"><?= htmlspecialchars($message) ?></p>
                 <div class="d-grid gap-2">
-                    <a href="creation.php" class="btn btn-outline-secondary">Back to Sign Up</a>
-                    <a href="index.php" class="btn btn-link text-decoration-none">Go Home</a>
+                    <a href="creation.php" class="btn btn-outline-secondary" data-i18n="verify_account.back_signup">Back to Sign Up</a>
+                    <a href="index.php" class="btn btn-link text-decoration-none" data-i18n="verify_account.go_home">Go Home</a>
                 </div>
 
             <?php endif; ?>
@@ -94,3 +95,4 @@ if (!isset($_GET['token'])) {
 <?php include("./includes/footer.php"); ?>
 </body>
 </html>
+

@@ -2,6 +2,7 @@
 session_start();
 global $cnx;
 include("./config/cnx.php");
+require_once __DIR__ . '/includes/i18n.php';
 
 // Redirect if prerequisite step is missing
 if (!isset($_SESSION['step2_image_id'])) {
@@ -113,12 +114,12 @@ try {
 }
 // Define available filters
 $filters = [
-        ['name' => 'Normal', 'css' => 'none'],
-        ['name' => 'Black & White', 'css' => 'grayscale(100%)'],
-        ['name' => 'Sepia', 'css' => 'sepia(100%)'],
-        ['name' => 'Warm Red', 'css' => 'contrast(1.5) sepia(100%) hue-rotate(-50deg) saturate(2)'],
-        ['name' => 'Cool Blue', 'css' => 'contrast(1.2) hue-rotate(180deg)'],
-        ['name' => 'High Contrast', 'css' => 'contrast(2)'],
+        ['name' => 'Normal', 'key' => 'filter.normal', 'css' => 'none'],
+        ['name' => 'Black & White', 'key' => 'filter.bw', 'css' => 'grayscale(100%)'],
+        ['name' => 'Sepia', 'key' => 'filter.sepia', 'css' => 'sepia(100%)'],
+        ['name' => 'Warm Red', 'key' => 'filter.warm_red', 'css' => 'contrast(1.5) sepia(100%) hue-rotate(-50deg) saturate(2)'],
+        ['name' => 'Cool Blue', 'key' => 'filter.cool_blue', 'css' => 'contrast(1.2) hue-rotate(180deg)'],
+        ['name' => 'High Contrast', 'key' => 'filter.high_contrast', 'css' => 'contrast(2)'],
 ];
 ?>
 
@@ -126,7 +127,7 @@ $filters = [
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Step 3: Add Filters</title>
+    <title><?= htmlspecialchars(tr('filter.page_title', 'Step 3: Add Filters')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
 
@@ -169,7 +170,7 @@ $filters = [
 <?php include("./includes/navbar.php"); ?>
 
 <div class="container bg-light py-5">
-    <h2 class="text-center mb-4">Step 3: Choose a Tint</h2>
+    <h2 class="text-center mb-4" data-i18n="filter.title">Step 3: Choose a Tint</h2>
 
     <?php if (!empty($errors)): ?>
         <div class="alert alert-danger">
@@ -190,10 +191,11 @@ $filters = [
 
     <div class="row g-4">
         <?php foreach ($filters as $f): ?>
+            <?php $displayName = tr($f['key'], $f['name']); ?>
             <div class="col-md-4">
                 <div class="card h-100 shadow-sm algo-card">
                     <div class="card-header text-center fw-bold text-uppercase">
-                        <?= htmlspecialchars($f['name']) ?>
+                        <?= htmlspecialchars($displayName) ?>
                     </div>
                     <div class="card-body preview-box">
                         <img src="<?= htmlspecialchars($displayPath) ?>"
@@ -202,7 +204,7 @@ $filters = [
                              onclick="event.stopPropagation(); openModal(this.src, '<?= htmlspecialchars($f['css']) ?>')" alt="">
                     </div>
                     <div class="card-footer text-center">
-                        <button type="button" class="btn btn-outline-primary w-100"
+                        <button type="button" class="btn btn-outline-primary w-100" data-i18n="filter.select"
                                 onclick="selectFilter('<?= htmlspecialchars($f['css']) ?>', '<?= htmlspecialchars($f['name']) ?>')">
                             Select This
                         </button>
@@ -213,7 +215,7 @@ $filters = [
     </div>
 
     <div class="text-center mt-5">
-        <a href="downscale_selection.php" class="btn btn-outline-secondary">← Back</a>
+        <a href="downscale_selection.php" class="btn btn-outline-secondary" data-i18n="filter.back">Back</a>
     </div>
 </div>
 

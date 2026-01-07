@@ -2,6 +2,7 @@
 session_start();
 global $cnx;
 include("./config/cnx.php");
+require_once __DIR__ . '/includes/i18n.php';
 
 // Redirect to home if no previous image step exists
 if (!isset($_SESSION['step0_image_id'])) {
@@ -130,7 +131,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Step 1: Crop</title>
+    <title><?= htmlspecialchars(tr('crop.page_title', 'Step 1: Crop')) ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -198,18 +199,18 @@ try {
         <div class="col-lg-4">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body d-flex flex-column">
-                    <h3 class="mb-3">Crop Your Image</h3>
-                    <p class="text-muted">Choose a preset or drag the handles freely.</p>
+                    <h3 class="mb-3" data-i18n="crop.title">Crop Your Image</h3>
+                    <p class="text-muted" data-i18n="crop.subtitle">Choose a preset or drag the handles freely.</p>
 
                     <div class="mb-4">
-                        <label class="form-label fw-bold">Aspect Ratio:</label>
+                        <label class="form-label fw-bold" data-i18n="crop.aspect_ratio">Aspect Ratio:</label>
                         <div class="d-grid gap-2">
                             <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-outline-primary" onclick="setRatio(1)">1:1 (Square)</button>
-                                <button type="button" class="btn btn-outline-primary" onclick="setRatio(16/9)">16:9 (Wide)</button>
-                                <button type="button" class="btn btn-outline-primary" onclick="setRatio(4/3)">4:3 (Photo)</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setRatio(1)" data-i18n="crop.ratio_square">1:1 (Square)</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setRatio(16/9)" data-i18n="crop.ratio_wide">16:9 (Wide)</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setRatio(4/3)" data-i18n="crop.ratio_photo">4:3 (Photo)</button>
                             </div>
-                            <button type="button" class="btn btn-outline-secondary" onclick="setRatio(NaN)">🔓 Free / Custom</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setRatio(NaN)" data-i18n="crop.ratio_free">Free / Custom</button>
                         </div>
                     </div>
 
@@ -219,8 +220,8 @@ try {
                     </form>
 
                     <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
-                        <a href="index.php" class="btn btn-outline-secondary">Cancel</a>
-                        <button id="btnSave" class="btn btn-primary btn-lg">Next Step ➔</button>
+                        <a href="index.php" class="btn btn-outline-secondary" data-i18n="crop.cancel">Cancel</a>
+                        <button id="btnSave" class="btn btn-primary btn-lg" data-i18n="crop.next">Next Step</button>
                     </div>
                 </div>
             </div>
@@ -288,3 +289,4 @@ try {
 <?php include("./includes/footer.php"); ?>
 </body>
 </html>
+

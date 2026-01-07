@@ -153,7 +153,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
-                    <h2 class="text-center fw-bold mb-4">Sign Up</h2>
+                    <h2 class="text-center fw-bold mb-4" data-i18n="creation.title">Sign Up</h2>
 
                     <?php if (!empty($errors)): ?>
                         <div class="alert alert-danger">
@@ -169,41 +169,47 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_get(), ENT_QUOTES, 'UTF-8') ?>">
 
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email Address</label>
+                            <label for="email" class="form-label" data-i18n="creation.email_label">Email Address</label>
                             <input type="email" class="form-control" name="email" id="email"
                                    placeholder="name@example.com"
+                                   data-i18n-attr="placeholder:creation.email_placeholder"
                                    value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
                         </div>
 
                         <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
+                            <label for="username" class="form-label" data-i18n="creation.username_label">Username</label>
                             <input type="text" class="form-control" name="username" id="username"
                                    placeholder="Choose a username"
+                                   data-i18n-attr="placeholder:creation.username_placeholder"
                                    minlength="8"
                                    value="<?= htmlspecialchars($_POST['username'] ?? '') ?>" required>
-                            <div class="form-text">Minimum 8 characters.</div>
+                            <div class="form-text" data-i18n="creation.username_hint">Minimum 8 characters.</div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
+                            <label for="password" class="form-label" data-i18n="creation.password_label">Password</label>
                             <input type="password" class="form-control" name="password" id="password"
-                                   placeholder="Create a strong password" required>
+                                   placeholder="Create a strong password"
+                                   data-i18n-attr="placeholder:creation.password_placeholder"
+                                   required>
                         </div>
 
                         <div class="mb-3">
-                            <label for="confirm-password" class="form-label">Confirm Password</label>
+                            <label for="confirm-password" class="form-label" data-i18n="creation.confirm_label">Confirm Password</label>
                             <input type="password" class="form-control" name="confirm-password" id="confirm-password"
-                                   placeholder="Repeat password" required>
+                                   placeholder="Repeat password"
+                                   data-i18n-attr="placeholder:creation.confirm_placeholder"
+                                   required>
                             <div id="passwordError" class="form-text mt-1 fw-bold"></div>
                         </div>
 
                         <div id="message" class="alert alert-light border small mb-3">
-                            <h6 class="fw-bold mb-2">Password must contain:</h6>
-                            <div id="letter" class="req-item invalid">❌ Lowercase letter</div>
-                            <div id="capital" class="req-item invalid">❌ Uppercase letter</div>
-                            <div id="number" class="req-item invalid">❌ Number</div>
-                            <div id="special" class="req-item invalid">❌ Special character</div>
-                            <div id="length" class="req-item invalid">❌ Min 12 characters</div>
+                            <h6 class="fw-bold mb-2" data-i18n="creation.password_requirements_title">Password must contain:</h6>
+                            <div id="letter" class="req-item invalid" data-i18n="signup.requirements.lowercase">Lowercase letter</div>
+                            <div id="capital" class="req-item invalid" data-i18n="signup.requirements.uppercase">Uppercase letter</div>
+                            <div id="number" class="req-item invalid" data-i18n="signup.requirements.number">Number</div>
+                            <div id="special" class="req-item invalid" data-i18n="signup.requirements.special">Special character</div>
+                            <div id="length" class="req-item invalid" data-i18n="signup.requirements.length">Min 12 characters</div>
                         </div>
 
                         <div class="mb-4 d-flex justify-content-center">
@@ -216,12 +222,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         </div>
 
                         <div class="d-grid mb-3">
-                            <input type="submit" class="btn btn-primary btn-lg" id="submit-button" value="Create Account" disabled>
+                            <input type="submit" class="btn btn-primary btn-lg" id="submit-button" value="Create Account" data-i18n-attr="value:creation.submit" disabled>
                         </div>
 
                         <div class="text-center">
-                            <span class="text-muted">Already have an account?</span>
-                            <a href="connexion.php" class="text-decoration-none fw-bold">Log in</a>
+                            <span class="text-muted" data-i18n="creation.already_account">Already have an account?</span>
+                            <a href="connexion.php" class="text-decoration-none fw-bold" data-i18n="creation.login_link">Log in</a>
                         </div>
                     </form>
                 </div>
@@ -360,3 +366,5 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 </script>
 </body>
 </html>
+
+

@@ -2,6 +2,7 @@
 session_start();
 global $cnx;
 include("./config/cnx.php");
+require_once __DIR__ . '/includes/i18n.php';
 
 $errors = [];
 $viewState = 'form'; // States: 'form', 'success', 'error'
@@ -58,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         // Format email body
                         $emailBody = "
                                 <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; max-width: 600px;'>
-                                    <h2 style='color: #0d6efd;'>Password Reset Request 🔐</h2>
+                                    <h2 style='color: #0d6efd;'>Password Reset Request</h2>
                                     <p>We received a request to reset your password. Click the button below to proceed:</p>
                                     <p style='text-align: center;'>
                                         <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Reset Password</a>
@@ -87,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Recovery</title>
+    <title><?= htmlspecialchars(tr('password_forgotten.page_title', 'Password Recovery')) ?></title>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -106,14 +107,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php if ($viewState === 'success'): ?>
                 <div class="card shadow-sm border-0 text-center">
                     <div class="card-body p-5">
-                        <div class="icon-box text-primary">📧</div>
-                        <h2 class="fw-bold mb-3">Check your inbox</h2>
-                        <p class="text-muted mb-4">
-                            If an account exists for that email, we have sent a password reset link.
-                            It may take a few minutes to arrive.
-                        </p>
+                        <div class="icon-box text-primary">OK</div>
+                        <h2 class="fw-bold mb-3" data-i18n="password_forgotten.success_title">Check your inbox</h2>
+                        <p class="text-muted mb-4" data-i18n="password_forgotten.success_text">If an account exists for that email, we have sent a password reset link. It may take a few minutes to arrive.</p>
                         <div class="d-grid">
-                            <a href="connexion.php" class="btn btn-outline-secondary">Back to Login</a>
+                            <a href="connexion.php" class="btn btn-outline-secondary" data-i18n="password_forgotten.back_login">Back to Login</a>
                         </div>
                     </div>
                 </div>
@@ -121,12 +119,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php elseif ($viewState === 'error'): ?>
                 <div class="card shadow-sm border-0 text-center">
                     <div class="card-body p-5">
-                        <div class="icon-box text-danger-custom">⚠️</div>
-                        <h2 class="fw-bold mb-3">Request Failed</h2>
+                        <div class="icon-box text-danger-custom">X</div>
+                        <h2 class="fw-bold mb-3" data-i18n="password_forgotten.error_title">Request Failed</h2>
                         <p class="text-muted mb-4"><?= htmlspecialchars($message) ?></p>
                         <div class="d-grid gap-2">
-                            <a href="password_forgotten.php" class="btn btn-primary">Try Again</a>
-                            <a href="index.php" class="btn btn-outline-secondary">Go Home</a>
+                            <a href="password_forgotten.php" class="btn btn-primary" data-i18n="password_forgotten.try_again">Try Again</a>
+                            <a href="index.php" class="btn btn-outline-secondary" data-i18n="password_forgotten.go_home">Go Home</a>
                         </div>
                     </div>
                 </div>
@@ -134,8 +132,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php else: ?>
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-4">
-                        <h2 class="text-center fw-bold mb-4">Password Recovery</h2>
-                        <p class="text-muted text-center small mb-4">Enter your email to receive a reset link.</p>
+                        <h2 class="text-center fw-bold mb-4" data-i18n="password_forgotten.form_title">Password Recovery</h2>
+                        <p class="text-muted text-center small mb-4" data-i18n="password_forgotten.form_hint">Enter your email to receive a reset link.</p>
 
                         <?php if (!empty($errors)): ?>
                             <div class="alert alert-danger">
@@ -151,9 +149,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_get(), ENT_QUOTES, 'UTF-8') ?>">
 
                             <div class="mb-3">
-                                <label for="email" class="form-label">Email Address</label>
+                                <label for="email" class="form-label" data-i18n="password_forgotten.email_label">Email Address</label>
                                 <input type="email" class="form-control" id="email" name="email"
-                                       placeholder="name@example.com" required>
+                                       placeholder="name@example.com" data-i18n-attr="placeholder:password_forgotten.email_placeholder" required>
                             </div>
 
                             <div class="mb-4 d-flex justify-content-center">
@@ -165,11 +163,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </div>
 
                             <div class="d-grid mb-3">
-                                <button type="submit" class="btn btn-primary btn-lg">Send Recovery Link</button>
+                                <button type="submit" class="btn btn-primary btn-lg" data-i18n="password_forgotten.submit">Send Recovery Link</button>
                             </div>
 
                             <div class="text-center">
-                                <a href="connexion.php" class="text-decoration-none">Back to Login</a>
+                                <a href="connexion.php" class="text-decoration-none" data-i18n="password_forgotten.back_login">Back to Login</a>
                             </div>
                         </form>
                     </div>

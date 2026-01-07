@@ -2,6 +2,7 @@
 session_start();
 global $cnx;
 include("./config/cnx.php");
+require_once __DIR__ . '/includes/i18n.php';
 
 // Enforce login security
 if (!isset($_SESSION['userId'])) {
@@ -40,7 +41,7 @@ try {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>My Orders</title>
+    <title><?= htmlspecialchars(tr('orders.page_title', 'My Orders')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .order-card { transition: transform 0.2s, box-shadow 0.2s; border: none; }
@@ -69,23 +70,19 @@ try {
 
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5">
         <div>
-            <h1 class="fw-bold mb-2">📦 My Orders</h1>
-            <p class="text-muted mb-0">
-                Find here all the orders you made.
-            </p>
+            <h1 class="fw-bold mb-2" data-i18n="orders.title">My Orders</h1>
+            <p class="text-muted mb-0" data-i18n="orders.subtitle">Find here all the orders you made.</p>
         </div>
         <div class="mt-3 mt-md-0">
-            <a href="index.php" class="btn btn-primary btn-lg shadow-sm">
-                + New Order
-            </a>
+            <a href="index.php" class="btn btn-primary btn-lg shadow-sm" data-i18n="orders.new_order">+ New Order</a>
         </div>
     </div>
 
     <?php if (empty($orders)): ?>
         <div class="text-center py-5">
-            <div class="display-1 text-muted mb-3">🕸️</div>
-            <h3 class="text-muted">You didn't make any orders with us.</h3>
-            <a href="index.php" class="btn btn-outline-primary mt-3">Create my first mosaic</a>
+            <div class="display-1 text-muted mb-3">X</div>
+            <h3 class="text-muted" data-i18n="orders.empty_title">You didn't make any orders with us.</h3>
+            <a href="index.php" class="btn btn-outline-primary mt-3" data-i18n="orders.empty_cta">Create my first mosaic</a>
         </div>
     <?php else: ?>
 
@@ -121,6 +118,14 @@ try {
                         'CANCELLED' => 'bg-danger text-white'
                 ];
                 $badgeClass = $badges[$order['status']] ?? 'bg-secondary';
+                $statusMap = [
+                        'PREPARATION' => 'orders.status.preparation',
+                        'SHIPPED' => 'orders.status.shipped',
+                        'DELIVERED' => 'orders.status.delivered',
+                        'CANCELLED' => 'orders.status.cancelled'
+                ];
+                $statusKey = $statusMap[$order['status']] ?? null;
+                $statusLabel = $statusKey ? tr($statusKey, $order['status']) : $order['status'];
                 ?>
                 <div class="col-md-6 col-lg-4">
                     <div class="card shadow-sm h-100 order-card">
@@ -129,16 +134,16 @@ try {
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h5 class="card-title fw-bold text-primary mb-0"><?= $ref ?></h5>
-                                <span class="badge <?= $badgeClass ?> status-badge"><?= $order['status'] ?></span>
+                                <span class="badge <?= $badgeClass ?> status-badge"><?= htmlspecialchars($statusLabel) ?></span>
                             </div>
 
-                            <p class="text-muted small mb-3">
-                                📅 <?= $date ?><br>
-                                🧱 Size : <strong><?= $dimensions ?></strong><br>
-                                💳 <strong><?= $order['total_price'] ?> €</strong>
+                                                        <p class="text-muted small mb-3">
+                                <span data-i18n="orders.label_date">Date:</span> <?= $date ?><br>
+                                <span data-i18n="orders.label_size">Size:</span> <strong><?= $dimensions ?></strong><br>
+                                <span data-i18n="orders.label_price">Price:</span> <strong><?= $order['total_price'] ?> EUR</strong>
                             </p>
 
-                            <button type="button" class="btn btn-outline-dark w-100"
+                            <button type="button" class="btn btn-outline-dark w-100" data-i18n="orders.see_more"
                                     data-bs-toggle="modal"
                                     data-bs-target="#orderModal"
                                     data-ref="<?= $ref ?>"
@@ -149,9 +154,7 @@ try {
                                     data-contact="<?= htmlspecialchars($order['first_name'] . ' ' . $order['last_name']) ?>"
                                     data-img="<?= $imagePath ?>"
                                     data-dims="<?= $dimensions ?>"
-                                    data-txt="<?= file_exists($txtPath) ? $txtPath : '' ?>">
-                                👁️ See More
-                            </button>
+                                    data-txt="<?= file_exists($txtPath) ? $txtPath : '' ?>">See More</button>
                         </div>
                     </div>
                 </div>
@@ -164,39 +167,35 @@ try {
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="modalRef">Details</h5>
+                <h5 class="modal-title fw-bold" id="modalRef" data-i18n="orders.modal_title">Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="row g-4">
                     <div class="col-md-5 text-center">
                         <img src="" id="modalImg" class="modal-img bg-dark mb-2">
-                        <p class="text-muted small mb-0">preview</p>
+                        <p class="text-muted small mb-0" data-i18n="orders.modal_preview">preview</p>
                     </div>
 
                     <div class="col-md-7">
-                        <h6 class="fw-bold border-bottom pb-2">Informations</h6>
+                        <h6 class="fw-bold border-bottom pb-2" data-i18n="orders.modal_info">Information</h6>
                         <ul class="list-unstyled small mb-4">
-                            <li><strong>Date :</strong> <span id="modalDate"></span></li>
-                            <li><strong>Status :</strong> <span id="modalStatus" class="badge bg-secondary"></span></li>
-                            <li><strong>Size :</strong> <span id="modalDims" class="fw-bold"></span></li>
-                            <li><strong>Price :</strong> <span id="modalPrice"></span> €</li>
+                            <li><strong data-i18n="orders.modal_date">Date:</strong> <span id="modalDate"></span></li>
+                            <li><strong data-i18n="orders.modal_status">Status:</strong> <span id="modalStatus" class="badge bg-secondary"></span></li>
+                            <li><strong data-i18n="orders.modal_size">Size:</strong> <span id="modalDims" class="fw-bold"></span></li>
+                            <li><strong data-i18n="orders.modal_price">Price:</strong> <span id="modalPrice"></span> EUR</li>
                         </ul>
 
-                        <h6 class="fw-bold border-bottom pb-2">Shipping</h6>
-                        <p class="small mb-4">
-                            👤 <strong id="modalContact"></strong><br>
-                            📍 <span id="modalAddress" style="white-space: pre-line;"></span>
+                        <h6 class="fw-bold border-bottom pb-2" data-i18n="orders.modal_shipping">Shipping</h6>
+                                                <p class="small mb-4">
+                            <span data-i18n="orders.modal_contact">Contact:</span> <strong id="modalContact"></strong><br>
+                            <span data-i18n="orders.modal_address">Address:</span> <span id="modalAddress" style="white-space: pre-line;"></span>
                         </p>
 
-                        <h6 class="fw-bold border-bottom pb-2">files</h6>
+                        <h6 class="fw-bold border-bottom pb-2" data-i18n="orders.modal_files">Files</h6>
                         <div class="d-grid gap-2 mb-3">
-                            <a href="#" id="btnDownloadImg" class="btn btn-sm btn-outline-primary" download>
-                                🖼️ Download the preview image (.png)
-                            </a>
-                            <a href="#" id="btnDownloadTxt" class="btn btn-sm btn-outline-secondary" download>
-                                📄 Brick List (.txt)
-                            </a>
+                            <a href="#" id="btnDownloadImg" class="btn btn-sm btn-outline-primary" download data-i18n="orders.download_image">Download the preview image (.png)</a>
+                            <a href="#" id="btnDownloadTxt" class="btn btn-sm btn-outline-secondary" download data-i18n="orders.download_list">Brick List (.txt)</a>
                         </div>
                     </div>
                 </div>
@@ -290,3 +289,6 @@ try {
 </script>
 </body>
 </html>
+
+
+

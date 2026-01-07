@@ -2,6 +2,7 @@
 session_start();
 global $cnx;
 include("./config/cnx.php");
+require_once __DIR__ . '/includes/i18n.php';
 
 // Check session prerequisites
 if (!isset($_SESSION['step1_image_id']) || !isset($_SESSION['target_width'])) {
@@ -185,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Step 2b: Compare</title>
+    <title><?= htmlspecialchars(tr('downscale.page_title', 'Step 2b: Compare')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .pixelated {
@@ -248,7 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include("./includes/navbar.php"); ?>
 
 <div class="container bg-light py-5">
-    <h2 class="text-center mb-4">Choose your favorite Result</h2>
+    <h2 class="text-center mb-4" data-i18n="downscale.title">Choose your favorite Result</h2>
 
     <?php if (!empty($errors)): ?>
         <div class="alert alert-danger">
@@ -274,7 +275,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                      onclick="event.stopPropagation(); openModal(this.src)" alt="">
                             </div>
                             <div class="card-footer text-center">
-                                <button type="button" class="btn btn-outline-primary w-100" onclick="selectAlgo('<?= htmlspecialchars($algo) ?>')">Select This</button>
+                                <button type="button" class="btn btn-outline-primary w-100" data-i18n="downscale.select" onclick="selectAlgo('<?= htmlspecialchars($algo) ?>')">Select This</button>
                             </div>
                         </div>
                     </div>
@@ -284,7 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <div class="text-center mt-5">
-        <a href="dimensions_selection.php" class="btn btn-outline-secondary">← Back</a>
+        <a href="dimensions_selection.php" class="btn btn-outline-secondary" data-i18n="downscale.back">Back</a>
     </div>
 </div>
 
@@ -317,3 +318,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include("./includes/footer.php"); ?>
 </body>
 </html>
+
