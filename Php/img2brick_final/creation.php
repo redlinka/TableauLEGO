@@ -234,6 +234,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <?php include("./includes/footer.php"); ?>
 
 <script>
+    function t(key, fallback) {
+        if (window.I18N && typeof window.I18N.t === 'function') {
+            return window.I18N.t(key, fallback);
+        }
+        return fallback || key;
+    }
+
     // Real-time validation logic
     document.getElementById('registration-form').addEventListener('input', function () {
         validateForm();
@@ -248,16 +255,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     const special = document.getElementById("special");
 
     myInput.onkeyup = function() {
+        const okPrefix = t('common.ok_prefix', 'OK ');
+        const noPrefix = t('common.no_prefix', 'X ');
         // Validate lowercase letters
         var lowerCaseLetters = /[a-z]/g;
         if(myInput.value.match(lowerCaseLetters)) {
             letter.classList.remove("invalid");
             letter.classList.add("success");
-            letter.innerHTML = "✅ Lowercase letter";
+            letter.innerHTML = okPrefix + t('signup.requirements.lowercase', 'Lowercase letter');
         } else {
             letter.classList.remove("success");
             letter.classList.add("invalid");
-            letter.innerHTML = "❌ Lowercase letter";
+            letter.innerHTML = noPrefix + t('signup.requirements.lowercase', 'Lowercase letter');
         }
 
         // Validate capital letters
@@ -265,11 +274,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if(myInput.value.match(upperCaseLetters)) {
             capital.classList.remove("invalid");
             capital.classList.add("success");
-            capital.innerHTML = "✅ Uppercase letter";
+            capital.innerHTML = okPrefix + t('signup.requirements.uppercase', 'Uppercase letter');
         } else {
             capital.classList.remove("success");
             capital.classList.add("invalid");
-            capital.innerHTML = "❌ Uppercase letter";
+            capital.innerHTML = noPrefix + t('signup.requirements.uppercase', 'Uppercase letter');
         }
 
         // Validate numbers
@@ -277,22 +286,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if(myInput.value.match(numbers)) {
             number.classList.remove("invalid");
             number.classList.add("success");
-            number.innerHTML = "✅ Number";
+            number.innerHTML = okPrefix + t('signup.requirements.number', 'Number');
         } else {
             number.classList.remove("success");
             number.classList.add("invalid");
-            number.innerHTML = "❌ Number";
+            number.innerHTML = noPrefix + t('signup.requirements.number', 'Number');
         }
 
         // Validate length
         if(myInput.value.length >= 12) {
             length.classList.remove("invalid");
             length.classList.add("success");
-            length.innerHTML = "✅ Min 12 characters";
+            length.innerHTML = okPrefix + t('signup.requirements.length', 'Min 12 characters');
         } else {
             length.classList.remove("success");
             length.classList.add("invalid");
-            length.innerHTML = "❌ Min 12 characters";
+            length.innerHTML = noPrefix + t('signup.requirements.length', 'Min 12 characters');
         }
 
         // Validate special char
@@ -300,11 +309,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if(myInput.value.match(specials)) {
             special.classList.remove("invalid");
             special.classList.add("success");
-            special.innerHTML = "✅ Special character";
+            special.innerHTML = okPrefix + t('signup.requirements.special', 'Special character');
         } else {
             special.classList.remove("success");
             special.classList.add("invalid");
-            special.innerHTML = "❌ Special character";
+            special.innerHTML = noPrefix + t('signup.requirements.special', 'Special character');
         }
 
         validateForm();
@@ -331,11 +340,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // Match Check
         if (password && confirmPassword) {
             if (password !== confirmPassword) {
-                errorElement.textContent = 'Passwords do not match';
+                errorElement.textContent = t('signup.passwords_no_match', 'Passwords do not match');
                 errorElement.className = 'form-text mt-1 fw-bold text-danger';
                 isValid = false;
             } else {
-                errorElement.textContent = 'Passwords match';
+                errorElement.textContent = t('signup.passwords_match', 'Passwords match');
                 errorElement.className = 'form-text mt-1 fw-bold text-success';
             }
         } else {

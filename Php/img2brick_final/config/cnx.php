@@ -5,16 +5,21 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 // Load configuration credentials from .env file to avoid hardcoding secrets
-$_ENV = parse_ini_file(__DIR__ . '/.env');
-$user =  $_ENV["USER"];
-$pass = $_ENV["PASS"];
-$db = $_ENV["DB"];
-$host = $_ENV["HOST"];
+$envPath = __DIR__ . '/.env';
+if (!is_file($envPath)) {
+    $envPath = __DIR__ . '/../.env';
+}
+$_ENV = parse_ini_file($envPath) ?: [];
+$user = $_ENV["USER"] ?? '';
+$pass = $_ENV["PASS"] ?? '';
+$db = $_ENV["DB"] ?? '';
+$host = $_ENV["HOST"] ?? '';
+$port = $_ENV["PORT"] ?? '';
 
 // Establish database connection using PDO
 try {
     $cnx = new PDO(
-        "mysql:host=$host;dbname=$db;charset=utf8mb4",
+        "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4",
         $user,
         $pass
     );
