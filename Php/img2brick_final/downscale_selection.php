@@ -23,14 +23,23 @@ $generatedImages = [];
 $stmt = $cnx->prepare("SELECT path FROM IMAGE WHERE image_id = ?");
 $stmt->execute([$parentId]);
 $sourceFile = $stmt->fetchColumn();
-if (!$sourceFile) {
-    $errors[] = "Database Error: parent image not found (image_id=$parentId).";
-}
 
 // Generate downscaled variations
 $jarPath = realpath(__DIR__ . '/java2BrickFusion-1.0-SNAPSHOT.jar');
 $sourcePath = __DIR__ . '/' . $imgDir . $sourceFile;
 $libDir = realpath(__DIR__ . '/lib');
+
+// Verification of the source file
+if (!$sourceFile || !file_exists($sourcePath)) {
+    unset($_SESSION['step1_image_id']);
+    header("Location: index.php");
+    exit;
+}
+if (!$jarPath || !file_exists($jarPath)) {
+    error_log("CRITICAL: JAR not found at location: " . $jarPath);
+    header("Location: index.php");
+    exit;
+}
 
 // Detect Java executable
 $javaCmd = 'java';
