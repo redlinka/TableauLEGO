@@ -338,7 +338,7 @@ body{
                         <article class="item-card">
 
                             <div class="thumb">
-                                <img src="<?= htmlspecialchars($it['src'] ?: '/images/placeholder.png') ?>" alt="Item">
+                                <img src="<?= htmlspecialchars($it['src'] ?: '/images/placeholder.png') ?>" alt="Item" data-i18n-attr="alt:cart.item_alt">
                             </div>
 
                             <div class="meta">

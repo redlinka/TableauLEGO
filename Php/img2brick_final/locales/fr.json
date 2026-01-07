@@ -113,6 +113,7 @@
   "cart.order": "Commander",
   "cart.back": "Retour au debut",
   "cart.remove": "Supprimer",
+  "cart.item_alt": "Article du panier",
   "footer.github": "Voir sur GitHub",
   "crop.page_title": "Etape 1 : Recadrage",
   "crop.title": "Recadrer votre image",
