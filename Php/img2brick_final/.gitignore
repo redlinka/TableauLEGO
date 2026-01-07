@@ -1,7 +1,18 @@
-﻿users/uploads/*
-!users/uploads/.gitkeep
+# Sécurité
+.env
 config/.env
+*.sql
+*.zip
+# Données utilisateurs
+users/imgs/*
+users/tilings/*
+!users/imgs/.gitkeep
+!users/tilings/.gitkeep
+users/imgs/temp_*
+# Dépendances
 vendor/
-*.env
+# IDE et Système
 .idea/
+.vscdode/
+*.log
 *.xml
