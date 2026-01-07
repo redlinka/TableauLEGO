@@ -56,13 +56,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             try {
                 // Check for existing email
-                $stmt = $cnx->prepare("SELECT COUNT(*) FROM Users WHERE email = ?");
+                $stmt = $cnx->prepare("SELECT COUNT(*) FROM USER WHERE email = ?");
                 $stmt->execute([$_SESSION['email']]);
 
                 if ($stmt->fetchColumn() === 0) {
 
                     // Check for existing username
-                    $stmt = $cnx->prepare("SELECT COUNT(*) FROM Users WHERE username = ?");
+                    $stmt = $cnx->prepare("SELECT COUNT(*) FROM USER WHERE username = ?");
                     $stmt->execute([$username]);
 
                     if ($stmt->fetchColumn() === 0) {
@@ -73,15 +73,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             $errors[] = 'Error creating token';
                         }
 
+                        $cnx->beginTransaction();
+
                         // Insert new user record
-                        $stmt = $cnx->prepare("INSERT INTO Users (username, email, password, is_active, phone, default_address, name, surname, year_of_birth, creation_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-                        $stmt->execute([$username, $_SESSION['email'], $password_hashed, 0, null, null, null, null, null]);
+                        $stmt = $cnx->prepare("INSERT INTO USER (username, email, password, phone, default_address, last_name, first_name, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stmt->execute([$username, $_SESSION['email'], $password_hashed, null, null, null, null, 0]);
 
                         $_SESSION['tempId'] = $cnx->lastInsertId();
+                        $expire_at = date('Y-m-d H:i:s', time() + 60);
 
                         // Store verification token
-                        $stmt = $cnx->prepare("INSERT INTO Tokens2FA (user_id, token, is_used, created_at) VALUES (?, ?, ?, NOW())");
-                        $stmt->execute([$_SESSION['tempId'], $token, 0]);
+                        $stmt = $cnx->prepare("INSERT INTO 2FA (user_id, verification_token, token_expire_at) VALUES (?, ?, ?)");
+                        $stmt->execute([$_SESSION['tempId'], $token, $expire_at]);
 
                         // Construct verification link (creates the link depending on whether i'm testing it on my own machine or on the server)
                         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
@@ -100,25 +103,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 </div>";
 
                         sendMail(
-                                $_SESSION['email'],
-                                'Welcome to Img2Brick - Verify your account',
-                                $emailBody
+                            $_SESSION['email'],
+                            'Welcome to Img2Brick - Verify your account',
+                            $emailBody
                         );
                         $_SESSION['last_email_sent'] = time();
 
                         csrf_rotate();
+                        $cnx->commit();
                         header('Location: creation_mail.php');
                         exit;
                     } else {
                         $errors[] = 'Username is already taken.';
                     }
-
                 } else {
                     $errors[] = 'An account with this email already exists.';
                 }
-
             } catch (PDOException $e) {
                 http_response_code(500);
+                $cnx->rollBack();
                 $errors[] = 'Database error. Please try again later.';
             }
         }
@@ -127,6 +130,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -134,237 +138,255 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .valid-req { color: #198754; font-size: 0.85rem; }
-        .invalid-req { color: #dc3545; font-size: 0.85rem; }
-        .req-item { margin-bottom: 2px; }
+        .valid-req {
+            color: #198754;
+            font-size: 0.85rem;
+        }
+
+        .invalid-req {
+            color: #dc3545;
+            font-size: 0.85rem;
+        }
+
+        .req-item {
+            margin-bottom: 2px;
+        }
 
         /* Password requirement styling updates via JS */
-        .invalid { color: #dc3545; } /* Bootstrap Danger */
-        .success { color: #198754; } /* Bootstrap Success */
+        .invalid {
+            color: #dc3545;
+        }
+
+        /* Bootstrap Danger */
+        .success {
+            color: #198754;
+        }
+
+        /* Bootstrap Success */
     </style>
 </head>
+
 <body>
 
-<?php include("./includes/navbar.php"); ?>
+    <?php include("./includes/navbar.php"); ?>
 
-<div class="container bg-light py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
+    <div class="container bg-light py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
 
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-4">
-                    <h2 class="text-center fw-bold mb-4" data-i18n="creation.title">Sign Up</h2>
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h2 class="text-center fw-bold mb-4" data-i18n="creation.title">Sign Up</h2>
 
-                    <?php if (!empty($errors)): ?>
-                        <div class="alert alert-danger">
-                            <ul class="mb-0 ps-3">
-                                <?php foreach ($errors as $error): ?>
-                                    <li><?= htmlspecialchars($error) ?></li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                    <?php endif; ?>
-
-                    <form action="" id="registration-form" method="post" class="needs-validation">
-                        <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_get(), ENT_QUOTES, 'UTF-8') ?>">
-
-                        <div class="mb-3">
-                            <label for="email" class="form-label" data-i18n="creation.email_label">Email Address</label>
-                            <input type="email" class="form-control" name="email" id="email"
-                                   placeholder="name@example.com"
-                                   data-i18n-attr="placeholder:creation.email_placeholder"
-                                   value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="username" class="form-label" data-i18n="creation.username_label">Username</label>
-                            <input type="text" class="form-control" name="username" id="username"
-                                   placeholder="Choose a username"
-                                   data-i18n-attr="placeholder:creation.username_placeholder"
-                                   minlength="8"
-                                   value="<?= htmlspecialchars($_POST['username'] ?? '') ?>" required>
-                            <div class="form-text" data-i18n="creation.username_hint">Minimum 8 characters.</div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="password" class="form-label" data-i18n="creation.password_label">Password</label>
-                            <input type="password" class="form-control" name="password" id="password"
-                                   placeholder="Create a strong password"
-                                   data-i18n-attr="placeholder:creation.password_placeholder"
-                                   required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="confirm-password" class="form-label" data-i18n="creation.confirm_label">Confirm Password</label>
-                            <input type="password" class="form-control" name="confirm-password" id="confirm-password"
-                                   placeholder="Repeat password"
-                                   data-i18n-attr="placeholder:creation.confirm_placeholder"
-                                   required>
-                            <div id="passwordError" class="form-text mt-1 fw-bold"></div>
-                        </div>
-
-                        <div id="message" class="alert alert-light border small mb-3">
-                            <h6 class="fw-bold mb-2" data-i18n="creation.password_requirements_title">Password must contain:</h6>
-                            <div id="letter" class="req-item invalid" data-i18n="signup.requirements.lowercase">Lowercase letter</div>
-                            <div id="capital" class="req-item invalid" data-i18n="signup.requirements.uppercase">Uppercase letter</div>
-                            <div id="number" class="req-item invalid" data-i18n="signup.requirements.number">Number</div>
-                            <div id="special" class="req-item invalid" data-i18n="signup.requirements.special">Special character</div>
-                            <div id="length" class="req-item invalid" data-i18n="signup.requirements.length">Min 12 characters</div>
-                        </div>
-
-                        <div class="mb-4 d-flex justify-content-center">
-                            <div class="cf-turnstile"
-                                 data-sitekey="<?php echo $_ENV['CLOUDFLARE_TURNSTILE_PUBLIC']; ?>"
-                                 data-theme="light"
-                                 data-size="flexible"
-                                 data-callback="onSuccess">
+                        <?php if (!empty($errors)): ?>
+                            <div class="alert alert-danger">
+                                <ul class="mb-0 ps-3">
+                                    <?php foreach ($errors as $error): ?>
+                                        <li><?= htmlspecialchars($error) ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
                             </div>
-                        </div>
+                        <?php endif; ?>
 
-                        <div class="d-grid mb-3">
-                            <input type="submit" class="btn btn-primary btn-lg" id="submit-button" value="Create Account" data-i18n-attr="value:creation.submit" disabled>
-                        </div>
+                        <form action="" id="registration-form" method="post" class="needs-validation">
+                            <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_get(), ENT_QUOTES, 'UTF-8') ?>">
 
-                        <div class="text-center">
-                            <span class="text-muted" data-i18n="creation.already_account">Already have an account?</span>
-                            <a href="connexion.php" class="text-decoration-none fw-bold" data-i18n="creation.login_link">Log in</a>
-                        </div>
-                    </form>
+                            <div class="mb-3">
+                                <label for="email" class="form-label" data-i18n="creation.email_label">Email Address</label>
+                                <input type="email" class="form-control" name="email" id="email"
+                                    placeholder="name@example.com"
+                                    data-i18n-attr="placeholder:creation.email_placeholder"
+                                    value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="username" class="form-label" data-i18n="creation.username_label">Username</label>
+                                <input type="text" class="form-control" name="username" id="username"
+                                    placeholder="Choose a username"
+                                    data-i18n-attr="placeholder:creation.username_placeholder"
+                                    minlength="8"
+                                    value="<?= htmlspecialchars($_POST['username'] ?? '') ?>" required>
+                                <div class="form-text" data-i18n="creation.username_hint">Minimum 8 characters.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label" data-i18n="creation.password_label">Password</label>
+                                <input type="password" class="form-control" name="password" id="password"
+                                    placeholder="Create a strong password"
+                                    data-i18n-attr="placeholder:creation.password_placeholder"
+                                    required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="confirm-password" class="form-label" data-i18n="creation.confirm_label">Confirm Password</label>
+                                <input type="password" class="form-control" name="confirm-password" id="confirm-password"
+                                    placeholder="Repeat password"
+                                    data-i18n-attr="placeholder:creation.confirm_placeholder"
+                                    required>
+                                <div id="passwordError" class="form-text mt-1 fw-bold"></div>
+                            </div>
+
+                            <div id="message" class="alert alert-light border small mb-3">
+                                <h6 class="fw-bold mb-2" data-i18n="creation.password_requirements_title">Password must contain:</h6>
+                                <div id="letter" class="req-item invalid" data-i18n="signup.requirements.lowercase">Lowercase letter</div>
+                                <div id="capital" class="req-item invalid" data-i18n="signup.requirements.uppercase">Uppercase letter</div>
+                                <div id="number" class="req-item invalid" data-i18n="signup.requirements.number">Number</div>
+                                <div id="special" class="req-item invalid" data-i18n="signup.requirements.special">Special character</div>
+                                <div id="length" class="req-item invalid" data-i18n="signup.requirements.length">Min 12 characters</div>
+                            </div>
+
+                            <div class="mb-4 d-flex justify-content-center">
+                                <div class="cf-turnstile"
+                                    data-sitekey="<?php echo $_ENV['CLOUDFLARE_TURNSTILE_PUBLIC']; ?>"
+                                    data-theme="light"
+                                    data-size="flexible"
+                                    data-callback="onSuccess">
+                                </div>
+                            </div>
+
+                            <div class="d-grid mb-3">
+                                <input type="submit" class="btn btn-primary btn-lg" id="submit-button" value="Create Account" data-i18n-attr="value:creation.submit" disabled>
+                            </div>
+
+                            <div class="text-center">
+                                <span class="text-muted" data-i18n="creation.already_account">Already have an account?</span>
+                                <a href="connexion.php" class="text-decoration-none fw-bold" data-i18n="creation.login_link">Log in</a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
 
+            </div>
         </div>
     </div>
-</div>
 
-<?php include("./includes/footer.php"); ?>
+    <?php include("./includes/footer.php"); ?>
 
-<script>
-    function t(key, fallback) {
-        if (window.I18N && typeof window.I18N.t === 'function') {
-            return window.I18N.t(key, fallback);
-        }
-        return fallback || key;
-    }
-
-    // Real-time validation logic
-    document.getElementById('registration-form').addEventListener('input', function () {
-        validateForm();
-    });
-
-    // Password Requirement Logic (Visual Feedback)
-    const myInput = document.getElementById("password");
-    const letter = document.getElementById("letter");
-    const capital = document.getElementById("capital");
-    const number = document.getElementById("number");
-    const length = document.getElementById("length");
-    const special = document.getElementById("special");
-
-    myInput.onkeyup = function() {
-        const okPrefix = t('common.ok_prefix', 'OK ');
-        const noPrefix = t('common.no_prefix', 'X ');
-        // Validate lowercase letters
-        var lowerCaseLetters = /[a-z]/g;
-        if(myInput.value.match(lowerCaseLetters)) {
-            letter.classList.remove("invalid");
-            letter.classList.add("success");
-            letter.innerHTML = okPrefix + t('signup.requirements.lowercase', 'Lowercase letter');
-        } else {
-            letter.classList.remove("success");
-            letter.classList.add("invalid");
-            letter.innerHTML = noPrefix + t('signup.requirements.lowercase', 'Lowercase letter');
-        }
-
-        // Validate capital letters
-        var upperCaseLetters = /[A-Z]/g;
-        if(myInput.value.match(upperCaseLetters)) {
-            capital.classList.remove("invalid");
-            capital.classList.add("success");
-            capital.innerHTML = okPrefix + t('signup.requirements.uppercase', 'Uppercase letter');
-        } else {
-            capital.classList.remove("success");
-            capital.classList.add("invalid");
-            capital.innerHTML = noPrefix + t('signup.requirements.uppercase', 'Uppercase letter');
-        }
-
-        // Validate numbers
-        var numbers = /[0-9]/g;
-        if(myInput.value.match(numbers)) {
-            number.classList.remove("invalid");
-            number.classList.add("success");
-            number.innerHTML = okPrefix + t('signup.requirements.number', 'Number');
-        } else {
-            number.classList.remove("success");
-            number.classList.add("invalid");
-            number.innerHTML = noPrefix + t('signup.requirements.number', 'Number');
-        }
-
-        // Validate length
-        if(myInput.value.length >= 12) {
-            length.classList.remove("invalid");
-            length.classList.add("success");
-            length.innerHTML = okPrefix + t('signup.requirements.length', 'Min 12 characters');
-        } else {
-            length.classList.remove("success");
-            length.classList.add("invalid");
-            length.innerHTML = noPrefix + t('signup.requirements.length', 'Min 12 characters');
-        }
-
-        // Validate special char
-        var specials = /[!@#$%^&*(),.?":{}|<>]/g;
-        if(myInput.value.match(specials)) {
-            special.classList.remove("invalid");
-            special.classList.add("success");
-            special.innerHTML = okPrefix + t('signup.requirements.special', 'Special character');
-        } else {
-            special.classList.remove("success");
-            special.classList.add("invalid");
-            special.innerHTML = noPrefix + t('signup.requirements.special', 'Special character');
-        }
-
-        validateForm();
-    }
-
-    function validateForm() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-        const submitBtn = document.getElementById('submit-button');
-        const errorElement = document.getElementById('passwordError');
-
-        // Basic Requirements Check
-        // Note: We blindly trust the user can read the visual indicators for now,
-        // but the backend will enforce strict rules.
-
-        let isValid = true;
-
-        // Enforce all fields present + Username Min Length
-        if (!username || username.length < 8 || !password || !confirmPassword) {
-            isValid = false;
-        }
-
-        // Match Check
-        if (password && confirmPassword) {
-            if (password !== confirmPassword) {
-                errorElement.textContent = t('signup.passwords_no_match', 'Passwords do not match');
-                errorElement.className = 'form-text mt-1 fw-bold text-danger';
-                isValid = false;
-            } else {
-                errorElement.textContent = t('signup.passwords_match', 'Passwords match');
-                errorElement.className = 'form-text mt-1 fw-bold text-success';
+    <script>
+        function t(key, fallback) {
+            if (window.I18N && typeof window.I18N.t === 'function') {
+                return window.I18N.t(key, fallback);
             }
-        } else {
-            errorElement.textContent = '';
+            return fallback || key;
         }
 
-        if (isValid) {
-            submitBtn.disabled = false;
-        } else {
-            submitBtn.disabled = true;
+        // Real-time validation logic
+        document.getElementById('registration-form').addEventListener('input', function() {
+            validateForm();
+        });
+
+        // Password Requirement Logic (Visual Feedback)
+        const myInput = document.getElementById("password");
+        const letter = document.getElementById("letter");
+        const capital = document.getElementById("capital");
+        const number = document.getElementById("number");
+        const length = document.getElementById("length");
+        const special = document.getElementById("special");
+
+        myInput.onkeyup = function() {
+            const okPrefix = t('common.ok_prefix', 'OK ');
+            const noPrefix = t('common.no_prefix', 'X ');
+            // Validate lowercase letters
+            var lowerCaseLetters = /[a-z]/g;
+            if (myInput.value.match(lowerCaseLetters)) {
+                letter.classList.remove("invalid");
+                letter.classList.add("success");
+                letter.innerHTML = okPrefix + t('signup.requirements.lowercase', 'Lowercase letter');
+            } else {
+                letter.classList.remove("success");
+                letter.classList.add("invalid");
+                letter.innerHTML = noPrefix + t('signup.requirements.lowercase', 'Lowercase letter');
+            }
+
+            // Validate capital letters
+            var upperCaseLetters = /[A-Z]/g;
+            if (myInput.value.match(upperCaseLetters)) {
+                capital.classList.remove("invalid");
+                capital.classList.add("success");
+                capital.innerHTML = okPrefix + t('signup.requirements.uppercase', 'Uppercase letter');
+            } else {
+                capital.classList.remove("success");
+                capital.classList.add("invalid");
+                capital.innerHTML = noPrefix + t('signup.requirements.uppercase', 'Uppercase letter');
+            }
+
+            // Validate numbers
+            var numbers = /[0-9]/g;
+            if (myInput.value.match(numbers)) {
+                number.classList.remove("invalid");
+                number.classList.add("success");
+                number.innerHTML = okPrefix + t('signup.requirements.number', 'Number');
+            } else {
+                number.classList.remove("success");
+                number.classList.add("invalid");
+                number.innerHTML = noPrefix + t('signup.requirements.number', 'Number');
+            }
+
+            // Validate length
+            if (myInput.value.length >= 12) {
+                length.classList.remove("invalid");
+                length.classList.add("success");
+                length.innerHTML = okPrefix + t('signup.requirements.length', 'Min 12 characters');
+            } else {
+                length.classList.remove("success");
+                length.classList.add("invalid");
+                length.innerHTML = noPrefix + t('signup.requirements.length', 'Min 12 characters');
+            }
+
+            // Validate special char
+            var specials = /[!@#$%^&*(),.?":{}|<>]/g;
+            if (myInput.value.match(specials)) {
+                special.classList.remove("invalid");
+                special.classList.add("success");
+                special.innerHTML = okPrefix + t('signup.requirements.special', 'Special character');
+            } else {
+                special.classList.remove("success");
+                special.classList.add("invalid");
+                special.innerHTML = noPrefix + t('signup.requirements.special', 'Special character');
+            }
+
+            validateForm();
         }
-    }
-</script>
+
+        function validateForm() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const submitBtn = document.getElementById('submit-button');
+            const errorElement = document.getElementById('passwordError');
+
+            // Basic Requirements Check
+            // Note: We blindly trust the user can read the visual indicators for now,
+            // but the backend will enforce strict rules.
+
+            let isValid = true;
+
+            // Enforce all fields present + Username Min Length
+            if (!username || username.length < 8 || !password || !confirmPassword) {
+                isValid = false;
+            }
+
+            // Match Check
+            if (password && confirmPassword) {
+                if (password !== confirmPassword) {
+                    errorElement.textContent = t('signup.passwords_no_match', 'Passwords do not match');
+                    errorElement.className = 'form-text mt-1 fw-bold text-danger';
+                    isValid = false;
+                } else {
+                    errorElement.textContent = t('signup.passwords_match', 'Passwords match');
+                    errorElement.className = 'form-text mt-1 fw-bold text-success';
+                }
+            } else {
+                errorElement.textContent = '';
+            }
+
+            if (isValid) {
+                submitBtn.disabled = false;
+            } else {
+                submitBtn.disabled = true;
+            }
+        }
+    </script>
 </body>
+
 </html>
-
-
