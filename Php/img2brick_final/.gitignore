@@ -11,6 +11,8 @@ users/tilings/*
 users/imgs/temp_*
 # Dépendances
 vendor/
+docker-compose.yml
+Dockerfile
 # IDE et Système
 .idea/
 .vscdode/

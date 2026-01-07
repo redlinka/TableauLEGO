@@ -1,6 +1,7 @@
 <?php
 // Load Composer dependencies for PHPMailer
 require __DIR__ . '/../vendor/autoload.php';
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -34,7 +35,8 @@ try {
 /* Send emails using SMTP via PHPMailer.
  * Input: Recipient email, Subject, HTML Body, Array of file paths for attachments.
  * Output: Returns true on success, or error message string on failure. */
-function sendMail($to, $subject, $body, $attachments = []) {
+function sendMail($to, $subject, $body, $attachments = [])
+{
     $mail = new PHPMailer(true);
 
     try {
@@ -72,7 +74,8 @@ function sendMail($to, $subject, $body, $attachments = []) {
 /* Verify Cloudflare Turnstile captcha token.
  * Logic: Sends a POST request to Cloudflare's verification API with the secret key and user token.
  * Output: Returns associative array with 'success' boolean. */
-function validateTurnstile() {
+function validateTurnstile()
+{
 
     $secret = $_ENV['CLOUDFLARE_TURNSTILE_SECRET'];
     $token = $_POST['cf-turnstile-response'] ?? '';
@@ -130,7 +133,8 @@ function csrf_rotate()
 }
 
 /* Translate PHP file upload error codes into human-readable messages. */
-function error_message($code) {
+function error_message($code)
+{
     switch ($code) {
         case UPLOAD_ERR_INI_SIZE:
             return 'File too large (server limit).';
@@ -153,7 +157,8 @@ function error_message($code) {
  * 3. Delete associated temporary files (thumbnails, precursors).
  * 4. Delete the current image file and text file from disk.
  * 5. Remove the record from the database. */
-function deleteDescendants($cnx, $imageId, $imgDir, $tilingDir, $keepSelf = false) {
+function deleteDescendants($cnx, $imageId, $imgDir, $tilingDir, $keepSelf = false)
+{
 
     // Stop if no ID provided
     if (!$imageId) return;
@@ -208,7 +213,8 @@ function deleteDescendants($cnx, $imageId, $imgDir, $tilingDir, $keepSelf = fals
  * Logic:
  * A. Delete temporary processing files older than 30 minutes.
  * B. Delete abandoned guest sessions (Images with no User ID) older than 1 hour. */
-function cleanStorage($cnx, $imgDir, $brickDir) {
+function cleanStorage($cnx, $imgDir, $brickDir)
+{
     $now = time();
 
     // Clean Images Directory: Remove stale temp images
@@ -241,5 +247,6 @@ function cleanStorage($cnx, $imgDir, $brickDir) {
                 deleteDescendants($cnx, $row['image_id'], $imgDir, $brickDir);
             }
         }
-    } catch (Exception $e) {}
+    } catch (Exception $e) {
+    }
 }
