@@ -276,7 +276,11 @@ try {
 
         // Submit Form
         btnSave.disabled = true;
-        btnSave.textContent = "Processing...";
+        if (window.I18N && typeof window.I18N.t === 'function') {
+            btnSave.textContent = window.I18N.t('common.processing', 'Processing...');
+        } else {
+            btnSave.textContent = "Processing...";
+        }
         form.submit();
     });
 </script>
