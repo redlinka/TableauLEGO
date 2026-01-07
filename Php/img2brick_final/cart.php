@@ -5,91 +5,103 @@ include("./config/cnx.php");
 
 $errors = [];
 
+$id_uti = $_SESSION['userId'];
+$imgFolder = 'users/imgs/';
 
 
+/*  BOUTON SUPRIMER  */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) {
+
+    $pavageId = (int) $_POST['remove_pavage_id'];
+    $userId   = (int) ($_SESSION['userId'] ?? 0);
+
+    // Récupérer le panier 
+    $stmt = $cnx->prepare("
+        SELECT order_id
+        FROM order_bill
+        WHERE user_id = :user_id
+          AND created_at IS NULL
+        LIMIT 1
+    ");
+    $stmt->execute(['user_id' => $userId]);
+    $cartOrderId = (int) $stmt->fetchColumn();
+
+    // Supprimer une ligne dans contain
+    if ($cartOrderId > 0) {
+        $del = $cnx->prepare("
+            DELETE FROM contain
+            WHERE order_id = :order_id
+              AND pavage_id = :pavage_id
+            LIMIT 1
+        ");
+        $del->execute([
+            'order_id'  => $cartOrderId,
+            'pavage_id' => $pavageId
+        ]);
+    }
+
+   /* header("Location: cart.php");
+    exit;*/
+}
 
 
+include("./includes/navbar.php");
 
 function money($v) {
     return number_format((float)$v, 2, ".", " ") . " €";
 }
 
-$user = $_SESSION["user"];
-$id_uti = $user->get_id();
 
 
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"], $_POST["id_img"])) {
 
-    $id_img = (int)$_POST["id_img"];
+/* TOUT LES ELEMENT DU PANIER */
 
-    if ($_POST["action"] === "increase") {
-
-        $stmt = $pdo->prepare("
-            UPDATE panier
-            SET nb = nb + 1
-            WHERE code_uti = :id_uti AND id_img = :id_img
-        ");
-        $stmt->execute([
-            ':id_uti' => $id_uti,
-            ':id_img' => $id_img
-        ]);
-
-    } elseif ($_POST["action"] === "decrease") {
-
-        $stmt = $pdo->prepare("
-            UPDATE panier
-            SET nb = nb - 1
-            WHERE code_uti = :id_uti AND id_img = :id_img
-        ");
-        $stmt->execute([
-            ':id_uti' => $id_uti,
-            ':id_img' => $id_img
-        ]);
+$stmt = $cnx->prepare("
+    SELECT 
+        o.order_id,
+        c.pavage_id,
+        i.path,
+        i.filename
+    FROM order_bill o
+    JOIN contain c ON c.order_id = o.order_id
+    JOIN tilling t ON t.pavage_id = c.pavage_id
+    JOIN image i ON i.image_id = t.image_id
+    WHERE o.user_id = :user_id
+      AND o.created_at IS NULL
+");
 
 
-        $stmt = $pdo->prepare("
-            DELETE FROM panier
-            WHERE code_uti = :id_uti AND id_img = :id_img AND nb <= 0
-        ");
-        $stmt->execute([
-            ':id_uti' => $id_uti,
-            ':id_img' => $id_img
-        ]);
-    }
-
-    header("Location: cart.php");
-    exit;
-}
-
-
-$stmt = $pdo->prepare("SELECT * FROM panier WHERE code_uti = :id");
-$stmt->execute([":id" => $id_uti]);
+$stmt->execute(['user_id' => $id_uti]);
 $row_pan = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+
+/* CREER UNE LISTE AVEC TOUT LES ELEMENT DU PANIER */
 
 $items = [];
 $subtotal = 0.0;
 
 foreach ($row_pan as $row) {
 
-    $id_img = (int)$row["id_img"];
-    $qty    = (int)$row["nb"];
+    /*recuperer l'id du pavage*/ 
+    $id_pavage = (int)$row["pavage_id"];
 
-    $imgObj = get_image($pdo, $id_img);
-    if (!$imgObj) continue;
 
-    $src   = $imgObj->get_img();
-    $price = (float)$imgObj->get_price(); 
+    /* recuperer l'image pour la modifier PARTIE A MODIFIER POUR AJOUTER L'AFFICHAGE DU PAVAGE */
+    $filename = $row['filename'] ?? '';
 
-    $lineTotal = $price * $qty;
-    $subtotal += $lineTotal;
+    $src = $imgFolder . $filename;
+
+
+    /* GESTION DES PRIX */
+    $price = 2; 
+    $subtotal += $price;
+    $line_total = $price * 0.10;
 
     $items[] = [
-        "id_img" => $id_img,
+        "id_pavage" => $id_pavage,
         "src" => $src,
-        "qty" => $qty,
         "price" => $price,
-        "line_total" => $lineTotal
+        "line_total" => $line_total,
     ];
 }
 
@@ -97,7 +109,203 @@ $shipping = $subtotal * 0.10;
 $total = $subtotal + $shipping;
 
 
+
 ?>
+
+<style>
+* { box-sizing: border-box; }
+
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#f6f6f6;
+  color:#222;
+}
+
+.cart-page{
+  max-width:1200px;
+  margin:0 auto;
+  padding:30px 16px 60px;
+}
+
+.title{
+  text-align:center;
+  margin-bottom:20px;
+  font-size:34px;
+  font-weight:800;
+}
+
+.cart-layout{
+  display:grid;
+  grid-template-columns: 1fr 360px;
+  gap:18px;
+}
+
+.cart-left, .cart-right{
+  background:#fff;
+  border:1px solid #e6e6e6;
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.06);
+}
+
+.section-title{
+  margin:0 0 12px;
+  font-size:20px;
+}
+
+.empty{
+  color:#666;
+}
+
+
+.items-grid{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:14px;
+}
+
+.item-card{
+  border:1px solid #eee;
+  border-radius:14px;
+  overflow:hidden;
+  background:#fafafa;
+}
+
+.thumb{
+  height:170px;
+  background:#eee;
+}
+
+.thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.meta{
+  padding:10px 12px;
+}
+
+.meta-row{
+  display:flex;
+  justify-content:space-between;
+  margin-top:6px;
+}
+
+
+.qty-row{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  margin-bottom:6px;
+}
+
+.qty-form{ margin:0; }
+
+.qty-btn{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  border:1px solid #ddd;
+  background:#fff;
+  font-size:18px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.qty-btn:hover{
+  background:#f0f0f0;
+}
+
+.qty-value{
+  min-width:24px;
+  text-align:center;
+  font-weight:700;
+}
+
+
+.summary-box{
+  display:grid;
+  gap:10px;
+}
+
+.sum-row{
+  display:flex;
+  justify-content:space-between;
+}
+
+.sum-divider{
+  height:1px;
+  background:#e6e6e6;
+}
+
+.sum-row.total{
+  font-size:18px;
+}
+
+.order-btn{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:0;
+  background:#222;
+  color:#fff;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.order-btn:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.back-link{
+  display:block;
+  text-align:center;
+  margin-top:10px;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  text-decoration:none;
+  color:#222;
+}
+
+
+@media (max-width: 980px){
+  .cart-layout{
+    grid-template-columns:1fr;
+  }
+  .items-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+
+.remove-form{
+  margin-top:10px;
+  text-align:right;
+}
+
+.remove-btn{
+  background:#e74c3c;
+  color:#fff;
+  border:0;
+  padding:6px 12px;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.remove-btn:hover{
+  background:#c0392b;
+}
+
+</style>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -117,43 +325,35 @@ $total = $subtotal + $shipping;
         <section class="cart-left">
             <h2 class="section-title">Items</h2>
 
+            <!-- AFFICHAGE PANIER -->
+
             <?php if (empty($items)): ?>
                 <p class="empty">Your cart is empty.</p>
             <?php else: ?>
                 <div class="items-grid">
+
+                    <!-- boucle pour l'affichage -->
+
                     <?php foreach ($items as $it): ?>
                         <article class="item-card">
 
                             <div class="thumb">
-                                <img src="<?= $it["src"] ?>" alt="Item">
+                               <img src="<?= htmlspecialchars($it['src'] ?: '/images/placeholder.png') ?>" alt="Item">  <!-- affiche l'image -->
                             </div>
 
                             <div class="meta">
-
-                                <div class="qty-row">
-                                    <form method="post" class="qty-form">
-                                        <input type="hidden" name="action" value="decrease">
-                                        <input type="hidden" name="id_img" value="<?= $it["id_img"] ?>">
-                                        <button type="submit" class="qty-btn">−</button>
-                                    </form>
-
-                                    <span class="qty-value"><?= $it["qty"] ?></span>
-
-                                    <form method="post" class="qty-form">
-                                        <input type="hidden" name="action" value="increase">
-                                        <input type="hidden" name="id_img" value="<?= $it["id_img"] ?>">
-                                        <button type="submit" class="qty-btn">+</button>
-                                    </form>
-                                </div>
-
+                                <form method="post" action="cart.php" class="remove-form">
+                                    <input type="hidden" name="remove_pavage_id" value="<?= (int)$it['id_pavage'] ?>">  <!-- bouton suprimer (code php en haut) -->
+                                    <button type="submit" class="remove-btn">Remove</button>
+                                </form>
                                 <div class="meta-row">
                                     <span>Unit</span>
-                                    <strong><?= money($it["price"]) ?></strong>
+                                    <strong><?= money($it["price"]) ?></strong>           <!-- prix -->
                                 </div>
 
                                 <div class="meta-row">
                                     <span>Line</span>
-                                    <strong><?= money($it["line_total"]) ?></strong>
+                                    <strong><?= money($it["line_total"]) ?></strong>      <!-- taxe (suprimer si non necaissaire) -->
                                 </div>
 
                             </div>
@@ -170,28 +370,28 @@ $total = $subtotal + $shipping;
             <div class="summary-box">
                 <div class="sum-row">
                     <span>Subtotal</span>
-                    <strong><?= money($subtotal) ?></strong>
+                    <strong><?= money($subtotal) ?></strong>  <!-- prix totaux -->
                 </div>
 
                 <div class="sum-row">
                     <span>Shipping (10%)</span>
-                    <strong><?= money($shipping) ?></strong>
+                    <strong><?= money($shipping) ?></strong>  <!-- taxe totaux -->
                 </div>
 
                 <div class="sum-divider"></div>
 
                 <div class="sum-row total">
                     <span>Total</span>
-                    <strong><?= money($total) ?></strong>
+                    <strong><?= money($total) ?></strong>    <!-- a payer -->
                 </div>
 
                 <form method="post" action="order.php">
-                    <button type="submit" class="order-btn" <?= empty($items) ? "disabled" : "" ?>>
+                    <button type="submit" class="order-btn" <?= empty($items) ? "disabled" : "" ?>>  <!-- aller sur order -->
                         Order
                     </button>
                 </form>
 
-                <a href="index.php" class="back-link">Back to start</a>
+                <a href="index.php" class="back-link">Back to start</a>                             <!-- revenir sur index -->
             </div>
         </aside>
 
