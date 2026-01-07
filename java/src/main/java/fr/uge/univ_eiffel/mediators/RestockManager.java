@@ -11,6 +11,8 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.sql.Types.NULL;
+
 public class RestockManager {
 
     private static List<Integer> orders;
@@ -142,7 +144,7 @@ public class RestockManager {
      * @param quoteRequest a Map containing the product names and quantities to be ordered
      * @throws Exception if any errors occur during the order process or inventory update
      */
-    public void refillInventory(Map<String, Integer> quoteRequest) throws Exception {
+    public void refillInventory(Map<String, Integer> quoteRequest, Integer tilingID) throws Exception {
 
         var quote = orderer.requestQuote((HashMap<String, Integer>) quoteRequest);
 
@@ -176,7 +178,7 @@ public class RestockManager {
             boolean valid = verifier.verify(brick);
 
             if (valid) {
-                boolean added = inventory.add(brick);
+                boolean added = inventory.add(brick, tilingID);
                 System.out.println("Brick " + brick.name() + " added to inventory");
             } else {
                 System.out.println("Brick " + brick.name() + " failed verification or already exists");
@@ -193,7 +195,7 @@ public class RestockManager {
      * @return true if the restocking process completed successfully, false otherwise
      * @throws Exception if any errors occur during the restocking process
      */
-    public boolean reactiveRestockage(String solutionPath) throws Exception {
+    public boolean reactiveRestockage(String solutionPath, Integer tilingID) throws Exception {
         Map<Integer, Integer> stock = inventory.getStock();
         Map<Integer, Integer> needed = OrderManager.parseSolutionCounts(solutionPath).entrySet().stream().collect(Collectors.toMap(
                 e -> {
@@ -219,7 +221,7 @@ public class RestockManager {
         }
 
         System.out.println("Order: " + order);
-        refillInventory(order);
+        refillInventory(order, tilingID);
         inventory.addRestockHistory(order);
         return true;
     }
@@ -258,7 +260,7 @@ public class RestockManager {
                 System.out.println("No bricks found");
                 return true;
             }
-            refillInventory(invoice);
+            refillInventory(invoice, NULL);
             inventory.addRestockHistory(invoice);
             return true;
         } catch (SQLException e) {

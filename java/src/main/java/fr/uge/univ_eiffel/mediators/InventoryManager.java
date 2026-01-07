@@ -13,6 +13,8 @@ import java.io.PrintWriter;
 import java.sql.*;
 import java.util.*;
 
+import static java.sql.Types.NULL;
+
 /** Manages the connection to the local database (MariaDB).
  * Handles catalog updates, stock export for C, and inventory insertions.
  * The code is currently adapted to my local MariaDB database, but i left the
@@ -196,25 +198,70 @@ public class InventoryManager implements AutoCloseable {
         }
     }
 
+    /**
+     * Inserts a new confirmed tiling into the TILING table.
+     *
+     * @param pavageTxt the tiling text content
+     * @param imageId the associated image ID
+     * @return the generated tiling ID (pavage_id)
+     * @throws SQLException if a database access error occurs or the insertion fails
+     */
+    public int newConfirmedTiling(String pavageTxt, Integer imageId) throws SQLException {
+        // Vérifier que l'image_id existe si il n'est pas null
+        if (imageId != null) {
+            String checkImageSql = "SELECT COUNT(*) FROM IMAGE WHERE image_id = ?";
+            try (PreparedStatement checkStmt = connection.prepareStatement(checkImageSql)) {
+                checkStmt.setInt(1, imageId);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) == 0) {
+                        throw new SQLException("L'image_id " + imageId + " n'existe pas dans la table IMAGE");
+                    }
+                }
+            }
+        }
+
+        String insertSql = "INSERT INTO TILLING (pavage_txt, image_id) VALUES (?, ?)";
+
+        try (PreparedStatement stmt = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, pavageTxt);
+            if (imageId != null) {
+                stmt.setInt(2, imageId);
+            } else {
+                stmt.setNull(2, java.sql.Types.INTEGER);
+            }
+            stmt.executeUpdate();
+
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                } else {
+                    throw new SQLException("Failed to retrieve generated tiling ID");
+                }
+            }
+        }
+    }
+
     /** Adds a newly delivered brick into the inventory table.
      * Links the brick to the correct catalog entry ID.
-     * Input: Brick record (name, serial, certificate).
+     * @param brick (name, serial, certificate).
+     * @param tilingID The pavage ID this brick is associated with.
      * Output: True if successful. */
-    public boolean add(@NotNull Brick brick) throws SQLException {
+    public boolean add(@NotNull Brick brick, Integer tilingID) throws SQLException {
         // Parse the brick name, ex : "1-1/4d4c52" or "1-1-0123/4d4c52"
         Integer catalogId = getCatalogId(brick.name());
 
         // Insert the brick into inventory
-        String insertSql = "INSERT INTO INVENTORY (certificate, serial_num, unit_price, pavage_id, id_catalogue) VALUES (?, ?, ?, ?)";
+        String insertSql = "INSERT INTO INVENTORY (certificate, serial_num, unit_price, pavage_id, id_catalogue) VALUES (?, ?, ?, ?, ?)";
 
         byte[] certBytes = hexToBytes(brick.certificate());
         byte[] serialBytes = hexToBytes(brick.serial());
 
         try (PreparedStatement stmt = connection.prepareStatement(insertSql)) {
-            stmt.setBytes(1, serialBytes);
-            stmt.setInt(2, catalogId);
-            stmt.setBytes(3, certBytes);
-            stmt.setDouble(4, 0.01);
+            stmt.setBytes(1, certBytes);
+            stmt.setBytes(2, serialBytes);
+            stmt.setDouble(3, getUnitPrice(catalogId));
+            stmt.setInt(4, tilingID);
+            stmt.setInt(5, catalogId);
             stmt.executeUpdate();
         }
         return true;
@@ -363,38 +410,6 @@ public class InventoryManager implements AutoCloseable {
     }
 
     /**
-     * Retrieves the unit price of a catalog item from the inventory.
-     *
-     * This method queries the INVENTORY table to obtain the most recent
-     * unit price associated with the given catalog identifier. The latest
-     * price is determined by ordering inventory entries by their identifier
-     * in descending order and selecting the first result.
-     *
-     * @param idCatalogue the catalog identifier of the brick
-     * @return the unit price of the brick
-     * @throws SQLException if no price is found for the given catalog identifier
-     *                      or if a database access error occurs
-     */
-    private double getUnitPrice(int idCatalogue) throws SQLException {
-        String sql =" SELECT unit_price FROM INVENTORY" +
-                " WHERE id_catalogue = ?" +
-                " ORDER BY id_inventory DESC" +
-                " LIMIT 1;";
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, idCatalogue);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getDouble("unit_price");
-                } else {
-                    throw new SQLException("No unit_price found for id_catalogue=" + idCatalogue);
-                }
-            }
-        }
-    }
-
-    /**
      * Adds a restocking history entry and its associated inventory entries.
      *
      * This method creates a new stock entry with the current date and time,
@@ -441,18 +456,7 @@ public class InventoryManager implements AutoCloseable {
                 stmt.setInt(1, idCatalog);       // id_catalogue
                 stmt.setInt(2, stockEntryId);    // id_stock_entry
                 stmt.setInt(3, amount);          // quantity
-
-                String sqlPrice = "SELECT unit_price FROM catalog_with_price_and_stock WHERE id_catalog = ?";
-                double unitPrice;
-                try (PreparedStatement priceStmt = connection.prepareStatement(sqlPrice)) {
-                    priceStmt.setInt(1, idCatalog);
-                    ResultSet rs = priceStmt.executeQuery();
-                    if (rs.next()) {
-                        unitPrice = rs.getDouble("unit_price");
-                    } else {
-                        throw new SQLException("No unit_price found for id_catalogue=" + idCatalog);
-                    }
-                }
+                double unitPrice = getUnitPrice(idCatalog);
                 stmt.setDouble(4, amount * unitPrice);     // total_price
 
                 stmt.executeUpdate();
@@ -461,5 +465,21 @@ public class InventoryManager implements AutoCloseable {
             }
         }
         return true;
+    }
+
+    private double getUnitPrice(int idCatalog) {
+        String sqlPrice = "SELECT unit_price FROM catalog_with_price_and_stock WHERE id_catalogue = ?";
+
+        try (PreparedStatement priceStmt = connection.prepareStatement(sqlPrice)) {
+            priceStmt.setInt(1, idCatalog);
+            ResultSet rs = priceStmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("unit_price");
+            } else {
+                throw new SQLException("No unit_price found for id_catalogue=" + idCatalog);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
