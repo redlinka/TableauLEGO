@@ -1,6 +1,6 @@
 <?php
 // Load Composer dependencies for PHPMailer
-require __DIR__ . '/../vendor/autoload.php';
+//require __DIR__ . '/../vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -164,7 +164,7 @@ function deleteDescendants($cnx, $imageId, $imgDir, $tilingDir, $keepSelf = fals
     if (!$imageId) return;
 
     // Fetch children IDs to recurse
-    $stmt = $cnx->prepare("SELECT image_id, filename FROM IMAGE WHERE img_parent = ?");
+    $stmt = $cnx->prepare("SELECT image_id, path FROM IMAGE WHERE img_parent = ?");
     $stmt->execute([$imageId]);
     $children = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -248,5 +248,22 @@ function cleanStorage($cnx, $imgDir, $brickDir)
             }
         }
     } catch (Exception $e) {
+    }
+}
+
+function addLog($cnx, $agent, $logAction, $logObject)
+{
+
+    //ex: addLog($cnx, "Client", "Create account", "Account");
+
+    if (isset($_SESSIONB['userId'])) {
+        try {
+            $cnx->beginTransaction();
+            $stmt = $cnx->prepare("INSERT INTO `LOG` (agent, log_action, log_object, log_date, user_id) VALUES (?, ?, ?, NOW(), ?)");
+            $stmt->execute([$agent, $logAction, $logObject, $_SESSION["userId"]]);
+            $cnx->commit();
+        } catch (PDOException $e) {
+            $cnx->rollback();
+        }
     }
 }
