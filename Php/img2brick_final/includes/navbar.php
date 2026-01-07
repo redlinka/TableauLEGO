@@ -4,18 +4,22 @@ $isLoggedIn = isset($_SESSION['userId']);
 $navUsername = $_SESSION['username'] ?? tr('nav.account_guest', 'Account');
 $currentPage = basename($_SERVER['PHP_SELF']);
 
-$userId = $_SESSION['userId'];
+if($isLoggedIn){
 
-$stmt = $cnx->prepare("
-    SELECT COUNT(*) AS nb_panier
-    FROM order_bill o
-    JOIN contain c ON c.order_id = o.order_id
-    WHERE o.user_id = :user_id
-      AND o.created_at IS NULL
-");
-$stmt->execute(['user_id' => $userId]);
+    $userId = $_SESSION['userId'];
 
-$number = (int) $stmt->fetchColumn();
+    $stmt = $cnx->prepare("
+        SELECT COUNT(*) AS nb_panier
+        FROM order_bill o
+        JOIN contain c ON c.order_id = o.order_id
+        WHERE o.user_id = :user_id
+        AND o.created_at IS NULL
+    ");
+    $stmt->execute(['user_id' => $userId]);
+
+    $number = (int) $stmt->fetchColumn();
+
+}
 
 ?>
 <style>
