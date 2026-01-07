@@ -21,11 +21,12 @@ public class OrderTester {
             String publicKey = client.signaturePublicKey();
             final BrickVerifier verifier = new OfflineVerifier(publicKey);
 
-            final RestockManager restorer = new RestockManager(inventory, client, orderer, payer, verifier);
+            /*final RestockManager restorer = new RestockManager(inventory, client, orderer, payer, verifier);
 
             String solutionPath = "output.txt";
 
-            restorer.reactiveRestockage(solutionPath);
+            restorer.reactiveRestockage(solutionPath);*/
+            inventory.exportCatalog("catalog.txt");
 
         } catch (Exception e) {e.printStackTrace();}
 
