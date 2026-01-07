@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             // Fetch user by email or username
-            $stmt = $cnx->prepare("SELECT * FROM Users WHERE (email = ? OR username = ?)");
+            $stmt = $cnx->prepare("SELECT * FROM USER WHERE (email = ? OR username = ?)");
             $stmt->execute([$_POST['userid'], $_POST['userid']]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -33,12 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $errors[] = 'Invalid username or password';
 
-            } else if ((int)$user['is_active'] === 0) {
+            } else if ((int)$user['is_verified'] === 0) {
 
                 // Verify account activation status
                 session_regenerate_id(true);
 
-                $_SESSION['tempId'] = $user['id_user'];
+                $_SESSION['tempId'] = $user['user_id'];
                 $_SESSION['unverified_email'] = $user['email'];
 
                 $errors[] = 'Your account is not activated yet. Please check your email or click <a href="creation_mail.php">here</a> to resend the activation email.';
@@ -47,16 +47,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Update password hash if algorithm changed
                 if (password_needs_rehash($user['password'], $_ENV['ALGO'])) {
                     $newHash = password_hash($_POST['password'], $_ENV['ALGO']);
-                    $upd = $cnx->prepare("UPDATE Users SET password = ? WHERE id_user = ?");
-                    $upd->execute([$newHash, $user['id_user']]);
+                    $upd = $cnx->prepare("UPDATE USER SET password = ? WHERE user_id = ?");
+                    $upd->execute([$newHash, $user['user_id']]);
                 }
 
                 // Generate verification token
                 $token = bin2hex(random_bytes(32));
+                $expire_at = date('Y-m-d H:i:s', time() + 60); // 1min
 
                 // Store token in database
-                $ins = $cnx->prepare("INSERT INTO Tokens2FA (user_id, token, is_used, created_at) VALUES (?, ?, ?, NOW())");
-                $ins->execute([$user['id_user'], $token, 0]);
+                $ins = $cnx->prepare("INSERT INTO 2FA (user_id, `2FA`.verification_token, token_expire_at) VALUES (?, ?, ?)");
+                $ins->execute([$user['user_id'], $token, $expire_at]);
 
                 // Construct magic link
                 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";

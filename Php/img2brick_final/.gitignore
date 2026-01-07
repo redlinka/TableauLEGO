@@ -18,3 +18,5 @@ Dockerfile
 .vscdode/
 *.log
 *.xml
+# Test
+test/
