@@ -113,17 +113,7 @@ public class InventoryManager implements AutoCloseable {
      * Input: File path to write to (without extension).
      * Output: The full filename including extension. */
     public String exportCatalog(String catPath) throws Exception {
-//        String query = "SELECT width, height, holes, color_hex FROM CATALOG";
-//        Statement stmt = connection.createStatement();
-//        ResultSet result = stmt.executeQuery(query);
-//
-//        // we count the number of rows, which will be placed on top of the catalog txt file
-//        // moves cursor to end to get count, then resets
-//        result.last();
-//        int rowCount = result.getRow();
-//        result.beforeFirst();
 
-        ///////////MODIFICATION (helder)///////////
         // count lines
         String countQuery = "SELECT COUNT(*) FROM CATALOG";
         Statement countStmt = connection.createStatement();
@@ -133,10 +123,9 @@ public class InventoryManager implements AutoCloseable {
         int rowCount = countRs.getInt(1);
 
         // get data
-        String query = "SELECT width, height, holes, color_hex FROM CATALOG";
+        String query = "SELECT * FROM catalog_with_price_and_stock";
         Statement stmt = connection.createStatement();
         ResultSet result = stmt.executeQuery(query);
-        /////////////////////////////////
 
         try (PrintWriter writer = new PrintWriter(new PrintWriter(catPath))) {
             writer.println(rowCount); // first line: number of rows
@@ -147,7 +136,7 @@ public class InventoryManager implements AutoCloseable {
                 int height = result.getInt("height");
                 String holes = result.getString("holes");
                 String hex = result.getString("color_hex");
-                double price = 0.001; //result.getDouble("unit_price");
+                double price = result.getDouble("unit_price");
                 int stock = 100; //result.getInt("stock");
 
                 writer.printf(Locale.US,"%d,%d,%s,%s,%.5f,%d%n", width, height, holes, hex, price, stock);
@@ -452,23 +441,25 @@ public class InventoryManager implements AutoCloseable {
                 stmt.setInt(1, idCatalog);       // id_catalogue
                 stmt.setInt(2, stockEntryId);    // id_stock_entry
                 stmt.setInt(3, amount);          // quantity
-                stmt.setDouble(4, amount * getUnitPrice(idCatalog));     // total_price
+
+                String sqlPrice = "SELECT unit_price FROM catalog_with_price_and_stock WHERE id_catalog = ?";
+                double unitPrice;
+                try (PreparedStatement priceStmt = connection.prepareStatement(sqlPrice)) {
+                    priceStmt.setInt(1, idCatalog);
+                    ResultSet rs = priceStmt.executeQuery();
+                    if (rs.next()) {
+                        unitPrice = rs.getDouble("unit_price");
+                    } else {
+                        throw new SQLException("No unit_price found for id_catalogue=" + idCatalog);
+                    }
+                }
+                stmt.setDouble(4, amount * unitPrice);     // total_price
 
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         }
-
         return true;
     }
-
-
-//    public static void main(String[] args) throws SQLException {
-//        InventoryManager im = makeFromProps("config.properties");
-//        Map<String, Integer> stockMap = new HashMap<>();
-//
-//        stockMap.put("1-1/0020a0", 10);
-//        im.addRestockHistory(stockMap);
-//    }
 }
