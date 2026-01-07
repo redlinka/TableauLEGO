@@ -18,15 +18,15 @@ public class RestockManager {
     private static int RANGE = 7;
 
     private final InventoryManager inventory;
-    private final OrderManager orderer;
     private final FactoryClient client;
+    private final OrderManager orderer;
     private final PaymentMethod paymentMethod;
     private final BrickVerifier verifier;
 
-    public RestockManager(InventoryManager inventory, OrderManager orderer, FactoryClient client, PaymentMethod paymentMethod, BrickVerifier verifier) {
+    public RestockManager(InventoryManager inventory, FactoryClient client, OrderManager orderer, PaymentMethod paymentMethod, BrickVerifier verifier) {
         this.inventory = inventory;
-        this.orderer = orderer;
         this.client = client;
+        this.orderer = orderer;
         this.paymentMethod = paymentMethod;
         this.verifier = verifier;
     }
@@ -83,7 +83,7 @@ public class RestockManager {
      * @param stock a Map representing the current stock levels, where the key is the product catalog ID and the value is the stock count
      * @return a Map where the key is the product catalog ID and the value is the amount of stock to prepare
      */
-    public static @NotNull Map<Integer, Integer> calculateRestock(Map<Integer, Integer> need, Map<Integer, Integer> stock){
+    public @NotNull Map<Integer, Integer> calculateRestock(Map<Integer, Integer> need, Map<Integer, Integer> stock){
         System.out.println("Calculating stock to prepare...");
         Map<Integer, Integer> stockToPrepare = new HashMap<>();
 
@@ -118,7 +118,7 @@ public class RestockManager {
      * @param stockToRefill a Map where the key is the product catalog ID and the value is the amount of stock to refill
      * @return a Map where the key is the product name and the value is the quantity to be ordered
      */
-    public @NotNull Map<String, Integer> makeOrder(@NotNull Map<Integer, Integer> stockToRefill){
+    public @NotNull Map<String, Integer> parseQuoteRequest(@NotNull Map<Integer, Integer> stockToRefill){
         Map<String, Integer> invoice  = new HashMap<>();
         for(int catalogId: stockToRefill.keySet()){
             String brickName = inventory.getBrickTypeName(catalogId);
@@ -139,16 +139,20 @@ public class RestockManager {
      * the delivery status. Once the order is complete, it adds the delivered items to
      * the inventory, verifying each brick’s certificate before adding.
      *
-     * @param invoice a Map containing the product names and quantities to be ordered
+     * @param quoteRequest a Map containing the product names and quantities to be ordered
      * @throws Exception if any errors occur during the order process or inventory update
      */
-    public void refillInventory(Map<String, Integer> invoice) throws Exception {
-        var quote = orderer.requestQuote((HashMap<String, Integer>) invoice);
-        System.out.println("currently asking confirmation of quote: " + quote);
+    public void refillInventory(Map<String, Integer> quoteRequest) throws Exception {
 
+        var quote = orderer.requestQuote((HashMap<String, Integer>) quoteRequest);
+
+        System.out.println("currently asking confirmation of quote: " + quote);
+        System.out.println("balance: " + client.balance());
         if (quote.price() > client.balance()) {
             System.err.println("Insufficient balance to place the order. Required: " + quote.price() + ", Available: " + client.balance());
-
+            System.out.println("Trying to pay...");
+            paymentMethod.pay(quote.price());
+            System.out.println("New balance: " + client.balance());
         }
 
         orderer.confirmOrder(quote.id());
@@ -168,12 +172,10 @@ public class RestockManager {
         OnlineVerifier online = new OnlineVerifier(client);
 
         for (Brick brick : status.bricks()) {
-            //Online verification
-            boolean valid = online.verify(brick);
-            // Offline verification
-            boolean offlineVerif = offline.verify(brick);
 
-            if (valid && offlineVerif) {
+            boolean valid = verifier.verify(brick);
+
+            if (valid) {
                 boolean added = inventory.add(brick);
                 System.out.println("Brick " + brick.name() + " added to inventory");
             } else {
@@ -204,12 +206,18 @@ public class RestockManager {
                 Map.Entry::getValue,
                 Integer::sum
         ));
+
+        // calculates the number of parts to be ordered for each type
+        Map<Integer, Integer> difference = calculateRestock(needed, stock);
+
         //order the pieces
-        Map<String, Integer> order = makeOrder(needed);
+        Map<String, Integer> order = parseQuoteRequest(difference);
+
         if(order.isEmpty()){
             System.out.println("No bricks found");
             return true;
         }
+
         System.out.println("Order: " + order);
         refillInventory(order);
         inventory.addRestockHistory(order);
@@ -240,12 +248,12 @@ public class RestockManager {
                 pieces.add(c);
             }
             // calculates the average of the different types of coins used per day
-            Map<Integer, Integer> cda = calculateDailyAverage();
+            Map<Integer, Integer> dailyAv = calculateDailyAverage();
             // calculates the number of parts to be ordered for each type
-            Map<Integer, Integer> cstp = calculateRestock(cda,  inventory.getStock());
+            Map<Integer, Integer> difference = calculateRestock(dailyAv,  inventory.getStock());
 
             //order the pieces
-            Map<String, Integer> invoice = makeOrder(cstp);
+            Map<String, Integer> invoice = parseQuoteRequest(difference);
             if(invoice.isEmpty()){
                 System.out.println("No bricks found");
                 return true;
