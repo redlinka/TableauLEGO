@@ -27,13 +27,13 @@ public class OrderManager {
 
     /**
      * Parses a solution output file and counts the occurrences of each brick.
-     * * @param filePath The path to the solution file (e.g., "output.txt").
+     * @param solutionPath The path to the solution file (e.g., "output.txt").
      * @return A Map where Key = Brick Name (e.g., "6-24/1591cb") and Value = Quantity.
      */
-    public static HashMap<String, Integer> parseSolutionCounts(String filePath) {
+    public static HashMap<String, Integer> parseSolutionCounts(String solutionPath) {
         HashMap<String, Integer> brickCounts = new HashMap<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(solutionPath))) {
             // 1. Skip the header line (Price and Quality scores)
             reader.readLine();
 
