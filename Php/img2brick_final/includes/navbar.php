@@ -3,7 +3,51 @@ require_once __DIR__ . '/i18n.php';
 $isLoggedIn = isset($_SESSION['userId']);
 $navUsername = $_SESSION['username'] ?? tr('nav.account_guest', 'Account');
 $currentPage = basename($_SERVER['PHP_SELF']);
+
+$userId = $_SESSION['userId'];
+
+$stmt = $cnx->prepare("
+    SELECT COUNT(*) AS nb_panier
+    FROM order_bill o
+    JOIN contain c ON c.order_id = o.order_id
+    WHERE o.user_id = :user_id
+      AND o.created_at IS NULL
+");
+$stmt->execute(['user_id' => $userId]);
+
+$number = (int) $stmt->fetchColumn();
+
 ?>
+<style>
+.cart-wrapper{
+  position: relative;
+  display: inline-block;
+}
+
+.cart-icon{
+  width: 60px;
+  height: 60px;
+}
+
+.cart-badge{
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: #e60023;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px #fff;
+  pointer-events: none; 
+}
+</style>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
     <div class="container-fluid px-3">
@@ -20,6 +64,23 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 
             <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 mt-3 mt-lg-0">
                 <?php if ($isLoggedIn): ?>
+                    
+
+                    <div class="cart-profil">
+
+
+                            <a href="cart.php" class="cart-wrapper" aria-label="Open orders">
+                            <img src="users\imgs_site\cart.png" alt="Panier" class="cart-icon">
+
+                            <?php if ($number > 0): ?>
+                                <span class="cart-badge"><?= ($number > 9) ? "9+" : $number ?></span>
+                            <?php endif; ?>
+                            </a>
+
+
+
+
+                    </div>
 
                     <a href="my_orders.php" class="btn btn-outline-secondary <?= ($currentPage == 'my_orders.php') ? 'active' : '' ?>" data-i18n="nav.my_orders">
                         My Orders
