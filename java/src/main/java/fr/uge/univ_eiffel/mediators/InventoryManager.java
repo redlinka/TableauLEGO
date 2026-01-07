@@ -340,6 +340,8 @@ public class InventoryManager implements AutoCloseable {
         }
     }
 
+
+
     /** Factory method to create an instance from a properties file.
      * Input: Filename (e.g., "config.properties").
      * Output: Initialized InventoryManager connected to DB. */

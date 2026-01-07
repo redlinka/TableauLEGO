@@ -69,8 +69,8 @@ public class LegoVisualizer {
             int h = Integer.parseInt(brick[1]);
             int x = Integer.parseInt(brick[3]);
             int y = Integer.parseInt(brick[4]);
-            Color brickColor = Color.decode("#" + brick[2]).darker();
-            Color brickEdge = new Color(0, 0, 0);
+            Color brickColor = Color.decode("#" + brick[2]);
+            Color brickEdge = new Color(0, 0, 0, 50);
             Color studColor = brickColor.brighter();
             Color studEdge = new Color(0, 0, 0, 50);
 
