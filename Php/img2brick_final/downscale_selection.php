@@ -50,7 +50,6 @@ if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
         $javaCmd = '"' . $preferredJava . '"';
     }
 }
-
 // Extra safety checks (helps pinpoint "chemin introuvable")
 if (empty($errors)) {
     if (!file_exists($jarPath)) {
@@ -142,7 +141,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         // Invalidate downstream steps
                         deleteDescendants($cnx, $existingId, $imgDir, $tilingDir, true);
                         unset($_SESSION['step3_image_id']);
-
                     } else {
                         // Insert new database record (guest allowed)
                         $stmt = $cnx->prepare("
@@ -166,7 +164,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     csrf_rotate();
                     header("Location: filter_selection.php");
                     exit;
-
                 } catch (PDOException $e) {
                     // Rollback file on database error
                     if (!$isUpdate && file_exists($finalPath)) unlink($finalPath);
@@ -184,6 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title><?= htmlspecialchars(tr('downscale.page_title', 'Step 2b: Compare')) ?></title>
@@ -196,15 +194,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             object-fit: cover;
             cursor: zoom-in;
         }
+
         .algo-card {
             transition: transform 0.2s;
             border: 2px solid transparent;
             cursor: pointer;
         }
+
         .algo-card:hover {
             transform: translateY(-5px);
             border-color: #0d6efd;
         }
+
         .preview-box {
             background-color: #212529;
             aspect-ratio: 1 / 1;
@@ -214,6 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             overflow: hidden;
             position: relative;
         }
+
         #imgModal {
             display: none;
             position: fixed;
@@ -224,8 +226,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.9);
+            background-color: rgba(0, 0, 0, 0.9);
         }
+
         .modal-content {
             margin: auto;
             display: block;
@@ -233,6 +236,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             max-width: 800px;
             image-rendering: pixelated;
         }
+
         .close {
             position: absolute;
             top: 15px;
@@ -244,78 +248,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </style>
 </head>
+
 <body>
 
-<?php include("./includes/navbar.php"); ?>
+    <?php include("./includes/navbar.php"); ?>
 
-<div class="container bg-light py-5">
-    <h2 class="text-center mb-4" data-i18n="downscale.title">Choose your favorite Result</h2>
+    <div class="container bg-light py-5">
+        <h2 class="text-center mb-4" data-i18n="downscale.title">Choose your favorite Result</h2>
 
-    <?php if (!empty($errors)): ?>
-        <div class="alert alert-danger">
-            <ul><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>
-        </div>
-    <?php endif; ?>
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-danger">
+                <ul><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>
+            </div>
+        <?php endif; ?>
 
-    <form method="POST" id="selectionForm">
-        <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_get()) ?>">
-        <input type="hidden" name="selected_algo" id="selectedAlgoInput">
+        <form method="POST" id="selectionForm">
+            <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_get()) ?>">
+            <input type="hidden" name="selected_algo" id="selectedAlgoInput">
 
-        <div class="row g-4">
-            <?php foreach ($algos as $algo): ?>
-                <?php if (isset($generatedImages[$algo])): ?>
-                    <div class="col-md-4">
-                        <div class="card h-100 shadow-sm algo-card">
-                            <div class="card-header text-center fw-bold text-uppercase">
-                                <?= htmlspecialchars($algo) ?>
-                            </div>
-                            <div class="card-body preview-box">
-                                <img src="<?= htmlspecialchars($imgDir . $generatedImages[$algo]) ?>"
-                                     class="pixelated"
-                                     onclick="event.stopPropagation(); openModal(this.src)" alt="">
-                            </div>
-                            <div class="card-footer text-center">
-                                <button type="button" class="btn btn-outline-primary w-100" data-i18n="downscale.select" onclick="selectAlgo('<?= htmlspecialchars($algo) ?>')">Select This</button>
+            <div class="row g-4">
+                <?php foreach ($algos as $algo): ?>
+                    <?php if (isset($generatedImages[$algo])): ?>
+                        <div class="col-md-4">
+                            <div class="card h-100 shadow-sm algo-card">
+                                <div class="card-header text-center fw-bold text-uppercase">
+                                    <?= htmlspecialchars($algo) ?>
+                                </div>
+                                <div class="card-body preview-box">
+                                    <img src="<?= htmlspecialchars($imgDir . $generatedImages[$algo]) ?>"
+                                        class="pixelated"
+                                        onclick="event.stopPropagation(); openModal(this.src)" alt="">
+                                </div>
+                                <div class="card-footer text-center">
+                                    <button type="button" class="btn btn-outline-primary w-100" data-i18n="downscale.select" onclick="selectAlgo('<?= htmlspecialchars($algo) ?>')">Select This</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                <?php endif; ?>
-            <?php endforeach; ?>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+        </form>
+
+        <div class="text-center mt-5">
+            <a href="dimensions_selection.php" class="btn btn-outline-secondary" data-i18n="downscale.back">Back</a>
         </div>
-    </form>
-
-    <div class="text-center mt-5">
-        <a href="dimensions_selection.php" class="btn btn-outline-secondary" data-i18n="downscale.back">Back</a>
     </div>
-</div>
 
-<div id="imgModal">
-    <span class="close" onclick="closeModal()">&times;</span>
-    <img class="modal-content" id="modalImg" alt="" src="">
-</div>
+    <div id="imgModal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="modalImg" alt="" src="">
+    </div>
 
-<script>
-    function selectAlgo(algo) {
-        document.getElementById('selectedAlgoInput').value = algo;
-        document.getElementById('selectionForm').submit();
-    }
-    function openModal(src) {
-        const modal = document.getElementById("imgModal");
-        const modalImg = document.getElementById("modalImg");
-        modal.style.display = "block";
-        modalImg.src = src;
-    }
-    function closeModal() {
-        document.getElementById("imgModal").style.display = "none";
-    }
-    window.onclick = function(event) {
-        if (event.target === document.getElementById("imgModal")) {
-            closeModal();
+    <script>
+        function selectAlgo(algo) {
+            document.getElementById('selectedAlgoInput').value = algo;
+            document.getElementById('selectionForm').submit();
         }
-    }
-</script>
 
-<?php include("./includes/footer.php"); ?>
+        function openModal(src) {
+            const modal = document.getElementById("imgModal");
+            const modalImg = document.getElementById("modalImg");
+            modal.style.display = "block";
+            modalImg.src = src;
+        }
+
+        function closeModal() {
+            document.getElementById("imgModal").style.display = "none";
+        }
+        window.onclick = function(event) {
+            if (event.target === document.getElementById("imgModal")) {
+                closeModal();
+            }
+        }
+    </script>
+
+    <?php include("./includes/footer.php"); ?>
 </body>
-</html>
 
+</html>

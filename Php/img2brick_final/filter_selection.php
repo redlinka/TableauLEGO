@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Check for existing step to update
                 if ($existingId) {
-                    $stmt = $cnx->prepare("SELECT filename FROM Images WHERE id_image = ? AND parent_id = ?");
+                    $stmt = $cnx->prepare("SELECT filename FROM IMAGE WHERE image_id = ? AND img_parent = ?");
                     $stmt->execute([$existingId, $parentId]);
                     $existingRow = $stmt->fetch();
 
@@ -61,26 +61,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (file_put_contents(__DIR__ . '/' . $targetPath, $imageBase64)) {
                     try {
                         if ($isUpdate) {
+
                             // Update existing image record
-                            $stmt = $cnx->prepare("UPDATE Images SET status = 'CUSTOM', original_name = ? WHERE id_image = ?");
-                            $stmt->execute(["Filtered ($filterName)", $existingId]);
+                            $stmt = $cnx->prepare("UPDATE IMAGE SET status = 'CUSTOM' WHERE image_id = ?");
+                            $stmt->execute([$existingId]);
 
                             // Delete downstream steps to maintain consistency
+
                             deleteDescendants($cnx, $existingId, $imgDir, $tilingDir, true);
                             unset($_SESSION['step4_image_id']);
-
                         } else {
+
                             // Insert new image record
-                            $stmt = $cnx->prepare("INSERT INTO Images (user_id, filename, original_name, status, parent_id) VALUES (?, ?, ?, 'CUSTOM', ?)");
+                            $stmt = $cnx->prepare("INSERT INTO IMAGE (user_id, filename, path, status, img_parent) VALUES (?, ?, ?, 'CUSTOM', ?)");
                             $userId = $_SESSION['userId'] ?? NULL;
-                            $stmt->execute([$userId, $targetFilename, "Filtered ($filterName)", $parentId]);
+                            $stmt->execute([$userId, "Image filtered", $targetFilename, $parentId]);
 
                             $_SESSION['step3_image_id'] = $cnx->lastInsertId();
                         }
                         // Redirect to tiling selection step
                         header("Location: tiling_selection.php");
                         exit;
-
                     } catch (PDOException $e) {
                         if (!$isUpdate && file_exists(__DIR__ . '/' . $targetPath)) {
                             unlink(__DIR__ . '/' . $targetPath);
@@ -98,15 +99,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 try {
     // Retrieve image for preview
-    $stmt = $cnx->prepare("SELECT filename FROM Images WHERE id_image = ?");
+    $stmt = $cnx->prepare("SELECT path FROM IMAGE WHERE image_id = ?");
     $stmt->execute([$parentId]);
     $image = $stmt->fetch();
 
     if (!$image) die("Image not found");
 
     // Append timestamp to prevent caching
-    $displayPath = $imgDir . $image['filename'] . '?t=' . time();
-
+    $displayPath = $imgDir . $image['path'] . '?t=' . time();
 } catch (PDOException $e) {
 
     http_response_code(500);
@@ -114,23 +114,23 @@ try {
 }
 // Define available filters
 $filters = [
-        ['name' => 'Normal', 'key' => 'filter.normal', 'css' => 'none'],
-        ['name' => 'Black & White', 'key' => 'filter.bw', 'css' => 'grayscale(100%)'],
-        ['name' => 'Sepia', 'key' => 'filter.sepia', 'css' => 'sepia(100%)'],
-        ['name' => 'Warm Red', 'key' => 'filter.warm_red', 'css' => 'contrast(1.5) sepia(100%) hue-rotate(-50deg) saturate(2)'],
-        ['name' => 'Cool Blue', 'key' => 'filter.cool_blue', 'css' => 'contrast(1.2) hue-rotate(180deg)'],
-        ['name' => 'High Contrast', 'key' => 'filter.high_contrast', 'css' => 'contrast(2)'],
+    ['name' => 'Normal', 'key' => 'filter.normal', 'css' => 'none'],
+    ['name' => 'Black & White', 'key' => 'filter.bw', 'css' => 'grayscale(100%)'],
+    ['name' => 'Sepia', 'key' => 'filter.sepia', 'css' => 'sepia(100%)'],
+    ['name' => 'Warm Red', 'key' => 'filter.warm_red', 'css' => 'contrast(1.5) sepia(100%) hue-rotate(-50deg) saturate(2)'],
+    ['name' => 'Cool Blue', 'key' => 'filter.cool_blue', 'css' => 'contrast(1.2) hue-rotate(180deg)'],
+    ['name' => 'High Contrast', 'key' => 'filter.high_contrast', 'css' => 'contrast(2)'],
 ];
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title><?= htmlspecialchars(tr('filter.page_title', 'Step 3: Add Filters')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-
         .algo-card {
             transition: transform 0.2s;
             border: 2px solid transparent;
@@ -147,7 +147,8 @@ $filters = [
             aspect-ratio: 1 / 1;
             width: 100%;
             height: auto;
-            padding: 0;           /* NO PADDING */
+            padding: 0;
+            /* NO PADDING */
             overflow: hidden;
             position: relative;
         }
@@ -155,109 +156,140 @@ $filters = [
         .pixelated {
             width: 100%;
             height: 100%;
-            object-fit: cover;    /* FILL ALL SPACE */
+            object-fit: cover;
+            /* FILL ALL SPACE */
             image-rendering: pixelated;
             display: block;
         }
 
-        #imgModal { display: none; position: fixed; z-index: 1050; padding-top: 50px; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9); }
-        .modal-content { margin: auto; display: block; width: 80%; max-width: 800px; image-rendering: pixelated; object-fit: contain; }
-        .close { position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer; }
+        #imgModal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            padding-top: 50px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 800px;
+            image-rendering: pixelated;
+            object-fit: contain;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
-<body >
 
-<?php include("./includes/navbar.php"); ?>
+<body>
 
-<div class="container bg-light py-5">
-    <h2 class="text-center mb-4" data-i18n="filter.title">Step 3: Choose a Tint</h2>
+    <?php include("./includes/navbar.php"); ?>
 
-    <?php if (!empty($errors)): ?>
-        <div class="alert alert-danger">
-            <ul><?php foreach ($errors as $err): ?>
-                    <li><?= htmlspecialchars($err) ?></li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
-    <?php endif; ?>
+    <div class="container bg-light py-5">
+        <h2 class="text-center mb-4" data-i18n="filter.title">Step 3: Choose a Tint</h2>
 
-    <form method="POST" id="filterForm">
-        <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_get()) ?>">
-        <input type="hidden" name="image" id="hiddenImage">
-        <input type="hidden" name="filterName" id="hiddenFilterName">
-    </form>
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-danger">
+                <ul><?php foreach ($errors as $err): ?>
+                        <li><?= htmlspecialchars($err) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
 
-    <img id="sourceImage" src="<?= htmlspecialchars($displayPath) ?>" style="display:none;" crossorigin="anonymous">
+        <form method="POST" id="filterForm">
+            <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_get()) ?>">
+            <input type="hidden" name="image" id="hiddenImage">
+            <input type="hidden" name="filterName" id="hiddenFilterName">
+        </form>
 
-    <div class="row g-4">
-        <?php foreach ($filters as $f): ?>
-            <?php $displayName = tr($f['key'], $f['name']); ?>
-            <div class="col-md-4">
-                <div class="card h-100 shadow-sm algo-card">
-                    <div class="card-header text-center fw-bold text-uppercase">
-                        <?= htmlspecialchars($displayName) ?>
-                    </div>
-                    <div class="card-body preview-box">
-                        <img src="<?= htmlspecialchars($displayPath) ?>"
-                             class="pixelated"
-                             style="filter: <?= htmlspecialchars($f['css']) ?>;"
-                             onclick="event.stopPropagation(); openModal(this.src, '<?= htmlspecialchars($f['css']) ?>')" alt="">
-                    </div>
-                    <div class="card-footer text-center">
-                        <button type="button" class="btn btn-outline-primary w-100" data-i18n="filter.select"
+        <img id="sourceImage" src="<?= htmlspecialchars($displayPath) ?>" style="display:none;" crossorigin="anonymous">
+
+        <div class="row g-4">
+            <?php foreach ($filters as $f): ?>
+                <?php $displayName = tr($f['key'], $f['name']); ?>
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm algo-card">
+                        <div class="card-header text-center fw-bold text-uppercase">
+                            <?= htmlspecialchars($displayName) ?>
+                        </div>
+                        <div class="card-body preview-box">
+                            <img src="<?= htmlspecialchars($displayPath) ?>"
+                                class="pixelated"
+                                style="filter: <?= htmlspecialchars($f['css']) ?>;"
+                                onclick="event.stopPropagation(); openModal(this.src, '<?= htmlspecialchars($f['css']) ?>')" alt="">
+                        </div>
+                        <div class="card-footer text-center">
+                            <button type="button" class="btn btn-outline-primary w-100" data-i18n="filter.select"
                                 onclick="selectFilter('<?= htmlspecialchars($f['css']) ?>', '<?= htmlspecialchars($f['name']) ?>')">
-                            Select This
-                        </button>
+                                Select This
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="text-center mt-5">
+            <a href="downscale_selection.php" class="btn btn-outline-secondary" data-i18n="filter.back">Back</a>
+        </div>
     </div>
 
-    <div class="text-center mt-5">
-        <a href="downscale_selection.php" class="btn btn-outline-secondary" data-i18n="filter.back">Back</a>
+    <div id="imgModal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="modalImg" alt="">
     </div>
-</div>
 
-<div id="imgModal">
-    <span class="close" onclick="closeModal()">&times;</span>
-    <img class="modal-content" id="modalImg" alt="">
-</div>
+    <canvas id="hiddenCanvas" style="display:none;"></canvas>
 
-<canvas id="hiddenCanvas" style="display:none;"></canvas>
+    <script>
+        const sourceImg = document.getElementById('sourceImage');
+        const canvas = document.getElementById('hiddenCanvas');
+        const form = document.getElementById('filterForm');
 
-<script>
-    const sourceImg = document.getElementById('sourceImage');
-    const canvas = document.getElementById('hiddenCanvas');
-    const form = document.getElementById('filterForm');
+        function selectFilter(filterCss, filterName) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = sourceImg.naturalWidth;
+            canvas.height = sourceImg.naturalHeight;
+            ctx.filter = filterCss;
+            ctx.drawImage(sourceImg, 0, 0, canvas.width, canvas.height);
+            document.getElementById('hiddenImage').value = canvas.toDataURL('image/png');
+            document.getElementById('hiddenFilterName').value = filterName;
+            form.submit();
+        }
 
-    function selectFilter(filterCss, filterName) {
-        const ctx = canvas.getContext('2d');
-        canvas.width = sourceImg.naturalWidth;
-        canvas.height = sourceImg.naturalHeight;
-        ctx.filter = filterCss;
-        ctx.drawImage(sourceImg, 0, 0, canvas.width, canvas.height);
-        document.getElementById('hiddenImage').value = canvas.toDataURL('image/png');
-        document.getElementById('hiddenFilterName').value = filterName;
-        form.submit();
-    }
+        function openModal(src, filterCss) {
+            document.getElementById("imgModal").style.display = "block";
+            const modalImg = document.getElementById("modalImg");
+            modalImg.src = src;
+            modalImg.style.filter = filterCss;
+        }
 
-    function openModal(src, filterCss) {
-        document.getElementById("imgModal").style.display = "block";
-        const modalImg = document.getElementById("modalImg");
-        modalImg.src = src;
-        modalImg.style.filter = filterCss;
-    }
+        function closeModal() {
+            document.getElementById("imgModal").style.display = "none";
+        }
 
-    function closeModal() {
-        document.getElementById("imgModal").style.display = "none";
-    }
+        window.onclick = function(event) {
+            if (event.target === document.getElementById("imgModal")) closeModal();
+        }
+    </script>
 
-    window.onclick = function(event) {
-        if (event.target === document.getElementById("imgModal")) closeModal();
-    }
-</script>
-
-<?php include("./includes/footer.php"); ?>
+    <?php include("./includes/footer.php"); ?>
 </body>
+
 </html>
