@@ -2,11 +2,12 @@
 session_start();
 global $cnx;
 include("./config/cnx.php");
+require_once __DIR__ . '/includes/i18n.php';
 
 // Validate input Ensure token presence
 if (!isset($_GET['token'])) {
     http_response_code(400);
-    die("No token provided.");
+    die(tr('verify_connexion.no_token', 'No token provided.'));
 }
 
 try {
@@ -21,7 +22,7 @@ try {
 
     if (!$result) {
         http_response_code(400);
-        die("Invalid or expired login link.");
+        die(tr('verify_connexion.invalid_link', 'Invalid or expired login link.'));
     }
 
     // Check expiration (10 minutes)
@@ -34,7 +35,7 @@ try {
 
     if ($minutes > 10) {
         http_response_code(400);
-        die("This login link has expired. Please try logging in again.");
+        die(tr('verify_connexion.expired', 'This login link has expired. Please try logging in again.'));
     }
 
     // --- SUCCESS: LOG THE USER IN ---
@@ -79,6 +80,7 @@ try {
 
 } catch (PDOException $e) {
     http_response_code(500);
-    die('Database error. Please try again later.');
+    die(tr('verify_connexion.db_error', 'Database error. Please try again later.'));
 }
 ?>
+

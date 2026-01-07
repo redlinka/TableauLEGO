@@ -2,6 +2,7 @@
 session_start();
 global $cnx;
 include("./config/cnx.php");
+require_once __DIR__ . '/includes/i18n.php';
 
 $errors = [];
 
@@ -48,9 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) 
 include("./includes/navbar.php");
 
 function money($v) {
-    return number_format((float)$v, 2, ".", " ") . " €";
+    return number_format((float)$v, 2, ".", " ") . " EUR";
 }
-
 
 
 
@@ -310,25 +310,25 @@ body{
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>My Cart</title>
+    <title><?=   htmlspecialchars(tr('cart.page_title', 'My Cart')) ?></title>
     <link rel="stylesheet" href="css/cart.css">
 </head>
 <body>
 
 <main class="cart-page">
 </br>
-    <h1 class="title">My Cart</h1>
+    <h1 class="title" data-i18n="cart.title">My Cart</h1>
 
     <div class="cart-layout">
 
  
         <section class="cart-left">
-            <h2 class="section-title">Items</h2>
+            <h2 class="section-title" data-i18n="cart.items">Items</h2>
 
             <!-- AFFICHAGE PANIER -->
 
             <?php if (empty($items)): ?>
-                <p class="empty">Your cart is empty.</p>
+                <p class="empty" data-i18n="cart.empty">Your cart is empty.</p>
             <?php else: ?>
                 <div class="items-grid">
 
@@ -338,22 +338,22 @@ body{
                         <article class="item-card">
 
                             <div class="thumb">
-                               <img src="<?= htmlspecialchars($it['src'] ?: '/images/placeholder.png') ?>" alt="Item">  <!-- affiche l'image -->
+                                <img src="<?= htmlspecialchars($it['src'] ?: '/images/placeholder.png') ?>" alt="Item">
                             </div>
 
                             <div class="meta">
                                 <form method="post" action="cart.php" class="remove-form">
-                                    <input type="hidden" name="remove_pavage_id" value="<?= (int)$it['id_pavage'] ?>">  <!-- bouton suprimer (code php en haut) -->
-                                    <button type="submit" class="remove-btn">Remove</button>
+                                    <input type="hidden" name="remove_pavage_id" value="<?= (int)$it['id_pavage'] ?>">
+                                    <button type="submit" class="remove-btn" data-i18n="cart.remove">Remove</button>
                                 </form>
                                 <div class="meta-row">
-                                    <span>Unit</span>
-                                    <strong><?= money($it["price"]) ?></strong>           <!-- prix -->
+                                    <span data-i18n="cart.unit">Unit</span>
+                                    <strong><?= money($it["price"]) ?></strong>
                                 </div>
 
                                 <div class="meta-row">
-                                    <span>Line</span>
-                                    <strong><?= money($it["line_total"]) ?></strong>      <!-- taxe (suprimer si non necaissaire) -->
+                                    <span data-i18n="cart.line">Line</span>
+                                    <strong><?= money($it["line_total"]) ?></strong>
                                 </div>
 
                             </div>
@@ -365,38 +365,41 @@ body{
 
 
         <aside class="cart-right">
-            <h2 class="section-title">Summary</h2>
+            <h2 class="section-title" data-i18n="cart.summary">Summary</h2>
 
             <div class="summary-box">
                 <div class="sum-row">
-                    <span>Subtotal</span>
-                    <strong><?= money($subtotal) ?></strong>  <!-- prix totaux -->
+                    <span data-i18n="cart.subtotal">Subtotal</span>
+                    <strong><?= money($subtotal) ?></strong>
                 </div>
 
                 <div class="sum-row">
-                    <span>Shipping (10%)</span>
-                    <strong><?= money($shipping) ?></strong>  <!-- taxe totaux -->
+                    <span data-i18n="cart.shipping">Shipping (10%)</span>
+                    <strong><?= money($shipping) ?></strong>
                 </div>
 
                 <div class="sum-divider"></div>
 
                 <div class="sum-row total">
-                    <span>Total</span>
-                    <strong><?= money($total) ?></strong>    <!-- a payer -->
+                    <span data-i18n="cart.total">Total</span>
+                    <strong><?= money($total) ?></strong>
                 </div>
 
                 <form method="post" action="order.php">
-                    <button type="submit" class="order-btn" <?= empty($items) ? "disabled" : "" ?>>  <!-- aller sur order -->
-                        Order
-                    </button>
+                    <button type="submit" class="order-btn" data-i18n="cart.order" <?= empty($items) ? "disabled" : "" ?>>Order</button>
                 </form>
 
-                <a href="index.php" class="back-link">Back to start</a>                             <!-- revenir sur index -->
+                <a href="index.php" class="back-link" data-i18n="cart.back">Back to start</a>
             </div>
         </aside>
 
     </div>
 </main>
 
+<script src="assets/i18n.js"></script>
 </body>
 </html>
+
+
+
+

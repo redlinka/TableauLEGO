@@ -2,6 +2,7 @@
 session_start();
 global $cnx;
 include("./config/cnx.php");
+require_once __DIR__ . '/includes/i18n.php';
 
 // Verify session prerequisites
 if (!isset($_SESSION['step3_image_id'])) {
@@ -132,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Step 4: Generate LEGO</title>
+    <title><?= htmlspecialchars(tr('tiling.page_title', 'Step 4: Generate LEGO')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         /* Container: flexible height, no forced square */
@@ -180,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="col-lg-10">
             <div class="card shadow border-0">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Step 4: Tiling Optimization</h5>
+                    <h5 class="mb-0" data-i18n="tiling.header">Step 4: Tiling Optimization</h5>
                 </div>
                 <div class="card-body p-4">
 
@@ -199,7 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <img src="<?= $previewImage ?>" class="lego-img" onclick="openModal(this.src)" alt="">
                                 <?php else: ?>
                                     <div class="text-white text-center p-3">
-                                        <p class="mb-0 opacity-75">Preview will appear here</p>
+                                        <p class="mb-0 opacity-75" data-i18n="tiling.preview_placeholder">Preview will appear here</p>
                                     </div>
                                 <?php endif; ?>
                             </div>
@@ -209,69 +210,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <form method="POST" id="tilingForm" class="flex-grow-1">
                                 <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_get()) ?>">
 
-                                <h6 class="fw-bold mb-3">1. Select Method</h6>
+                                <h6 class="fw-bold mb-3" data-i18n="tiling.step_method">1. Select Method</h6>
                                 <div class="btn-group w-100 mb-4" role="group">
                                     <input type="radio" class="btn-check" name="method" id="methodQuad" value="quadtree" checked onchange="toggleThresholds()">
                                     <label class="btn btn-outline-primary py-3" for="methodQuad">
-                                        <strong>Quadtree</strong><br>
-                                        <small>Smart sizing (Cheaper)</small>
+                                        <strong data-i18n="tiling.method_quadtree">Quadtree</strong><br>
+                                        <small data-i18n="tiling.method_quadtree_hint">Smart sizing (Cheaper)</small>
                                     </label>
 
                                     <input type="radio" class="btn-check" name="method" id="method1x1" value="1x1" onchange="toggleThresholds()">
                                     <label class="btn btn-outline-primary py-3" for="method1x1">
-                                        <strong>1x1</strong><br>
-                                        <small>Pixel Perfect (Expensive)</small>
+                                        <strong data-i18n="tiling.method_1x1">1x1</strong><br>
+                                        <small data-i18n="tiling.method_1x1_hint">Pixel Perfect (Expensive)</small>
                                     </label>
                                 </div>
 
                                 <div id="thresholdSection">
-                                    <h6 class="fw-bold mb-3">2. Select Budget / Precision</h6>
+                                    <h6 class="fw-bold mb-3" data-i18n="tiling.step_budget">2. Select Budget / Precision</h6>
 
                                     <input type="hidden" name="threshold" id="thresholdInput" value="2000">
 
                                     <div class="d-grid gap-2 mb-3">
                                         <button type="button" class="btn btn-outline-secondary preset-btn" onclick="setThreshold(1000, this)">
-                                            <strong>High Detail</strong>
-                                            <small>Threshold: 1,000</small>
+                                            <strong data-i18n="tiling.preset_high">High Detail</strong>
+                                            <small data-i18n="tiling.preset_high_hint">Threshold: 1,000</small>
                                         </button>
 
                                         <button type="button" class="btn btn-outline-secondary preset-btn active" onclick="setThreshold(2000, this)">
-                                            <strong>Balanced</strong>
-                                            <small>Threshold: 2,000 (Recommended)</small>
+                                            <strong data-i18n="tiling.preset_balanced">Balanced</strong>
+                                            <small data-i18n="tiling.preset_balanced_hint">Threshold: 2,000 (Recommended)</small>
                                         </button>
 
                                         <button type="button" class="btn btn-outline-secondary preset-btn" onclick="setThreshold(100000, this)">
-                                            <strong>Minimal Price</strong>
-                                            <small>Threshold: 100,000 (Abstract)</small>
+                                            <strong data-i18n="tiling.preset_minimal">Minimal Price</strong>
+                                            <small data-i18n="tiling.preset_minimal_hint">Threshold: 100,000 (Abstract)</small>
                                         </button>
 
                                         <button type="button" class="btn btn-outline-secondary preset-btn" id="customBtn" onclick="enableCustom()">
-                                            <strong>Custom Value</strong>
-                                            <small>Enter manually...</small>
+                                            <strong data-i18n="tiling.preset_custom">Custom Value</strong>
+                                            <small data-i18n="tiling.preset_custom_hint">Enter manually...</small>
                                         </button>
                                     </div>
 
                                     <div class="collapse" id="customInputDiv">
                                         <div class="input-group">
-                                            <span class="input-group-text">Value</span>
-                                            <input type="number" class="form-control" id="customNumber" placeholder="e.g. 5000">
-                                            <button class="btn btn-primary" type="button" onclick="applyCustom()">Set</button>
+                                            <span class="input-group-text" data-i18n="tiling.custom_value">Value</span>
+                                            <input type="number" class="form-control" id="customNumber" placeholder="e.g. 5000" data-i18n-attr="placeholder:tiling.custom_placeholder">
+                                            <button class="btn btn-primary" type="button" onclick="applyCustom()" data-i18n="tiling.custom_set">Set</button>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="mt-4 pt-3 border-top">
-                                    <button type="submit" class="btn btn-primary w-100 btn-lg mb-3">
-                                        <?= $previewImage ? 'Regenerate Preview ↻' : 'Generate Preview 🧱' ?>
-                                    </button>
+                                    <?php if ($previewImage): ?>
+                                        <button type="submit" class="btn btn-primary w-100 btn-lg mb-3" data-i18n="tiling.regenerate">Regenerate Preview</button>
+                                    <?php else: ?>
+                                        <button type="submit" class="btn btn-primary w-100 btn-lg mb-3" data-i18n="tiling.generate">Generate Preview</button>
+                                    <?php endif; ?>
 
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <a href="filter_selection.php" class="btn btn-outline-secondary">← Back</a>
+                                        <a href="filter_selection.php" class="btn btn-outline-secondary" data-i18n="tiling.back">Back</a>
 
                                         <?php if ($previewImage): ?>
-                                            <a href="order.php" class="btn btn-success fw-bold">Finalize & Order ➔</a>
+                                            <a href="order.php" class="btn btn-success fw-bold" data-i18n="tiling.finalize">Finalize & Order</a>
                                         <?php else: ?>
-                                            <button type="button" class="btn btn-secondary" disabled>Finalize & Order ➔</button>
+                                            <button type="button" class="btn btn-secondary" data-i18n="tiling.finalize" disabled>Finalize & Order</button>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -372,3 +375,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include("./includes/footer.php"); ?>
 </body>
 </html>
+

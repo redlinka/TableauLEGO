@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
-                    <h2 class="text-center fw-bold mb-4">Log In</h2>
+                    <h2 class="text-center fw-bold mb-4" data-i18n="login.title">Log In</h2>
 
                     <?php if (!empty($errors)): ?>
                         <div class="alert alert-danger">
@@ -130,17 +130,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_get(), ENT_QUOTES, 'UTF-8') ?>">
 
                         <div class="mb-3">
-                            <label for="userid" class="form-label">Email or Username</label>
+                            <label for="userid" class="form-label" data-i18n="login.userid_label">Email or Username</label>
                             <input type="text" class="form-control" name="userid" id="userid"
-                                   placeholder="Enter your email or username" required>
+                                   placeholder="Enter your email or username" data-i18n-attr="placeholder:login.userid_placeholder" required>
                         </div>
 
                         <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
+                            <label for="password" class="form-label" data-i18n="login.password_label">Password</label>
                             <input type="password" class="form-control" name="password" id="password"
-                                   placeholder="Enter your password" required>
+                                   placeholder="Enter your password" data-i18n-attr="placeholder:login.password_placeholder" required>
                             <div class="text-end mt-1">
-                                <a href="password_forgotten.php" class="text-decoration-none small">Forgot password?</a>
+                                <a href="password_forgotten.php" class="text-decoration-none small" data-i18n="login.forgot">Forgot password?</a>
                             </div>
                         </div>
 
@@ -153,12 +153,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <div class="d-grid mb-3">
-                            <button type="submit" name="loginbutton" class="btn btn-primary btn-lg">Log In</button>
+                            <button type="submit" name="loginbutton" class="btn btn-primary btn-lg" data-i18n="login.submit">Log In</button>
                         </div>
 
                         <div class="text-center">
-                            <span class="text-muted">Don't have an account?</span>
-                            <a href="creation.php" class="text-decoration-none fw-bold">Sign up</a>
+                            <span class="text-muted" data-i18n="login.no_account">Don't have an account?</span>
+                            <a href="creation.php" class="text-decoration-none fw-bold" data-i18n="login.signup_link">Sign up</a>
                         </div>
                     </form>
                 </div>

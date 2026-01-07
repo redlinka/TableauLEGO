@@ -2,6 +2,7 @@
 session_start();
 global $cnx;
 include("./config/cnx.php");
+require_once __DIR__ . '/includes/i18n.php';
 
 $imgDir = __DIR__ . '/users/imgs';
 $tilingDir = __DIR__ . '/users/tilings';
@@ -143,7 +144,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Image - Img2Brick</title>
+    <title><?= htmlspecialchars(tr('index.page_title', 'Upload Image - Img2Brick')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         /* Modern Drag & Drop Styling */
@@ -202,8 +203,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <div class="card shadow-sm border-0">
             <div class="card-body p-4 p-md-5 text-center">
 
-                <h2 class="fw-bold mb-3">Upload your Image</h2>
-                <p class="text-muted mb-4">Start your mosaic journey by selecting a photo.</p>
+                <h2 class="fw-bold mb-3" data-i18n="index.title">Upload your image</h2>
+                <p class="text-muted mb-4" data-i18n="index.subtitle">Start your mosaic journey by selecting a photo.</p>
 
                 <?php if (!empty($errors)): ?>
                     <div class="error-list">
@@ -219,17 +220,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     <div id="dropArea">
                         <div class="upload-icon"></div>
-                        <h5 class="fw-bold">Drag & Drop your image here</h5>
-                        <p class="text-muted small mb-0">or click to browse files</p>
+                        <h5 class="fw-bold" data-i18n="index.drop_title">Drag & Drop your image here</h5>
+                        <p class="text-muted small mb-0" data-i18n="index.drop_hint">or click to browse files</p>
                     </div>
 
                     <input type="file" id="imageUpload" name="image" accept="image/*" required style="display:none;">
 
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">Upload & Continue ➔</button>
+                        <button type="submit" class="btn btn-primary btn-lg" data-i18n="index.button">Upload & Continue</button>
                     </div>
 
-                    <div class="mt-3 text-muted small">
+                    <div class="mt-3 text-muted small" data-i18n="index.supported">
                         Supported: JPG, PNG, WEBP, GIF (Max 2MB)
                     </div>
                 </form>
@@ -280,11 +281,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // Visual feedback helper
     function updateDropArea(filename) {
+        var changeText = (window.I18N && typeof window.I18N.t === 'function')
+            ? window.I18N.t('index.change_file', 'Click to change file')
+            : 'Click to change file';
         dropArea.classList.add('highlight');
         dropArea.innerHTML = `
-            <div class="upload-icon text-primary">📄</div>
+            <div class="upload-icon text-primary">&uarr;</div>
             <h5 class="fw-bold text-primary">${filename}</h5>
-            <p class="text-muted small mb-0">Click to change file</p>
+            <p class="text-muted small mb-0">${changeText}</p>
         `;
     }
 </script>

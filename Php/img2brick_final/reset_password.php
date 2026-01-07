@@ -2,6 +2,7 @@
 session_start();
 global $cnx;
 include("./config/cnx.php");
+require_once __DIR__ . '/includes/i18n.php';
 
 $errors = [];
 // States: 'checking' (initial), 'form' (valid token), 'success' (updated), 'error' (invalid token)
@@ -11,7 +12,7 @@ $message = '';
 // 1. TOKEN VERIFICATION
 if (!isset($_GET['token'])) {
     $viewState = 'error';
-    $message = "No token provided.";
+    $message = tr('reset_password.no_token', 'No token provided.');
 } else {
     $token = $_GET['token'];
 
@@ -25,10 +26,10 @@ if (!isset($_GET['token'])) {
 
         if (!$result) {
             $viewState = 'error';
-            $message = "Invalid or expired token.";
+            $message = tr('reset_password.invalid_token', 'Invalid or expired token.');
         } elseif ((int)$result['age_minutes'] > 10) {
             $viewState = 'error';
-            $message = "This link has expired. Please request a new one.";
+            $message = tr('reset_password.expired', 'This link has expired. Please request a new one.');
         } else {
             // Token is valid, show the form
             $viewState = 'form';
@@ -37,7 +38,7 @@ if (!isset($_GET['token'])) {
 
     } catch (PDOException $e) {
         $viewState = 'error';
-        $message = 'Database error. Please try again later.';
+        $message = tr('reset_password.db_error', 'Database error. Please try again later.');
     }
 }
 
@@ -95,7 +96,7 @@ if ($viewState === 'form' && $_SERVER["REQUEST_METHOD"] === "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password</title>
+    <title><?= htmlspecialchars(tr('reset_password.page_title', 'Reset Password')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .req-item { margin-bottom: 2px; font-size: 0.85rem; }
@@ -116,11 +117,11 @@ if ($viewState === 'form' && $_SERVER["REQUEST_METHOD"] === "POST") {
             <?php if ($viewState === 'success'): ?>
                 <div class="card shadow-sm border-0 text-center">
                     <div class="card-body p-5">
-                        <div class="icon-box text-success">🎉</div>
-                        <h2 class="fw-bold mb-3">Password Updated!</h2>
-                        <p class="text-muted mb-4">Your password has been securely reset. You can now log in with your new credentials.</p>
+                        <div class="icon-box text-success">OK</div>
+                        <h2 class="fw-bold mb-3" data-i18n="reset_password.success_title">Password Updated!</h2>
+                        <p class="text-muted mb-4" data-i18n="reset_password.success_text">Your password has been securely reset. You can now log in with your new credentials.</p>
                         <div class="d-grid">
-                            <a href="connexion.php" class="btn btn-primary btn-lg">Log In Now</a>
+                            <a href="connexion.php" class="btn btn-primary btn-lg" data-i18n="reset_password.login_now">Log In Now</a>
                         </div>
                     </div>
                 </div>
@@ -128,12 +129,12 @@ if ($viewState === 'form' && $_SERVER["REQUEST_METHOD"] === "POST") {
             <?php elseif ($viewState === 'error'): ?>
                 <div class="card shadow-sm border-0 text-center">
                     <div class="card-body p-5">
-                        <div class="icon-box text-danger-custom">⚠️</div>
-                        <h2 class="fw-bold mb-3">Link Expired or Invalid</h2>
+                        <div class="icon-box text-danger-custom">X</div>
+                        <h2 class="fw-bold mb-3" data-i18n="reset_password.error_title">Link Expired or Invalid</h2>
                         <p class="text-muted mb-4"><?= htmlspecialchars($message) ?></p>
                         <div class="d-grid gap-2">
-                            <a href="password_forgotten.php" class="btn btn-primary">Request New Link</a>
-                            <a href="index.php" class="btn btn-outline-secondary">Go Home</a>
+                            <a href="password_forgotten.php" class="btn btn-primary" data-i18n="reset_password.request_new">Request New Link</a>
+                            <a href="index.php" class="btn btn-outline-secondary" data-i18n="reset_password.go_home">Go Home</a>
                         </div>
                     </div>
                 </div>
@@ -141,7 +142,7 @@ if ($viewState === 'form' && $_SERVER["REQUEST_METHOD"] === "POST") {
             <?php elseif ($viewState === 'form'): ?>
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-4">
-                        <h2 class="text-center fw-bold mb-4">Reset Password</h2>
+                        <h2 class="text-center fw-bold mb-4" data-i18n="reset_password.form_title">Reset Password</h2>
 
                         <?php if (!empty($errors)): ?>
                             <div class="alert alert-danger">
@@ -157,22 +158,22 @@ if ($viewState === 'form' && $_SERVER["REQUEST_METHOD"] === "POST") {
                             <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_get(), ENT_QUOTES, 'UTF-8') ?>">
 
                             <div class="mb-3">
-                                <label for="password" class="form-label">New Password</label>
+                                <label for="password" class="form-label" data-i18n="reset_password.new_password_label">New Password</label>
                                 <input type="password" class="form-control" name="password" id="password"
-                                       placeholder="Enter new strong password" required>
+                                       placeholder="Enter new strong password" data-i18n-attr="placeholder:reset_password.new_password_placeholder" required>
                             </div>
 
                             <div id="message" class="alert alert-light border small mb-4">
-                                <h6 class="fw-bold mb-2">Password must contain:</h6>
-                                <div id="letter" class="req-item invalid">❌ Lowercase letter</div>
-                                <div id="capital" class="req-item invalid">❌ Uppercase letter</div>
-                                <div id="number" class="req-item invalid">❌ Number</div>
-                                <div id="special" class="req-item invalid">❌ Special character</div>
-                                <div id="length" class="req-item invalid">❌ Min 12 characters</div>
+                                <h6 class="fw-bold mb-2" data-i18n="reset_password.requirements_title">Password must contain:</h6>
+                                <div id="letter" class="req-item invalid" data-i18n="signup.requirements.lowercase">Lowercase letter</div>
+                                <div id="capital" class="req-item invalid" data-i18n="signup.requirements.uppercase">Uppercase letter</div>
+                                <div id="number" class="req-item invalid" data-i18n="signup.requirements.number">Number</div>
+                                <div id="special" class="req-item invalid" data-i18n="signup.requirements.special">Special character</div>
+                                <div id="length" class="req-item invalid" data-i18n="signup.requirements.length">Min 12 characters</div>
                             </div>
 
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-lg">Update Password</button>
+                                <button type="submit" class="btn btn-primary btn-lg" data-i18n="reset_password.submit">Update Password</button>
                             </div>
                         </form>
                     </div>
@@ -186,8 +187,14 @@ if ($viewState === 'form' && $_SERVER["REQUEST_METHOD"] === "POST") {
 <?php include("./includes/footer.php"); ?>
 
 <script>
+    function t(key, fallback) {
+        if (window.I18N && typeof window.I18N.t === 'function') {
+            return window.I18N.t(key, fallback);
+        }
+        return fallback || key;
+    }
+
     const myInput = document.getElementById("password");
-    // ... (Keep existing JS validation logic) ...
     if (myInput) {
         const letter = document.getElementById("letter");
         const capital = document.getElementById("capital");
@@ -196,22 +203,65 @@ if ($viewState === 'form' && $_SERVER["REQUEST_METHOD"] === "POST") {
         const special = document.getElementById("special");
 
         myInput.onkeyup = function() {
-            // Validation logic (Same as before)
+            const okPrefix = t('common.ok_prefix', 'OK ');
+            const noPrefix = t('common.no_prefix', 'X ');
+
             var lowerCaseLetters = /[a-z]/g;
-            if(myInput.value.match(lowerCaseLetters)) { letter.classList.remove("invalid"); letter.classList.add("success"); letter.innerHTML = "✅ Lowercase letter"; } else { letter.classList.remove("success"); letter.classList.add("invalid"); letter.innerHTML = "❌ Lowercase letter"; }
+            if (myInput.value.match(lowerCaseLetters)) {
+                letter.classList.remove("invalid");
+                letter.classList.add("success");
+                letter.innerHTML = okPrefix + t('signup.requirements.lowercase', 'Lowercase letter');
+            } else {
+                letter.classList.remove("success");
+                letter.classList.add("invalid");
+                letter.innerHTML = noPrefix + t('signup.requirements.lowercase', 'Lowercase letter');
+            }
 
             var upperCaseLetters = /[A-Z]/g;
-            if(myInput.value.match(upperCaseLetters)) { capital.classList.remove("invalid"); capital.classList.add("success"); capital.innerHTML = "✅ Uppercase letter"; } else { capital.classList.remove("success"); capital.classList.add("invalid"); capital.innerHTML = "❌ Uppercase letter"; }
+            if (myInput.value.match(upperCaseLetters)) {
+                capital.classList.remove("invalid");
+                capital.classList.add("success");
+                capital.innerHTML = okPrefix + t('signup.requirements.uppercase', 'Uppercase letter');
+            } else {
+                capital.classList.remove("success");
+                capital.classList.add("invalid");
+                capital.innerHTML = noPrefix + t('signup.requirements.uppercase', 'Uppercase letter');
+            }
 
             var numbers = /[0-9]/g;
-            if(myInput.value.match(numbers)) { number.classList.remove("invalid"); number.classList.add("success"); number.innerHTML = "✅ Number"; } else { number.classList.remove("success"); number.classList.add("invalid"); number.innerHTML = "❌ Number"; }
+            if (myInput.value.match(numbers)) {
+                number.classList.remove("invalid");
+                number.classList.add("success");
+                number.innerHTML = okPrefix + t('signup.requirements.number', 'Number');
+            } else {
+                number.classList.remove("success");
+                number.classList.add("invalid");
+                number.innerHTML = noPrefix + t('signup.requirements.number', 'Number');
+            }
 
-            if(myInput.value.length >= 12) { length.classList.remove("invalid"); length.classList.add("success"); length.innerHTML = "✅ Min 12 characters"; } else { length.classList.remove("success"); length.classList.add("invalid"); length.innerHTML = "❌ Min 12 characters"; }
+            if (myInput.value.length >= 12) {
+                length.classList.remove("invalid");
+                length.classList.add("success");
+                length.innerHTML = okPrefix + t('signup.requirements.length', 'Min 12 characters');
+            } else {
+                length.classList.remove("success");
+                length.classList.add("invalid");
+                length.innerHTML = noPrefix + t('signup.requirements.length', 'Min 12 characters');
+            }
 
             var specials = /[!@#$%^&*(),.?":{}|<>]/g;
-            if(myInput.value.match(specials)) { special.classList.remove("invalid"); special.classList.add("success"); special.innerHTML = "✅ Special character"; } else { special.classList.remove("success"); special.classList.add("invalid"); special.innerHTML = "❌ Special character"; }
+            if (myInput.value.match(specials)) {
+                special.classList.remove("invalid");
+                special.classList.add("success");
+                special.innerHTML = okPrefix + t('signup.requirements.special', 'Special character');
+            } else {
+                special.classList.remove("success");
+                special.classList.add("invalid");
+                special.innerHTML = noPrefix + t('signup.requirements.special', 'Special character');
+            }
         }
     }
 </script>
 </body>
 </html>
+

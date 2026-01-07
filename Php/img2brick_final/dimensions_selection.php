@@ -2,6 +2,7 @@
 session_start();
 global $cnx;
 include("./config/cnx.php");
+require_once __DIR__ . '/includes/i18n.php';
 
 // Redirect to home if previous step missing
 if (!isset($_SESSION['step1_image_id'])) {
@@ -72,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Step 2: Dimensions</title>
+    <title><?= htmlspecialchars(tr('dims.page_title', 'Step 2: Dimensions')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .error-list { background: #fee; border: 1px solid #fcc; padding: 10px; margin-bottom: 15px; border-radius: 4px; }
@@ -108,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="col-md-8">
             <div class="card shadow border-0">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Step 2: Choose Size</h5>
+                    <h5 class="mb-0" data-i18n="dims.header">Step 2: Choose Size</h5>
                 </div>
                 <div class="card-body p-4">
 
@@ -128,11 +129,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                  class="preview-img shadow-sm mb-2"
                                  onclick="openModal(this.src)"
                                  alt="Source">
-                            <p class="text-muted small">Original: <?= $origW ?>px x <?= $origH ?>px</p>
+                            <p class="text-muted small"><?= htmlspecialchars(tr('dims.original_label', 'Original:')) ?> <?= $origW ?>px x <?= $origH ?>px</p>
 
-                            <div class="alert alert-info py-2">
-                                Output: <strong id="displayDims">Calculating...</strong> studs
-                            </div>
+                            <div class="alert alert-info py-2"><span data-i18n="dims.output_label">Output:</span> <strong id="displayDims" data-i18n="dims.calculating">Calculating...</strong> <span data-i18n="dims.studs_unit">studs</span></div>
                         </div>
 
                         <div class="col-md-7">
@@ -142,61 +141,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <input type="hidden" id="wInput" name="width" value="">
                                 <input type="hidden" id="hInput" name="height" value="">
 
-                                <h6 class="fw-bold mb-3">Select Mode</h6>
+                                <h6 class="fw-bold mb-3" data-i18n="dims.select_mode">Select Mode</h6>
 
                                 <div class="d-grid gap-2">
                                     <button type="button" class="btn btn-outline-secondary preset-btn active" id="btnRatio" onclick="setMode('ratio')">
-                                        <strong>Keep Ratio</strong>
-                                        <small>Adjust scale, preserves shape (Recommended)</small>
+                                        <strong data-i18n="dims.mode_ratio">Keep Ratio</strong>
+                                        <small data-i18n="dims.mode_ratio_hint">Adjust scale, preserves shape (Recommended)</small>
                                     </button>
 
                                     <div class="btn-group w-100">
                                         <button type="button" class="btn btn-outline-secondary preset-btn" id="btnSmall" onclick="setMode('small')">
-                                            <strong>Small</strong>
+                                            <strong data-i18n="dims.mode_small">Small</strong>
                                             <small>32 x 32</small>
                                         </button>
                                         <button type="button" class="btn btn-outline-secondary preset-btn" id="btnMedium" onclick="setMode('medium')">
-                                            <strong>Medium</strong>
+                                            <strong data-i18n="dims.mode_medium">Medium</strong>
                                             <small>64 x 64</small>
                                         </button>
                                         <button type="button" class="btn btn-outline-secondary preset-btn" id="btnLarge" onclick="setMode('large')">
-                                            <strong>Large</strong>
+                                            <strong data-i18n="dims.mode_large">Large</strong>
                                             <small>128 x 128</small>
                                         </button>
                                     </div>
 
                                     <button type="button" class="btn btn-outline-secondary preset-btn" id="btnCustom" onclick="setMode('custom')">
-                                        <strong>Custom</strong>
-                                        <small>Manual entry (Max 1024)</small>
+                                        <strong data-i18n="dims.mode_custom">Custom</strong>
+                                        <small data-i18n="dims.mode_custom_hint">Manual entry (Max 1024)</small>
                                     </button>
                                 </div>
 
                                 <div id="ratioControls" class="mt-3 p-3 bg-light rounded border">
                                     <label class="form-label fw-bold d-flex justify-content-between">
-                                        <span>Scale Factor</span>
-                                        <span id="sliderValDisplay" class="text-primary">Medium</span>
+                                        <span data-i18n="dims.scale_factor">Scale Factor</span>
+                                        <span id="sliderValDisplay" class="text-primary" data-i18n="dims.slider_medium">Medium</span>
                                     </label>
                                     <input type="range" class="form-range" id="ratioSlider" min="16" max="256" step="16" value="64">
-                                    <div class="form-text small">Slide to change size. Dimensions snap to 16.</div>
+                                    <div class="form-text small" data-i18n="dims.slider_hint">Slide to change size. Dimensions snap to 16.</div>
                                 </div>
 
                                 <div id="customControls" class="mt-3 p-3 bg-light rounded border" style="display:none;">
                                     <div class="row g-2">
                                         <div class="col">
-                                            <label class="small fw-bold">Width</label>
+                                            <label class="small fw-bold" data-i18n="dims.width">Width</label>
                                             <input type="number" id="customW" class="form-control" placeholder="64" min="16" max="1024" step="16">
                                         </div>
                                         <div class="col">
-                                            <label class="small fw-bold">Height</label>
+                                            <label class="small fw-bold" data-i18n="dims.height">Height</label>
                                             <input type="number" id="customH" class="form-control" placeholder="64" min="16" max="1024" step="16">
                                         </div>
                                     </div>
-                                    <div class="form-text small mt-1">Must be multiples of 16. Max 1024.</div>
+                                    <div class="form-text small mt-1" data-i18n="dims.custom_hint">Must be multiples of 16. Max 1024.</div>
                                 </div>
 
                                 <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                                    <a href="crop_selection.php" class="btn btn-outline-secondary">← Back</a>
-                                    <button type="submit" class="btn btn-primary btn-lg">Next Step ➔</button>
+                                    <a href="crop_selection.php" class="btn btn-outline-secondary" data-i18n="dims.back">Back</a>
+                                    <button type="submit" class="btn btn-primary btn-lg" data-i18n="dims.next">Next Step</button>
                                 </div>
                             </form>
                         </div>
@@ -348,3 +347,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include("./includes/footer.php"); ?>
 </body>
 </html>
+
