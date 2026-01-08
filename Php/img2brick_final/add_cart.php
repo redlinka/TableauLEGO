@@ -9,7 +9,7 @@ if (!isset($_SESSION['userId'])) {
 }
 
 if (!isset($_SESSION['step4_image_id'])) {
-    header("Location: tiling_selection.php");
+    echo "ERREUR ICI";
     exit;
 }
 
