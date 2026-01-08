@@ -25,6 +25,8 @@ public class RestockManager {
     private final PaymentMethod paymentMethod;
     private final BrickVerifier verifier;
 
+    static int MIN_STOCK = 10;
+
     public RestockManager(InventoryManager inventory, FactoryClient client, OrderManager orderer, PaymentMethod paymentMethod, BrickVerifier verifier) {
         this.inventory = inventory;
         this.client = client;
@@ -86,6 +88,7 @@ public class RestockManager {
      * @return a Map where the key is the product catalog ID and the value is the amount of stock to prepare
      */
     public @NotNull Map<Integer, Integer> calculateRestock(Map<Integer, Integer> need, Map<Integer, Integer> stock){
+
         System.out.println("Calculating stock to prepare...");
         Map<Integer, Integer> stockToPrepare = new HashMap<>();
 
@@ -225,7 +228,7 @@ public class RestockManager {
      * @throws Exception if any errors occur during the restocking process
      */
     public boolean reactiveRestockage(String solutionPath, Integer tilingID) throws Exception {
-        Map<Integer, Integer> stock = inventory.getStock();
+        Map<Integer, Integer> stock = inventory.getFullStock();
         Map<Integer, Integer> needed = OrderManager.parseSolutionCounts(solutionPath).entrySet().stream().collect(Collectors.toMap(
                 e -> {
                     try {
@@ -284,7 +287,7 @@ public class RestockManager {
             // calculates the average of the different types of coins used per day
             Map<Integer, Integer> dailyAv = calculateDailyAverage();
             // calculates the number of parts to be ordered for each type
-            Map<Integer, Integer> difference = calculateRestock(dailyAv,  inventory.getStock());
+            Map<Integer, Integer> difference = calculateRestock(dailyAv,  inventory.getFullStock());
 
             //order the pieces
             Map<String, Integer> invoice = parseQuoteRequest(difference);
