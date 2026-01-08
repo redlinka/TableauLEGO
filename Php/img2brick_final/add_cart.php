@@ -54,7 +54,7 @@ if ($orderId <= 0) {
     $addressId = (int)$stmt->fetchColumn();
 
     if ($addressId <= 0) {
-        $addressId = 0;
+        $addressId = 1;
     }
 
     $stmt = $cnx->prepare("INSERT INTO ORDER_BILL (user_id, address_id) VALUES (?, ?)");
