@@ -4,7 +4,7 @@ global $cnx;
 include("./config/cnx.php");
 require_once __DIR__ . '/includes/i18n.php';
 
-// Enforce authentication
+
 if (!isset($_SESSION['userId'])) {
     header("Location: connexion.php");
     exit;
@@ -12,7 +12,7 @@ if (!isset($_SESSION['userId'])) {
 
 $userId = (int)$_SESSION['userId'];
 
-// ✅ On accepte l'id via GET (recommandé), sinon fallback session
+
 $orderId = isset($_GET['order_id']) ? (int)$_GET['order_id'] : 0;
 if ($orderId <= 0 && isset($_SESSION['last_order_id'])) {
     $orderId = (int)$_SESSION['last_order_id'];
@@ -24,7 +24,7 @@ if ($orderId <= 0) {
 }
 
 try {
-    // 1) Récupérer la commande (ORDER_BILL)
+
     $stmt = $cnx->prepare("
         SELECT order_id, user_id, created_at, address_id
         FROM ORDER_BILL
@@ -38,7 +38,7 @@ try {
         die("Order not found or access denied.");
     }
 
-    // Sécurité : si created_at est NULL, ce n'est pas une commande validée
+   
     if (empty($orderBill['created_at'])) {
         header("Location: cart.php");
         exit;
@@ -46,7 +46,7 @@ try {
 
     $addressId = !empty($orderBill['address_id']) ? (int)$orderBill['address_id'] : 0;
 
-    // 2) Récupérer user
+
     $stmt = $cnx->prepare("
         SELECT first_name, last_name, phone
         FROM user
@@ -56,7 +56,7 @@ try {
     $stmt->execute(['uid' => $userId]);
     $u = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-    // 3) Récupérer adresse (si liée)
+
     $addr = [
         'street' => '',
         'postal_code' => '',
@@ -76,8 +76,8 @@ try {
         if ($a) $addr = $a;
     }
 
-    // 4) Image preview optionnelle via contain -> tilling -> image
-    $previewSrc = 'images/placeholder.png'; // adapte si besoin
+
+    $previewSrc = 'images/placeholder.png'; 
 
     $stmt = $cnx->prepare("
         SELECT i.path, i.filename
@@ -96,10 +96,10 @@ try {
         $previewSrc = $path . $img['filename'];
     }
 
-    // 5) Statut (dans ta BDD, ORDER_BILL n'a pas status => valeur fixe)
+
     $orderStatus = 'PREPARATION';
 
-    // 6) Prix (tu le stockes ailleurs ? sinon session ou fixe)
+
 
     $stmt = $cnx->prepare("
         SELECT t.pavage_txt
