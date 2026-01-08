@@ -58,14 +58,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 // Check for existing email
                 $stmt = $cnx->prepare("SELECT COUNT(*) FROM USER WHERE email = ?");
                 $stmt->execute([$_SESSION['email']]);
+                $emailExists = $stmt->fetchColumn() > 0;
 
-                if ($stmt->fetchColumn() === 0) {
+                if (!$emailExists) {
 
                     // Check for existing username
                     $stmt = $cnx->prepare("SELECT COUNT(*) FROM USER WHERE username = ?");
                     $stmt->execute([$username]);
 
-                    if ($stmt->fetchColumn() === 0) {
+                    if ($stmt->fetchColumn() > 0) {
+                        $errors[] = 'Username is already taken.';
+                    } else {
                         try {
                             // Generate verification token
                             $token = bin2hex(random_bytes(32));
@@ -114,11 +117,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $cnx->commit();
                         header('Location: creation_mail.php');
                         exit;
-                    } else {
-                        $errors[] = 'Username is already taken.';
                     }
                 } else {
-                    $errors[] = 'An account with this email already exists.';
+                    // if email already exist
+                    usleep(rand(100000, 300000)); // Sleep 100 to 300ms to deceive time analyses
                 }
             } catch (PDOException $e) {
                 http_response_code(500);
@@ -264,6 +266,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <?php include("./includes/footer.php"); ?>
 
     <script>
+        let captchaValidated = false;
+
+        window.onSuccess = function(token) {
+            captchaValidated = true;
+            validateForm();
+        };
+
         function t(key, fallback) {
             if (window.I18N && typeof window.I18N.t === 'function') {
                 return window.I18N.t(key, fallback);
@@ -379,6 +388,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 }
             } else {
                 errorElement.textContent = '';
+            }
+
+            if (!captchaValidated) {
+                isValid = false;
             }
 
             if (isValid) {
