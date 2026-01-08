@@ -1,8 +1,5 @@
 <?php
 session_start();
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 global $cnx;
 include("./config/cnx.php");
 require_once __DIR__ . '/includes/i18n.php';
@@ -134,6 +131,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         if (file_exists($targetPath)) {
                             unlink($targetPath);
                         }
+                        $errors[] = "Database error: " . $e->getMessage();
                         $errors[] = "Database error. Please try again.";
                     }
                 }

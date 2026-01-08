@@ -108,6 +108,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             $emailBody
                         );
                         $_SESSION['last_email_sent'] = time();
+                        $_SESSION['email_sent'] = true;
 
                         csrf_rotate();
                         $cnx->commit();

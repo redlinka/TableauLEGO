@@ -15,7 +15,7 @@ $user = $_ENV["USER"] ?? '';
 $pass = $_ENV["PASS"] ?? '';
 $db = $_ENV["DB"] ?? '';
 $host = $_ENV["HOST"] ?? '';
-$port = $_ENV["PORT"] ?? '';
+$port = $_ENV["PORT"] ?? '3306';
 
 // Establish database connection using PDO
 try {
@@ -26,10 +26,9 @@ try {
     );
 } catch (PDOException $e) {
     // Hide internal error details in production for security
+    error_log("Connection Error: " . $e->getMessage());
     http_response_code(500);
-    echo "Internal error. Please try again later.";
-    echo $e;
-    echo phpinfo();
+    die("Internal error. Please try again later.");
 }
 
 /* Send emails using SMTP via PHPMailer.
@@ -259,7 +258,7 @@ function addLog($cnx, $agent, $logAction, $logObject)
 
     //ex: addLog($cnx, "Client", "Create account", "Account");
 
-    if (isset($_SESSIONB['userId'])) {
+    if (isset($_SESSION['userId'])) {
         try {
             $cnx->beginTransaction();
             $stmt = $cnx->prepare("INSERT INTO `LOG` (agent, log_action, log_object, log_date, user_id) VALUES (?, ?, ?, NOW(), ?)");
