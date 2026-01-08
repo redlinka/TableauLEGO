@@ -49,7 +49,7 @@ try {
     // 2) Récupérer user
     $stmt = $cnx->prepare("
         SELECT first_name, last_name, phone
-        FROM user
+        FROM USER
         WHERE user_id = :uid
         LIMIT 1
     ");
@@ -67,7 +67,7 @@ try {
     if ($addressId > 0) {
         $stmt = $cnx->prepare("
             SELECT street, postal_code, city, country
-            FROM address
+            FROM ADDRESS
             WHERE address_id = :aid AND user_id = :uid
             LIMIT 1
         ");
