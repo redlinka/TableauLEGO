@@ -61,7 +61,8 @@ $stmt = $cnx->prepare("
         o.order_id,
         c.pavage_id,
         i.path,
-        i.filename
+        i.filename,
+        t.pavage_txt
     FROM order_bill o
     JOIN contain c ON c.order_id = o.order_id
     JOIN tilling t ON t.pavage_id = c.pavage_id
@@ -93,7 +94,11 @@ foreach ($row_pan as $row) {
 
 
     /* GESTION DES PRIX */
-    $price = 2; 
+    $price = 0.0;
+    $txt = $row['pavage_txt'];
+    if (preg_match('/\d+/', $txt, $m)) {
+        $price = (float)$m[0]/100;
+    }
     $subtotal += $price;
     $line_total = $price * 0.10;
 
