@@ -32,8 +32,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $method = $_POST['method'] ?? 'quadtree';
         $mode = $_POST['mode'] ?? 'relax';
         $threshold = (int)($_POST['threshold'] ?? 2000);
-        $tileWidth = (int)($_POST['tileWidth'] ?? 0);
-        $tileHeight = (int)($_POST['tileHeight'] ?? 0);
+
+        $ALLOWED_TILES = [
+            [1, 1],
+            [1, 2],
+            [1, 3],
+            [1, 4],
+            [1, 5],
+            [1, 6],
+            [1, 8],
+            [1, 10],
+            [1, 12],
+            [2, 2],
+            [2, 3],
+            [2, 4],
+            [2, 6],
+            [2, 8],
+            [2, 10],
+            [2, 12],
+            [2, 14],
+            [2, 16],
+            [3, 3],
+            [4, 4],
+            [4, 6],
+            [4, 8],
+            [4, 10],
+            [4, 12],
+            [6, 6],
+            [6, 8],
+            [6, 10],
+            [6, 12],
+            [6, 14],
+            [6, 16],
+            [6, 24],
+            [8, 8],
+            [8, 11],
+            [8, 16],
+            [16, 16]
+        ];
+
+        $tileSize = $_POST['tileSize'] ?? null;
+
+        if ($method === 'tile') {
+            if (!$tileSize || !preg_match('/^\d+x\d+$/', $tileSize)) {
+                $errors[] = "Invalid tile size.";
+            } else {
+                [$tileWidth, $tileHeight] = array_map('intval', explode('x', $tileSize));
+
+                $isAllowed = false;
+                foreach ($ALLOWED_TILES as [$w, $h]) {
+                    if ($w === $tileWidth && $h === $tileHeight) {
+                        $isAllowed = true;
+                        break;
+                    }
+                }
+
+                if (!$isAllowed) {
+                    $errors[] = "Tile size not allowed.";
+                }
+            }
+        }
 
         $cmdArgs = [];
 
@@ -108,6 +166,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $output = [];
         $returnCode = 0;
+
+
         exec($cmd, $output, $returnCode);
 
         // foreach ($output as $o) {
@@ -129,7 +189,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['step4_image_id'] = $cnx->lastInsertId();
                 }
 
-                // Set preview image path
+                $legoImageId = (int)$_SESSION['step4_image_id'];
+                $txtContent = file_get_contents($outputTxtPath);
+
+                $stmt = $cnx->prepare("SELECT pavage_id FROM TILLING WHERE image_id = ? LIMIT 1");
+                $stmt->execute([$legoImageId]);
+                $pavageId = $stmt->fetchColumn();
+
+                if ($pavageId) {
+                    $stmt = $cnx->prepare("UPDATE TILLING SET pavage_txt = ? WHERE image_id = ?");
+                    $stmt->execute([$txtContent, $legoImageId]);
+                } else {
+                    $stmt = $cnx->prepare("INSERT INTO TILLING (image_id, pavage_txt) VALUES (?, ?)");
+                    $stmt->execute([$legoImageId, $txtContent]);
+                }
+
+                
                 $previewImage = $imgFolder . $finalPngName . ".png" . '?t=' . time(); // add .png
 
             } catch (PDOException $e) {
@@ -317,11 +392,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <a href="filter_selection.php" class="btn btn-outline-secondary" data-i18n="tiling.back">Back</a>
 
                                             <?php if ($previewImage): ?>
-                                                <a href="order.php" class="btn btn-success fw-bold" data-i18n="tiling.finalize">Finalize & Order</a>
+                                                <a href="add_cart.php" class="btn btn-success fw-bold" data-i18n="tiling.finalize">Finalize & Order</a>
                                             <?php else: ?>
                                                 <button type="button" class="btn btn-secondary" data-i18n="tiling.finalize" disabled>Finalize & Order</button>
                                             <?php endif; ?>
                                         </div>
+
                                     </div>
                                 </form>
 
@@ -402,14 +478,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 });
             } else if (algo === 'tile') {
                 container.innerHTML = `
-                <h6 class="fw-bold mb-3" data-i18n="tiling.step_budget">2. Select Budget / Precision</h6>
-            <label>Width:</label>
-            <input type="number" name="tileWidth" class="form-control" value="32" min="1">
-            <label class="mt-2">Height:</label>
-            <input type="number" name="tileHeight" class="form-control" value="32" min="1">
-            <label class="mt-2">Threshold:</label>
-            <input type="number" name="threshold" class="form-control" value="2000" min="1">
-        `;
+                <h6 class="fw-bold mb-3">2. Select Tile Size</h6>
+                <select name="tileSize" class="form-select" required>
+                    <option value="">-- Choose a tile size --</option>
+
+                    <!-- 1x -->
+                    <option value="1x1">1 × 1</option>
+                    <option value="1x2">1 × 2</option>
+                    <option value="1x3">1 × 3</option>
+                    <option value="1x4">1 × 4</option>
+                    <option value="1x5">1 × 5</option>
+                    <option value="1x6">1 × 6</option>
+                    <option value="1x8">1 × 8</option>
+                    <option value="1x10">1 × 10</option>
+                    <option value="1x12">1 × 12</option>
+
+                    <!-- 2x -->
+                    <option value="2x2">2 × 2</option>
+                    <option value="2x3">2 × 3</option>
+                    <option value="2x4">2 × 4</option>
+                    <option value="2x6">2 × 6</option>
+                    <option value="2x8">2 × 8</option>
+                    <option value="2x10">2 × 10</option>
+                    <option value="2x12">2 × 12</option>
+                    <option value="2x14">2 × 14</option>
+                    <option value="2x16">2 × 16</option>
+
+                    <!-- 3x -->
+                    <option value="3x3">3 × 3</option>
+
+                    <!-- 4x -->
+                    <option value="4x4">4 × 4</option>
+                    <option value="4x6">4 × 6</option>
+                    <option value="4x8">4 × 8</option>
+                    <option value="4x10">4 × 10</option>
+                    <option value="4x12">4 × 12</option>
+
+                    <!-- 6x -->
+                    <option value="6x6">6 × 6</option>
+                    <option value="6x8">6 × 8</option>
+                    <option value="6x10">6 × 10</option>
+                    <option value="6x12">6 × 12</option>
+                    <option value="6x14">6 × 14</option>
+                    <option value="6x16">6 × 16</option>
+                    <option value="6x24">6 × 24</option>
+
+                    <!-- 8x -->
+                    <option value="8x8">8 × 8</option>
+                    <option value="8x11">8 × 11</option>
+                    <option value="8x16">8 × 16</option>
+
+                    <!-- 16x -->
+                    <option value="16x16">16 × 16</option>
+                </select>
+
+                <label class="mt-3">Threshold</label>
+                <input
+                    type="number"
+                    name="threshold"
+                    class="form-control"
+                    value="2000"
+                    min="1"
+                />
+
+                    `;
             }
         }
 
