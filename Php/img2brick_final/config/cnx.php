@@ -76,6 +76,9 @@ function sendMail($to, $subject, $body, $attachments = [])
  * Output: Returns associative array with 'success' boolean. */
 function validateTurnstile()
 {
+    if (isset($_ENV['LOCAL_DEVELOPMENT']) && ($_ENV['LOCAL_DEVELOPMENT'] == "1" || $_ENV['LOCAL_DEVELOPMENT'] == "true")) {
+        return ['success' => true];
+    }
 
     $secret = $_ENV['CLOUDFLARE_TURNSTILE_SECRET'];
     $token = $_POST['cf-turnstile-response'] ?? '';

@@ -10,7 +10,7 @@ if($isLoggedIn){
 
     $stmt = $cnx->prepare("
         SELECT COUNT(*) AS nb_panier
-        FROM order_bill o
+        FROM ORDER_BILL o
         JOIN contain c ON c.order_id = o.order_id
         WHERE o.user_id = :user_id
         AND o.created_at IS NULL
