@@ -54,8 +54,7 @@ if ($orderId <= 0) {
     $addressId = (int)$stmt->fetchColumn();
 
     if ($addressId <= 0) {
-        header("Location: profile.php");
-        exit;
+        $addressId = 0;
     }
 
     $stmt = $cnx->prepare("INSERT INTO ORDER_BILL (user_id, address_id) VALUES (?, ?)");
@@ -73,3 +72,4 @@ if (!$stmt->fetchColumn()) {
 
 header("Location: cart.php");
 exit;
+
