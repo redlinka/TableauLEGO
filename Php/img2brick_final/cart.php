@@ -9,6 +9,10 @@ $errors = [];
 $id_uti = $_SESSION['userId'];
 $imgFolder = 'users/imgs/';
 
+if (!isset($_SESSION['userId'])) {
+    header("Location: connexion.php");
+    exit;
+}
 
 /*  BOUTON SUPRIMER  */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) {
