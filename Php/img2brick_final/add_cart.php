@@ -65,11 +65,58 @@ if ($orderId <= 0) {
 $stmt = $cnx->prepare("SELECT 1 FROM contain WHERE order_id = ? AND pavage_id = ? LIMIT 1");
 $stmt->execute([$orderId, $pavageId]);
 
+
 if (!$stmt->fetchColumn()) {
     $stmt = $cnx->prepare("INSERT INTO contain (order_id, pavage_id) VALUES (?, ?)");
     $stmt->execute([$orderId, $pavageId]);
 }
 
+$jarPath = __DIR__ . '/brain.jar';
+
+// Detect Java executable (if the code is runnning on my personnal machine or the server)
+$javaCmd = 'java';
+if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+    $javaCmd = '"C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.1.8-hotspot\\bin\\java.exe"';
+    $exePath      = __DIR__ . '/C_tiler';
+}
+
+if (!file_exists($jarPath)) {
+    return [
+        'success' => false,
+        'error'   => 'brain.jar not found'
+    ];
+}
+
+$stmt = $cnx->prepare("SELECT * FROM TILLING WHERE pavage_id = ?");
+$stmt->execute([$pavageId]);
+$res = $stmt->fetch();
+
+if (!file_exists($res['pavage_txt'])) {
+    return [
+        'success' => false,
+        'error'   => 'TXT file not found'
+    ];
+}
+
+$cmd = sprintf(
+    '%s -cp %s fr.uge.univ_eiffel.ReactionRestock %s %s 2>&1',
+    $javaCmd,
+    escapeshellarg($jarPath),
+    escapeshellarg(__DIR__ . "/users/tiling/" . $res['pavage_txt']),
+    escapeshellarg($res['image_id']),
+);
+
+$output = [];
+$returnCode = 0;
+
+exec($cmd, $output, $returnCode);
+
+return [
+    'success'    => ($returnCode === 0),
+    'exit_code' => $returnCode,
+    'output'    => $output,
+    'command'   => $cmd
+];
+
 header("Location: cart.php");
 exit;
-
