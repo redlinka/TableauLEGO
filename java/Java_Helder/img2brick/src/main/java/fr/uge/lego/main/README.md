@@ -16,7 +16,7 @@ Ce projet permet de visualiser des images sous forme de mosaïque Lego, utile po
 
 ## Exécution
 
-- Avant d'exécuter le programme, il est essentiel d'adapter les chemins des images dans le fichier java.fr.uge.lego.main.fr.uge.univ_eiffel.PaymentTester selon vos fichiers locaux.
+- Avant d'exécuter le programme, il est essentiel d'adapter les chemins des images dans le fichier java.fr.uge.lego.main.fr.uge.univ_eiffel.Refiller selon vos fichiers locaux.
 - Vous pouvez appliquer une ou plusieurs méthodes d'interpolation personnalisées (minimum 1).
 
 Une fois cela fait, vous pouvez lancer le programme.
@@ -29,4 +29,4 @@ Une fois cela fait, vous pouvez lancer le programme.
 ## Limitations / À noter
 
 - La gestion du stock de briques n’est pas implémentée ; seul l’architecture est fonctionnels
-- Certaines options de configuration restent manuelles (comme le choix de l’image dans le fr.uge.univ_eiffel.PaymentTester)
+- Certaines options de configuration restent manuelles (comme le choix de l’image dans le fr.uge.univ_eiffel.Refiller)

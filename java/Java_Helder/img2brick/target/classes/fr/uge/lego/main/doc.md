@@ -46,7 +46,7 @@ img2brick/
 │           │           │
 │           │           ├── main/
 │           │           │   ├── ImageUtils.java
-│           │           │   ├── fr.uge.univ_eiffel.PaymentTester.java
+│           │           │   ├── fr.uge.univ_eiffel.Refiller.java
 │           │           │   ├── doc.txt
 │           │           │   └── README.md
 │           │           │
@@ -87,8 +87,8 @@ Ce package contient les différentes stratégies d’interpolation utilisées po
 - ResizeStrategy.java : Interface commune à toutes les stratégies d’interpolation, garantissant la cohérence des implémentations.
 - ImageUtils.java : Classe utilitaire pour la manipulation d’images.
 
-*fr.uge.univ_eiffel.PaymentTester (``fr.uge.lego.main``)*
-- fr.uge.univ_eiffel.PaymentTester.java : Point d’entrée de l’application, permettant de configurer les chemins d’images et les stratégies d’interpolation avant d’exécuter le programme.
+*fr.uge.univ_eiffel.Refiller (``fr.uge.lego.main``)*
+- fr.uge.univ_eiffel.Refiller.java : Point d’entrée de l’application, permettant de configurer les chemins d’images et les stratégies d’interpolation avant d’exécuter le programme.
 
 *Matrix (``fr.uge.lego.matrix``)*
 - Matrix.java : Classe utilitaire pour la manipulation matricielle utilisée dans certains calculs d’interpolation.
@@ -114,7 +114,7 @@ Ce package contient les différentes stratégies d’interpolation utilisées po
 
 ## Guide d’utilisation
 
-- Ouvrir le fichier fr.uge.univ_eiffel.PaymentTester.java dans le package fr.uge.lego.main.
+- Ouvrir le fichier fr.uge.univ_eiffel.Refiller.java dans le package fr.uge.lego.main.
 - Modifier les chemins des images pour correspondre à celles présentes dans le dossier ressources.
 - Choisir la ou les stratégies d’interpolation à utiliser (ex. Bicubic, Bilinear, etc.) dans le code.
 - Lancer le programme
