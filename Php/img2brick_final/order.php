@@ -62,7 +62,7 @@ $fillCountry = 'France';
 if ($cartAddressId > 0) {
     $stmt = $cnx->prepare("
         SELECT street, postal_code, city, country
-        FROM address
+        FROM ADDRESS
         WHERE address_id = :aid AND user_id = :uid
         LIMIT 1
     ");
@@ -142,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
             $stmt = $cnx->prepare("
-                INSERT INTO address (street, postal_code, city, country, user_id)
+                INSERT INTO ADDRESS (street, postal_code, city, country, user_id)
                 VALUES (:street, :postal, :city, :country, :uid)
             ");
             $stmt->execute([
