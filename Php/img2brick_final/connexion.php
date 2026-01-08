@@ -55,6 +55,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $token = bin2hex(random_bytes(32));
                 $expire_at = date('Y-m-d H:i:s', time() + 60); // 1min
 
+                // delete old token
+                $cleanup = $cnx->prepare("DELETE FROM `2FA` WHERE user_id = ?");
+                $cleanup->execute([$user['user_id']]);
+
                 // Store token in database
                 $ins = $cnx->prepare("INSERT INTO 2FA (user_id, `2FA`.verification_token, token_expire_at) VALUES (?, ?, ?)");
                 $ins->execute([$user['user_id'], $token, $expire_at]);
@@ -68,12 +72,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $emailBody = "
                         <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; max-width: 600px;'>
                             <h2 style='color: #0d6efd;'>Secure Login Link 🔑</h2>
-                            <p>We received a login attempt for your Img2Brick account. To complete the sign-in process, please click the button below:</p>
+                            <p>We received a login attempt for your Img2Brick account. To complete the login process, please click the button below:</p>
                             <p style='text-align: center;'>
                                 <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Log In</a>
                             </p>
                             <p style='color: #6c757d; font-size: 12px; margin-top: 20px;'>If the button doesn't work, copy this link: {$link}</p>
-                            <p style='color: #6c757d; font-size: 12px;'>This link expires in 10 minutes.</p>
+                            <p style='color: #6c757d; font-size: 12px;'>This link expires in 1 minute.</p>
                         </div>";
 
                 // Send authentication email
@@ -90,6 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         } catch (PDOException $e) {
             http_response_code(500);
+            $errors[] = 'Database error: ' . $e->getMessage();
             $errors[] = 'Database error. Please try again later.';
         }
     }

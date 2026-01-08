@@ -13,9 +13,9 @@ if (!isset($_GET['token'])) {
 try {
     // Query token Verify validity and expiration
     $stmt = $cnx->prepare("SELECT t.*, u.username, u.email 
-                               FROM Tokens2FA t
-                               JOIN Users u ON t.user_id = u.id_user
-                               WHERE t.token = ? AND t.is_used = 0 
+                               FROM 2FA t
+                               JOIN USER u ON t.user_id = u.user_id
+                               WHERE t.verification_token = ?
                                LIMIT 1");
     $stmt->execute([$_GET['token']]);
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -25,29 +25,25 @@ try {
         die(tr('verify_connexion.invalid_link', 'Invalid or expired login link.'));
     }
 
-    // Check expiration (10 minutes)
-    $created = new DateTime($result['created_at']);
+    // Check expiration (1 minute)
     $now = new DateTime();
-    $diff = $now->diff($created);
+    $expiry = new DateTime($result['token_expire_at']);
 
-    // 10 minutes = 10 * 60 seconds
-    $minutes = ($diff->days * 24 * 60) + ($diff->h * 60) + $diff->i;
-
-    if ($minutes > 10) {
+    if ($now > $expiry) {
         http_response_code(400);
         die(tr('verify_connexion.expired', 'This login link has expired. Please try logging in again.'));
     }
 
     // --- SUCCESS: LOG THE USER IN ---
 
-    // Mark token as used
-    $updateStmt = $cnx->prepare("UPDATE Tokens2FA SET is_used = 1 WHERE token = ?");
-    $updateStmt->execute([$_GET['token']]);
+    // Delete used token
+    $cnx->prepare("DELETE FROM `2FA` WHERE id_token = ?")->execute([$result['id_token']]);
 
     // Regenerate session ID Prevent fixation
     session_regenerate_id(true);
     $_SESSION['userId'] = $result['user_id'];
     $_SESSION['username'] = $result['username'];
+    $_SESSION['email'] = $result['email'];
 
     // Link guest images to new session
     // Note: This relies on the user clicking the link in the same browser session
@@ -62,7 +58,7 @@ try {
     foreach ($guestImages as $imgId) {
         if ($imgId) {
             // Adopt image only if currently orphaned
-            $adoptStmt = $cnx->prepare("UPDATE Images SET user_id = ? WHERE id_image = ? AND user_id IS NULL");
+            $adoptStmt = $cnx->prepare("UPDATE IMAGE SET user_id = ? WHERE image_id = ? AND user_id IS NULL");
             $adoptStmt->execute([$result['user_id'], $imgId]);
         }
     }
