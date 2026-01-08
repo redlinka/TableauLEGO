@@ -18,7 +18,7 @@ $errors = [];
 $previewImage = null;
 
 // Retrieve source image filename
-$stmt = $cnx->prepare("SELECT filename FROM Images WHERE id_image = ?");
+$stmt = $cnx->prepare("SELECT filename FROM IMAGE WHERE image_id = ?");
 $stmt->execute([$parentId]);
 $sourceFile = $stmt->fetchColumn();
 
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Check for existing step to update
         if ($existingId) {
-            $stmt = $cnx->prepare("SELECT filename FROM Images WHERE id_image = ? AND parent_id = ?");
+            $stmt = $cnx->prepare("SELECT filename FROM IMAGE WHERE image_id = ? AND img_parent = ?");
             $stmt->execute([$existingId, $parentId]);
             $existingRow = $stmt->fetch();
             if ($existingRow) {
@@ -69,22 +69,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Detect Java executable (if the code is runnning on my personnal machine or the server)
         $javaCmd = 'java';
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            $javaCmd = '"C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.1.8-hotspot\\bin\\java.exe"';
+            $javaCmd = '"C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.1.8-hotspot\\bin\\java.exe"'; // C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.1.8-hotspot\\bin\\java.exe
             $exePath      = __DIR__ . '/C_tiler_win.exe';
         }
         // Execute Java tiling application
         // Usage: <inPng> <outPng> <outTxt> <catalog> <exe> <method> <thresh>
         $cmd = sprintf(
-                '%s -cp %s fr.uge.univ_eiffel.fr.uge.univ_eiffel.image_processing.TileAndDraw %s %s %s %s %s %s %s 2>&1',
-                $javaCmd,
-                escapeshellarg($jarPath),
-                escapeshellarg($inputPath),     // 0
-                escapeshellarg($outputPngPath), // 1
-                escapeshellarg($outputTxtPath), // 2 (Brick List)
-                escapeshellarg($catalogPath),   // 3
-                escapeshellarg($exePath),       // 4
-                escapeshellarg($method),        // 5 (New!)
-                escapeshellarg($threshold)      // 6
+            '%s -cp %s fr.uge.univ_eiffel.TileAndDraw %s %s %s %s %s %s %s 2>&1',
+            $javaCmd,
+            escapeshellarg($jarPath),
+            escapeshellarg($inputPath),     // 0
+            escapeshellarg($outputPngPath), // 1
+            escapeshellarg($outputTxtPath), // 2 (Brick List)
+            escapeshellarg($catalogPath),   // 3
+            escapeshellarg($exePath),       // 4
+            escapeshellarg($method),        // 5 (New!)
+            escapeshellarg($threshold)      // 6
         );
 
         $output = [];
@@ -96,19 +96,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 if ($isUpdate) {
                     // Update existing image record
-                    $stmt = $cnx->prepare("UPDATE Images SET status = 'LEGO', original_name = ? WHERE id_image = ?");
-                    $stmt->execute(["Lego (T=$threshold)", $existingId]);
+                    $stmt = $cnx->prepare("UPDATE IMAGE SET status = 'LEGO' WHERE image_id = ?");
+                    $stmt->execute([$existingId]);
                 } else {
                     // Insert new image record
-                    $stmt = $cnx->prepare("INSERT INTO Images (user_id, filename, original_name, status, parent_id) VALUES (?, ?, ?, 'LEGO', ?)");
+                    $stmt = $cnx->prepare("INSERT INTO IMAGE (user_id, path, status, img_parent) VALUES (?, ?, 'LEGO', ?)");
                     $userId = $_SESSION['userId'] ?? NULL;
-                    $stmt->execute([$userId, $finalPngName, "Lego (T=$threshold)", $parentId]);
+                    $stmt->execute([$userId, $finalPngName, $parentId]);
                     $_SESSION['step4_image_id'] = $cnx->lastInsertId();
                 }
 
                 // Set preview image path
                 $previewImage = $imgFolder . $finalPngName . '?t=' . time();
-
             } catch (PDOException $e) {
                 $errors[] = "Database Error";
             }
@@ -119,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
     // Check for existing result on page load
     if (isset($_SESSION['step4_image_id'])) {
-        $stmt = $cnx->prepare("SELECT filename FROM Images WHERE id_image = ?");
+        $stmt = $cnx->prepare("SELECT filename FROM IMAGE WHERE image_id = ?");
         $stmt->execute([$_SESSION['step4_image_id']]);
         $existingFile = $stmt->fetchColumn();
         if ($existingFile) {
@@ -131,6 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title><?= htmlspecialchars(tr('tiling.page_title', 'Step 4: Generate LEGO')) ?></title>
@@ -140,7 +140,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .preview-box {
             background-color: #212529;
             width: 100%;
-            min-height: 300px; /* Minimum height so it doesn't collapse if empty */
+            min-height: 300px;
+            /* Minimum height so it doesn't collapse if empty */
             padding: 10px;
             border-radius: 8px;
             display: flex;
@@ -151,228 +152,267 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Image: Natural aspect ratio, zoomable */
         .lego-img {
             max-width: 100%;
-            height: auto;       /* This keeps the original aspect ratio */
+            height: auto;
+            /* This keeps the original aspect ratio */
             object-fit: contain;
             image-rendering: pixelated;
             cursor: zoom-in;
         }
 
         /* Modal Styles (Same as above) */
-        #imgModal { display: none; position: fixed; z-index: 1050; padding-top: 50px; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9); }
-        .modal-content { margin: auto; display: block; width: 80%; max-width: 1000px; image-rendering: pixelated; }
-        .close { position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer; }
+        #imgModal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            padding-top: 50px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 1000px;
+            image-rendering: pixelated;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
         /* Custom Button Styling */
-        .btn-check:checked + .btn-outline-primary {
+        .btn-check:checked+.btn-outline-primary {
             background-color: #0d6efd;
             color: white;
             border-color: #0d6efd;
         }
-        .preset-btn { text-align: left; position: relative; }
-        .preset-btn small { display: block; font-size: 0.75rem; opacity: 0.8; }
+
+        .preset-btn {
+            text-align: left;
+            position: relative;
+        }
+
+        .preset-btn small {
+            display: block;
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
     </style>
 </head>
+
 <body>
 
-<?php include("./includes/navbar.php"); ?>
+    <?php include("./includes/navbar.php"); ?>
 
-<div class="container bg-light py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card shadow border-0">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0" data-i18n="tiling.header">Step 4: Tiling Optimization</h5>
-                </div>
-                <div class="card-body p-4">
+    <div class="container bg-light py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0" data-i18n="tiling.header">Step 4: Tiling Optimization</h5>
+                    </div>
+                    <div class="card-body p-4">
 
-                    <?php if (!empty($errors)): ?>
-                        <div class="alert alert-danger">
-                            <ul class="mb-0 ps-3">
-                                <?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?>
-                            </ul>
-                        </div>
-                    <?php endif; ?>
-
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <div class="preview-box shadow-sm">
-                                <?php if ($previewImage): ?>
-                                    <img src="<?= $previewImage ?>" class="lego-img" onclick="openModal(this.src)" alt="">
-                                <?php else: ?>
-                                    <div class="text-white text-center p-3">
-                                        <p class="mb-0 opacity-75" data-i18n="tiling.preview_placeholder">Preview will appear here</p>
-                                    </div>
-                                <?php endif; ?>
+                        <?php if (!empty($errors)): ?>
+                            <div class="alert alert-danger">
+                                <ul class="mb-0 ps-3">
+                                    <?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?>
+                                </ul>
                             </div>
-                        </div>
+                        <?php endif; ?>
 
-                        <div class="col-md-6 d-flex flex-column">
-                            <form method="POST" id="tilingForm" class="flex-grow-1">
-                                <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_get()) ?>">
-
-                                <h6 class="fw-bold mb-3" data-i18n="tiling.step_method">1. Select Method</h6>
-                                <div class="btn-group w-100 mb-4" role="group">
-                                    <input type="radio" class="btn-check" name="method" id="methodQuad" value="quadtree" checked onchange="toggleThresholds()">
-                                    <label class="btn btn-outline-primary py-3" for="methodQuad">
-                                        <strong data-i18n="tiling.method_quadtree">Quadtree</strong><br>
-                                        <small data-i18n="tiling.method_quadtree_hint">Smart sizing (Cheaper)</small>
-                                    </label>
-
-                                    <input type="radio" class="btn-check" name="method" id="method1x1" value="1x1" onchange="toggleThresholds()">
-                                    <label class="btn btn-outline-primary py-3" for="method1x1">
-                                        <strong data-i18n="tiling.method_1x1">1x1</strong><br>
-                                        <small data-i18n="tiling.method_1x1_hint">Pixel Perfect (Expensive)</small>
-                                    </label>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="preview-box shadow-sm">
+                                    <?php if ($previewImage): ?>
+                                        <img src="<?= $previewImage ?>" class="lego-img" onclick="openModal(this.src)" alt="">
+                                    <?php else: ?>
+                                        <div class="text-white text-center p-3">
+                                            <p class="mb-0 opacity-75" data-i18n="tiling.preview_placeholder">Preview will appear here</p>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
+                            </div>
 
-                                <div id="thresholdSection">
-                                    <h6 class="fw-bold mb-3" data-i18n="tiling.step_budget">2. Select Budget / Precision</h6>
+                            <div class="col-md-6 d-flex flex-column">
+                                <form method="POST" id="tilingForm" class="flex-grow-1">
+                                    <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_get()) ?>">
 
-                                    <input type="hidden" name="threshold" id="thresholdInput" value="2000">
+                                    <h6 class="fw-bold mb-3" data-i18n="tiling.step_method">1. Select Method</h6>
+                                    <div class="btn-group w-100 mb-4" role="group">
+                                        <input type="radio" class="btn-check" name="method" id="methodQuad" value="quadtree" checked onchange="toggleThresholds()">
+                                        <label class="btn btn-outline-primary py-3" for="methodQuad">
+                                            <strong data-i18n="tiling.method_quadtree">Quadtree</strong><br>
+                                            <small data-i18n="tiling.method_quadtree_hint">Smart sizing (Cheaper)</small>
+                                        </label>
 
-                                    <div class="d-grid gap-2 mb-3">
-                                        <button type="button" class="btn btn-outline-secondary preset-btn" onclick="setThreshold(1000, this)">
-                                            <strong data-i18n="tiling.preset_high">High Detail</strong>
-                                            <small data-i18n="tiling.preset_high_hint">Threshold: 1,000</small>
-                                        </button>
-
-                                        <button type="button" class="btn btn-outline-secondary preset-btn active" onclick="setThreshold(2000, this)">
-                                            <strong data-i18n="tiling.preset_balanced">Balanced</strong>
-                                            <small data-i18n="tiling.preset_balanced_hint">Threshold: 2,000 (Recommended)</small>
-                                        </button>
-
-                                        <button type="button" class="btn btn-outline-secondary preset-btn" onclick="setThreshold(100000, this)">
-                                            <strong data-i18n="tiling.preset_minimal">Minimal Price</strong>
-                                            <small data-i18n="tiling.preset_minimal_hint">Threshold: 100,000 (Abstract)</small>
-                                        </button>
-
-                                        <button type="button" class="btn btn-outline-secondary preset-btn" id="customBtn" onclick="enableCustom()">
-                                            <strong data-i18n="tiling.preset_custom">Custom Value</strong>
-                                            <small data-i18n="tiling.preset_custom_hint">Enter manually...</small>
-                                        </button>
+                                        <input type="radio" class="btn-check" name="method" id="method1x1" value="1x1" onchange="toggleThresholds()">
+                                        <label class="btn btn-outline-primary py-3" for="method1x1">
+                                            <strong data-i18n="tiling.method_1x1">1x1</strong><br>
+                                            <small data-i18n="tiling.method_1x1_hint">Pixel Perfect (Expensive)</small>
+                                        </label>
                                     </div>
 
-                                    <div class="collapse" id="customInputDiv">
-                                        <div class="input-group">
-                                            <span class="input-group-text" data-i18n="tiling.custom_value">Value</span>
-                                            <input type="number" class="form-control" id="customNumber" placeholder="e.g. 5000" data-i18n-attr="placeholder:tiling.custom_placeholder">
-                                            <button class="btn btn-primary" type="button" onclick="applyCustom()" data-i18n="tiling.custom_set">Set</button>
+                                    <div id="thresholdSection">
+                                        <h6 class="fw-bold mb-3" data-i18n="tiling.step_budget">2. Select Budget / Precision</h6>
+
+                                        <input type="hidden" name="threshold" id="thresholdInput" value="2000">
+
+                                        <div class="d-grid gap-2 mb-3">
+                                            <button type="button" class="btn btn-outline-secondary preset-btn" onclick="setThreshold(1000, this)">
+                                                <strong data-i18n="tiling.preset_high">High Detail</strong>
+                                                <small data-i18n="tiling.preset_high_hint">Threshold: 1,000</small>
+                                            </button>
+
+                                            <button type="button" class="btn btn-outline-secondary preset-btn active" onclick="setThreshold(2000, this)">
+                                                <strong data-i18n="tiling.preset_balanced">Balanced</strong>
+                                                <small data-i18n="tiling.preset_balanced_hint">Threshold: 2,000 (Recommended)</small>
+                                            </button>
+
+                                            <button type="button" class="btn btn-outline-secondary preset-btn" onclick="setThreshold(100000, this)">
+                                                <strong data-i18n="tiling.preset_minimal">Minimal Price</strong>
+                                                <small data-i18n="tiling.preset_minimal_hint">Threshold: 100,000 (Abstract)</small>
+                                            </button>
+
+                                            <button type="button" class="btn btn-outline-secondary preset-btn" id="customBtn" onclick="enableCustom()">
+                                                <strong data-i18n="tiling.preset_custom">Custom Value</strong>
+                                                <small data-i18n="tiling.preset_custom_hint">Enter manually...</small>
+                                            </button>
+                                        </div>
+
+                                        <div class="collapse" id="customInputDiv">
+                                            <div class="input-group">
+                                                <span class="input-group-text" data-i18n="tiling.custom_value">Value</span>
+                                                <input type="number" class="form-control" id="customNumber" placeholder="e.g. 5000" data-i18n-attr="placeholder:tiling.custom_placeholder">
+                                                <button class="btn btn-primary" type="button" onclick="applyCustom()" data-i18n="tiling.custom_set">Set</button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="mt-4 pt-3 border-top">
-                                    <?php if ($previewImage): ?>
-                                        <button type="submit" class="btn btn-primary w-100 btn-lg mb-3" data-i18n="tiling.regenerate">Regenerate Preview</button>
-                                    <?php else: ?>
-                                        <button type="submit" class="btn btn-primary w-100 btn-lg mb-3" data-i18n="tiling.generate">Generate Preview</button>
-                                    <?php endif; ?>
-
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <a href="filter_selection.php" class="btn btn-outline-secondary" data-i18n="tiling.back">Back</a>
-
+                                    <div class="mt-4 pt-3 border-top">
                                         <?php if ($previewImage): ?>
-                                            <a href="order.php" class="btn btn-success fw-bold" data-i18n="tiling.finalize">Finalize & Order</a>
+                                            <button type="submit" class="btn btn-primary w-100 btn-lg mb-3" data-i18n="tiling.regenerate">Regenerate Preview</button>
                                         <?php else: ?>
-                                            <button type="button" class="btn btn-secondary" data-i18n="tiling.finalize" disabled>Finalize & Order</button>
+                                            <button type="submit" class="btn btn-primary w-100 btn-lg mb-3" data-i18n="tiling.generate">Generate Preview</button>
                                         <?php endif; ?>
-                                    </div>
-                                </div>
-                            </form>
 
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <a href="filter_selection.php" class="btn btn-outline-secondary" data-i18n="tiling.back">Back</a>
+
+                                            <?php if ($previewImage): ?>
+                                                <a href="order.php" class="btn btn-success fw-bold" data-i18n="tiling.finalize">Finalize & Order</a>
+                                            <?php else: ?>
+                                                <button type="button" class="btn btn-secondary" data-i18n="tiling.finalize" disabled>Finalize & Order</button>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </form>
+
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div id="imgModal" onclick="closeModal()">
-    <span class="close">&times;</span>
-    <img class="modal-content" id="modalImg">
-</div>
+    <div id="imgModal" onclick="closeModal()">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImg">
+    </div>
 
-<script>
-    const thresholdSection = document.getElementById('thresholdSection');
-    const thresholdInput = document.getElementById('thresholdInput');
-    const customDiv = document.getElementById('customInputDiv');
-    const customNum = document.getElementById('customNumber');
-    const presetBtns = document.querySelectorAll('.preset-btn');
+    <script>
+        const thresholdSection = document.getElementById('thresholdSection');
+        const thresholdInput = document.getElementById('thresholdInput');
+        const customDiv = document.getElementById('customInputDiv');
+        const customNum = document.getElementById('customNumber');
+        const presetBtns = document.querySelectorAll('.preset-btn');
 
-    // Toggle threshold visibility
-    function toggleThresholds() {
-        const isQuad = document.getElementById('methodQuad').checked;
-        if (isQuad) {
-            thresholdSection.style.display = 'block';
-        } else {
-            thresholdSection.style.display = 'none';
-        }
-    }
-
-    // Handle threshold preset selection
-    function setThreshold(val, btn) {
-        // Set Value
-        thresholdInput.value = val;
-
-        // Hide custom input
-        customDiv.classList.remove('show');
-
-        // Update button states
-        presetBtns.forEach(b => b.classList.remove('active', 'btn-secondary', 'text-white'));
-        presetBtns.forEach(b => b.classList.add('btn-outline-secondary')); // Reset all to outline
-
-        btn.classList.remove('btn-outline-secondary');
-        btn.classList.add('active', 'btn-secondary', 'text-white');
-    }
-
-    // Enable custom threshold mode
-    function enableCustom() {
-        // Reset preset buttons
-        presetBtns.forEach(b => b.classList.remove('active', 'btn-secondary', 'text-white'));
-        presetBtns.forEach(b => b.classList.add('btn-outline-secondary'));
-
-        // Highlight custom button
-        document.getElementById('customBtn').classList.remove('btn-outline-secondary');
-        document.getElementById('customBtn').classList.add('active', 'btn-secondary', 'text-white');
-
-        // Display custom input
-        customDiv.classList.add('show');
-        customNum.focus();
-    }
-
-    // Apply custom threshold
-    function applyCustom() {
-        const val = customNum.value;
-        if (val && val > 0) {
-            thresholdInput.value = val;
-        } else {
-            if (window.I18N && typeof window.I18N.t === 'function') {
-                alert(window.I18N.t('tiling.valid_number', 'Please enter a valid number'));
+        // Toggle threshold visibility
+        function toggleThresholds() {
+            const isQuad = document.getElementById('methodQuad').checked;
+            if (isQuad) {
+                thresholdSection.style.display = 'block';
             } else {
-                alert("Please enter a valid number");
+                thresholdSection.style.display = 'none';
             }
         }
-    }
 
-    function openModal(src) {
-        document.getElementById("imgModal").style.display = "block";
-        document.getElementById("modalImg").src = src;
-    }
-    function closeModal() {
-        document.getElementById("imgModal").style.display = "none";
-    }
+        // Handle threshold preset selection
+        function setThreshold(val, btn) {
+            // Set Value
+            thresholdInput.value = val;
 
-    // Synchronize custom input with hidden field
-    customNum.addEventListener('input', (e) => {
-        thresholdInput.value = e.target.value;
-    });
+            // Hide custom input
+            customDiv.classList.remove('show');
 
-    // Initialize UI state
-    toggleThresholds();
-</script>
+            // Update button states
+            presetBtns.forEach(b => b.classList.remove('active', 'btn-secondary', 'text-white'));
+            presetBtns.forEach(b => b.classList.add('btn-outline-secondary')); // Reset all to outline
 
-<?php include("./includes/footer.php"); ?>
+            btn.classList.remove('btn-outline-secondary');
+            btn.classList.add('active', 'btn-secondary', 'text-white');
+        }
+
+        // Enable custom threshold mode
+        function enableCustom() {
+            // Reset preset buttons
+            presetBtns.forEach(b => b.classList.remove('active', 'btn-secondary', 'text-white'));
+            presetBtns.forEach(b => b.classList.add('btn-outline-secondary'));
+
+            // Highlight custom button
+            document.getElementById('customBtn').classList.remove('btn-outline-secondary');
+            document.getElementById('customBtn').classList.add('active', 'btn-secondary', 'text-white');
+
+            // Display custom input
+            customDiv.classList.add('show');
+            customNum.focus();
+        }
+
+        // Apply custom threshold
+        function applyCustom() {
+            const val = customNum.value;
+            if (val && val > 0) {
+                thresholdInput.value = val;
+            } else {
+                if (window.I18N && typeof window.I18N.t === 'function') {
+                    alert(window.I18N.t('tiling.valid_number', 'Please enter a valid number'));
+                } else {
+                    alert("Please enter a valid number");
+                }
+            }
+        }
+
+        function openModal(src) {
+            document.getElementById("imgModal").style.display = "block";
+            document.getElementById("modalImg").src = src;
+        }
+
+        function closeModal() {
+            document.getElementById("imgModal").style.display = "none";
+        }
+
+        // Synchronize custom input with hidden field
+        customNum.addEventListener('input', (e) => {
+            thresholdInput.value = e.target.value;
+        });
+
+        // Initialize UI state
+        toggleThresholds();
+    </script>
+
+    <?php include("./includes/footer.php"); ?>
 </body>
-</html>
 
+</html>
