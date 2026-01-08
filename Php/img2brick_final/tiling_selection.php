@@ -190,7 +190,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $legoImageId = (int)$_SESSION['step4_image_id'];
+
+                if (!file_exists($outputTxtPath)) {
+                    throw new Exception("TXT introuvable: " . $outputTxtPath);
+                }
+
                 $txtContent = file_get_contents($outputTxtPath);
+                if ($txtContent === false || $txtContent === '') {
+                    throw new Exception("TXT vide ou illisible: " . $outputTxtPath);
+                }
 
                 $stmt = $cnx->prepare("SELECT pavage_id FROM TILLING WHERE image_id = ? LIMIT 1");
                 $stmt->execute([$legoImageId]);
@@ -204,11 +212,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute([$legoImageId, $txtContent]);
                 }
 
+                $stmt = $cnx->prepare("SELECT pavage_id FROM TILLING WHERE image_id = ? LIMIT 1");
+                $stmt->execute([$legoImageId]);
+                $check = (int)$stmt->fetchColumn();
+                if ($check <= 0) {
+                    throw new Exception("Insertion TILLING échouée (aucune ligne créée) pour image_id=" . $legoImageId);
+                }
+
+
                 
                 $previewImage = $imgFolder . $finalPngName . ".png" . '?t=' . time(); // add .png
 
-            } catch (PDOException $e) {
-                $errors[] = "Database Error";
+            } catch (Throwable $e) {
+                $errors[] = $e->getMessage();
             }
         } else {
             $errors[] = "Java/C Error :" . $javaCmd;
