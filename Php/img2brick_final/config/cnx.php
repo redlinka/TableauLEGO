@@ -250,6 +250,7 @@ function cleanStorage($cnx, $imgDir, $brickDir)
             }
         }
     } catch (Exception $e) {
+
     }
 }
 

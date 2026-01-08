@@ -17,25 +17,26 @@ if (!isset($_GET['token'])) {
     $token = $_GET['token'];
 
     try {
-        $stmt = $cnx->prepare("SELECT *, TIMESTAMPDIFF(MINUTE, created_at, NOW()) as age_minutes 
-                                   FROM Tokens2FA 
-                                   WHERE token = ? AND is_used = 0 
-                                   LIMIT 1");
+        $stmt = $cnx->prepare("SELECT * FROM `2FA` WHERE verification_token = ? LIMIT 1");
         $stmt->execute([$token]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$result) {
             $viewState = 'error';
             $message = tr('reset_password.invalid_token', 'Invalid or expired token.');
-        } elseif ((int)$result['age_minutes'] > 10) {
-            $viewState = 'error';
-            $message = tr('reset_password.expired', 'This link has expired. Please request a new one.');
         } else {
-            // Token is valid, show the form
-            $viewState = 'form';
-            $userId = $result['user_id'];
-        }
+            $now = new DateTime();
+            $expiry = new DateTime($result['token_expire_at']);
 
+            if ($now > $expiry) {
+                $viewState = 'error';
+                $message = tr('reset_password.expired', 'This link has expired. Please request a new one.');
+            } else {
+                // Token is valid, show the form
+                $viewState = 'form';
+                $userId = $result['user_id'];
+            }
+        }
     } catch (PDOException $e) {
         $viewState = 'error';
         $message = tr('reset_password.db_error', 'Database error. Please try again later.');
@@ -50,6 +51,7 @@ if ($viewState === 'form' && $_SERVER["REQUEST_METHOD"] === "POST") {
     } else {
         $password = $_POST['password'];
 
+        // must be identical to creation.php
         // Enforce password complexity
         if (strlen($password) < 12) {
             $errors[] = 'Password must be at least 12 characters long';
@@ -71,19 +73,22 @@ if ($viewState === 'form' && $_SERVER["REQUEST_METHOD"] === "POST") {
             $newPassword = password_hash($password, $_ENV['ALGO']);
 
             try {
-                $stmt = $cnx->prepare("UPDATE Users SET password = ? WHERE id_user = ?");
+                $cnx->beginTransaction();
+                $stmt = $cnx->prepare("UPDATE USER SET password = ? WHERE user_id = ?");
                 $stmt->execute([$newPassword, $userId]);
 
-                $stmt = $cnx->prepare("UPDATE Tokens2FA SET is_used = 1 WHERE token = ?");
+                $stmt = $cnx->prepare("DELETE FROM `2FA` WHERE verification_token = ?");
                 $stmt->execute([$token]);
 
                 unset($_SESSION['last_password_reset_sent']);
+                $cnx->commit();
 
                 // Switch to success view
                 $viewState = 'success';
                 csrf_rotate();
 
             } catch (Exception $e) {
+                if ($cnx->inTransaction()) $cnx->rollBack();
                 $errors[] = 'Database error. Please try again later.';
             }
         }
