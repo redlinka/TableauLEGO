@@ -241,6 +241,16 @@ public class InventoryManager implements AutoCloseable {
         }
     }
 
+    public List<Integer> getAllCatalogIds() throws SQLException {
+        List<Integer> ids = new ArrayList<>();
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT id_catalogue FROM CATALOG")) {
+            while (rs.next()) {
+                ids.add(rs.getInt("id_catalogue"));
+            }
+        }
+        return ids;
+    }
 
 
     /** Adds a newly delivered brick into the inventory table.
@@ -326,28 +336,21 @@ public class InventoryManager implements AutoCloseable {
 
 
     /**
-     * Retrieves the number of available inventory pieces grouped by catalogue.
-     *
-     * @return a Map where the key is the catalogue ID and the value is the number of available pieces;
-     *         only pieces not associated with any pavage are counted
-     * @throws RuntimeException if a database access error occurs or the SQL query fails
+     * Retrieves the current stock level for ALL catalog items using the DB View.
+     * Returns 0 for items not in stock (instead of missing them from the map).
      */
-    public Map<Integer, Integer> getStock(){
-        System.out.println("Getting stock pieces..." );
+    public Map<Integer, Integer> getFullStock() throws SQLException {
         Map<Integer, Integer> stock = new HashMap<>();
-        String selectSql = "SELECT id_catalogue, COUNT(*) as amount FROM INVENTORY " +
-                            "WHERE INVENTORY.pavage_id IS NULL " +
-                            "GROUP BY id_catalogue";
-        try (PreparedStatement stmt = connection.prepareStatement(selectSql)){
-            try(ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    stock.put(rs.getInt("id_catalogue"), rs.getInt("amount"));
-                }
-                return stock;
+        // Query the view directly
+        String sql = "SELECT id_catalogue, stock FROM catalog_with_price_and_stock";
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                stock.put(rs.getInt("id_catalogue"), rs.getInt("stock"));
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
+        return stock;
     }
 
     /**

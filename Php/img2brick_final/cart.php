@@ -8,8 +8,6 @@ global $cnx;
 include("./config/cnx.php");
 require_once __DIR__ . '/includes/i18n.php';
 
-
-
 if (!isset($_SESSION['userId'])) {
     header("Location: connexion.php");
     exit;
@@ -19,13 +17,10 @@ $errors = [];
 $id_uti = (int)$_SESSION['userId'];
 $imgFolder = 'users/imgs/';
 
-
-
-/*  BOUTON SUPRIMER  */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) {
 
-    $pavageId = (int) $_POST['remove_pavage_id'];
-    $userId   = (int) ($_SESSION['userId'] ?? 0);
+    $pavageId = (int)$_POST['remove_pavage_id'];
+    $userId   = (int)($_SESSION['userId'] ?? 0);
 
     $stmt = $cnx->prepare("
         SELECT order_id
@@ -35,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) 
         LIMIT 1
     ");
     $stmt->execute(['user_id' => $userId]);
-    $cartOrderId = (int) $stmt->fetchColumn();
+    $cartOrderId = (int)$stmt->fetchColumn();
 
     if ($cartOrderId > 0) {
         $del = $cnx->prepare("
@@ -48,29 +43,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) 
             'pavage_id' => $pavageId
         ]);
     }
-
-
-    // header("Location: cart.php");
-    // exit;
 }
-
-
-
 
 function money($v) {
     return number_format((float)$v, 2, ".", " ") . " EUR";
 }
 
-
-
-/* TOUT LES ELEMENT DU PANIER */
-
 $stmt = $cnx->prepare("
     SELECT 
         o.order_id,
         c.pavage_id,
-        i.path,
-        i.filename,
+        i.path AS lego_path,
         t.pavage_txt
     FROM ORDER_BILL o
     JOIN contain c ON c.order_id = o.order_id
@@ -79,53 +62,44 @@ $stmt = $cnx->prepare("
     WHERE o.user_id = :user_id
       AND o.created_at IS NULL
 ");
-
-
 $stmt->execute(['user_id' => $id_uti]);
 $row_pan = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-
-/* CREER UNE LISTE AVEC TOUT LES ELEMENT DU PANIER */
 
 $items = [];
 $subtotal = 0.0;
 
 foreach ($row_pan as $row) {
 
-    /*recuperer l'id du pavage*/ 
-    $id_pavage = (int)$row["pavage_id"];
+    $id_pavage = (int)($row["pavage_id"] ?? 0);
 
+    $legoPath = (string)($row['lego_path'] ?? '');
+    $src = $imgFolder . ltrim($legoPath, '/');
 
-    /* recuperer l'image pour la modifier PARTIE A MODIFIER POUR AJOUTER L'AFFICHAGE DU PAVAGE */
-    $filename = $row['filename'] ?? '';
-
-    $src = $imgFolder . $filename;
-
-
-    /* GESTION DES PRIX */
     $price = 0.0;
-    $txt = $row['pavage_txt'];
-    if (preg_match('/\d+/', $txt, $m)) {
-        $price = (float)$m[0]/100;
+    $pavageFile = trim((string)($row['pavage_txt'] ?? ''));
+    $txtPath = __DIR__ . '/users/tilings/' . $pavageFile;
+
+    if ($pavageFile !== '' && is_file($txtPath) && is_readable($txtPath)) {
+        $txtContent = file_get_contents($txtPath);
+        if ($txtContent !== false && preg_match('/\d+/', $txtContent, $m)) {
+            $price = ((float)$m[0]) / 100;
+        }
     }
+
     $subtotal += $price;
-    $line_total = $price * 0.10;
+    $line_total = $price;
 
     $items[] = [
-        "id_pavage" => $id_pavage,
-        "src" => $src,
-        "price" => $price,
-        "line_total" => $line_total,
+        "id_pavage"   => $id_pavage,
+        "src"         => $src,
+        "price"       => $price,
+        "line_total"  => $line_total,
     ];
 }
 
 $shipping = $subtotal * 0.10;
 $total = $subtotal + $shipping;
-
-
-
 ?>
-
 <style>
 * { box-sizing: border-box; }
 
@@ -172,7 +146,6 @@ body{
   color:#666;
 }
 
-
 .items-grid{
   display:grid;
   grid-template-columns: repeat(2, 1fr);
@@ -207,39 +180,6 @@ body{
   justify-content:space-between;
   margin-top:6px;
 }
-
-
-.qty-row{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:10px;
-  margin-bottom:6px;
-}
-
-.qty-form{ margin:0; }
-
-.qty-btn{
-  width:34px;
-  height:34px;
-  border-radius:50%;
-  border:1px solid #ddd;
-  background:#fff;
-  font-size:18px;
-  font-weight:700;
-  cursor:pointer;
-}
-
-.qty-btn:hover{
-  background:#f0f0f0;
-}
-
-.qty-value{
-  min-width:24px;
-  text-align:center;
-  font-weight:700;
-}
-
 
 .summary-box{
   display:grid;
@@ -287,7 +227,6 @@ body{
   color:#222;
 }
 
-
 @media (max-width: 980px){
   .cart-layout{
     grid-template-columns:1fr;
@@ -296,7 +235,6 @@ body{
     grid-template-columns:1fr;
   }
 }
-
 
 .remove-form{
   margin-top:10px;
@@ -317,40 +255,31 @@ body{
 .remove-btn:hover{
   background:#c0392b;
 }
-
 </style>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title><?=   htmlspecialchars(tr('cart.page_title', 'My Cart')) ?></title>
+    <title><?= htmlspecialchars(tr('cart.page_title', 'My Cart')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<?php include("./includes/navbar.php"); ?>   
+<?php include("./includes/navbar.php"); ?>
 <main class="cart-page">
-</br>
+<br>
     <h1 class="title" data-i18n="cart.title">My Cart</h1>
 
     <div class="cart-layout">
-
- 
         <section class="cart-left">
             <h2 class="section-title" data-i18n="cart.items">Items</h2>
-
-            <!-- AFFICHAGE PANIER -->
 
             <?php if (empty($items)): ?>
                 <p class="empty" data-i18n="cart.empty">Your cart is empty.</p>
             <?php else: ?>
                 <div class="items-grid">
-
-                    <!-- boucle pour l'affichage -->
-
                     <?php foreach ($items as $it): ?>
                         <article class="item-card">
-
                             <div class="thumb">
                                 <img src="<?= htmlspecialchars($it['src'] ?: '/images/placeholder.png') ?>" alt="Item" data-i18n-attr="alt:cart.item_alt">
                             </div>
@@ -360,6 +289,7 @@ body{
                                     <input type="hidden" name="remove_pavage_id" value="<?= (int)$it['id_pavage'] ?>">
                                     <button type="submit" class="remove-btn" data-i18n="cart.remove">Remove</button>
                                 </form>
+
                                 <div class="meta-row">
                                     <span data-i18n="cart.unit">Unit</span>
                                     <strong><?= money($it["price"]) ?></strong>
@@ -369,14 +299,12 @@ body{
                                     <span data-i18n="cart.line">Line</span>
                                     <strong><?= money($it["line_total"]) ?></strong>
                                 </div>
-
                             </div>
                         </article>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
         </section>
-
 
         <aside class="cart-right">
             <h2 class="section-title" data-i18n="cart.summary">Summary</h2>
@@ -406,7 +334,6 @@ body{
                 <a href="index.php" class="back-link" data-i18n="cart.back">Back to start</a>
             </div>
         </aside>
-
     </div>
 </main>
 
