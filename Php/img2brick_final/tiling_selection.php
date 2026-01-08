@@ -18,7 +18,7 @@ $errors = [];
 $previewImage = null;
 
 // Retrieve source image filename
-$stmt = $cnx->prepare("SELECT filename FROM IMAGE WHERE image_id = ?");
+$stmt = $cnx->prepare("SELECT path FROM IMAGE WHERE image_id = ?");
 $stmt->execute([$parentId]);
 $sourceFile = $stmt->fetchColumn();
 
@@ -39,13 +39,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Check for existing step to update
         if ($existingId) {
-            $stmt = $cnx->prepare("SELECT filename FROM IMAGE WHERE image_id = ? AND img_parent = ?");
+            $stmt = $cnx->prepare("SELECT path FROM IMAGE WHERE image_id = ? AND img_parent = ?");
             $stmt->execute([$existingId, $parentId]);
             $existingRow = $stmt->fetch();
             if ($existingRow) {
                 $isUpdate = true;
                 // Extract base filename
-                $baseName = pathinfo($existingRow['filename'], PATHINFO_FILENAME);
+                $baseName = pathinfo($existingRow['path'], PATHINFO_FILENAME);
             }
         }
 
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Define file paths
-        $finalPngName = $baseName . '.png';
+        $finalPngName = $baseName; //. '.png';
         $finalTxtName = $baseName . '.txt';
 
         $inputPath    = __DIR__ . '/' . $imgFolder . $sourceFile;
@@ -63,14 +63,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $outputTxtPath = __DIR__ . '/' . $tilingFolder . $finalTxtName;
 
         $jarPath      = __DIR__ . '/brain.jar';
-        $exePath      = __DIR__ . '/C_tiler.exe';
+        $exePath      = __DIR__ . '/C_tiler';
         $catalogPath  = __DIR__ . '/catalog.txt';
 
         // Detect Java executable (if the code is runnning on my personnal machine or the server)
         $javaCmd = 'java';
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            $javaCmd = '"C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.1.8-hotspot\\bin\\java.exe"'; // C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.1.8-hotspot\\bin\\java.exe
-            $exePath      = __DIR__ . '/C_tiler_win.exe';
+            $javaCmd = '"C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.1.8-hotspot\\bin\\java.exe"';
+            $exePath      = __DIR__ . '/C_tiler';
         }
         // Execute Java tiling application
         // Usage: <inPng> <outPng> <outTxt> <catalog> <exe> <method> <thresh>
@@ -81,15 +81,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             escapeshellarg($inputPath),     // 0
             escapeshellarg($outputPngPath), // 1
             escapeshellarg($outputTxtPath), // 2 (Brick List)
-            escapeshellarg($catalogPath),   // 3
             escapeshellarg($exePath),       // 4
             escapeshellarg($method),        // 5 (New!)
+            escapeshellarg("relax"),
             escapeshellarg($threshold)      // 6
         );
 
         $output = [];
         $returnCode = 0;
         exec($cmd, $output, $returnCode);
+
+        // foreach ($output as $o) {
+        //     echo $o . "\n";
+        // }
 
         if ($returnCode === 0) {
             // Persist results to database
@@ -100,14 +104,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute([$existingId]);
                 } else {
                     // Insert new image record
-                    $stmt = $cnx->prepare("INSERT INTO IMAGE (user_id, path, status, img_parent) VALUES (?, ?, 'LEGO', ?)");
+                    $stmt = $cnx->prepare("INSERT INTO IMAGE (user_id, filename, path, status, img_parent) VALUES (?, ?, ?, 'LEGO', ?)");
                     $userId = $_SESSION['userId'] ?? NULL;
-                    $stmt->execute([$userId, $finalPngName, $parentId]);
+                    $stmt->execute([$userId, 'Image Tilled', $finalPngName . ".png", $parentId]);
                     $_SESSION['step4_image_id'] = $cnx->lastInsertId();
                 }
 
                 // Set preview image path
-                $previewImage = $imgFolder . $finalPngName . '?t=' . time();
+                $previewImage = $imgFolder . $finalPngName . ".png" . '?t=' . time(); // add .png
+                echo $finalPngName;
             } catch (PDOException $e) {
                 $errors[] = "Database Error";
             }
@@ -118,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
     // Check for existing result on page load
     if (isset($_SESSION['step4_image_id'])) {
-        $stmt = $cnx->prepare("SELECT filename FROM IMAGE WHERE image_id = ?");
+        $stmt = $cnx->prepare("SELECT path FROM IMAGE WHERE image_id = ?");
         $stmt->execute([$_SESSION['step4_image_id']]);
         $existingFile = $stmt->fetchColumn();
         if ($existingFile) {

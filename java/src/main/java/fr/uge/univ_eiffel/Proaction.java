@@ -5,13 +5,11 @@ import fr.uge.univ_eiffel.mediators.InventoryManager;
 import fr.uge.univ_eiffel.mediators.OrderManager;
 import fr.uge.univ_eiffel.mediators.RestockManager;
 import fr.uge.univ_eiffel.payment_methods.PaymentMethod;
-import fr.uge.univ_eiffel.payment_methods.pow.PoWMethod;
+import fr.uge.univ_eiffel.payment_methods.PoWMethod;
 import fr.uge.univ_eiffel.security.BrickVerifier;
 import fr.uge.univ_eiffel.security.OfflineVerifier;
 
-import static java.sql.Types.NULL;
-
-public class OrderTester {
+public class Proaction {
     public static void main(String[] args) {
 
         try {
@@ -23,11 +21,7 @@ public class OrderTester {
             final BrickVerifier verifier = new OfflineVerifier(publicKey);
             final RestockManager restorer = new RestockManager(inventory, client, orderer, payer, verifier);
 
-            String solutionPath = "output.txt";
-            int imageId = 3;
-            int lastId = inventory.newConfirmedTiling(solutionPath, imageId);
-
-            restorer.reactiveRestockage(solutionPath, lastId);
+            restorer.dailyRestockage();
 
         } catch (Exception e) {e.printStackTrace();}
     }

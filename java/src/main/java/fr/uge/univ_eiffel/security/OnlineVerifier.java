@@ -3,7 +3,7 @@ package fr.uge.univ_eiffel.security;
 import fr.uge.univ_eiffel.Brick;
 import fr.uge.univ_eiffel.mediators.FactoryClient;
 
-public class OnlineVerifier implements BrickVerifier {
+public final class OnlineVerifier implements BrickVerifier {
     private final FactoryClient client;
 
     public OnlineVerifier(FactoryClient client) {
