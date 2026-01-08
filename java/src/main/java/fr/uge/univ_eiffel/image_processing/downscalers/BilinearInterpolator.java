@@ -9,7 +9,7 @@ import static fr.uge.univ_eiffel.image_processing.ImageUtils.*;
 /** Implementation of bilinear interpolation for image resizing.
  * Considers the 4 nearest neighbors to calculate pixel color, offering a balance between speed and quality.
  * Fields: None. */
-public class BilinearInterpolator implements Downscaler {
+public final class BilinearInterpolator implements Downscaler {
 
     // uses the interpolation formula to calculate the values of the destination pixel
     /** Calculates the weighted average of 4 pixels based on distance.

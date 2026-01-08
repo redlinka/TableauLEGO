@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
 
-public class NearestNeighbour implements Downscaler {
+public final class NearestNeighbour implements Downscaler {
 
     /**
      * here is a rescaling method that uses the pixel from the source that is the closest to the one in the destination

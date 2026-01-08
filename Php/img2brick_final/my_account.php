@@ -10,29 +10,55 @@ if (!isset($_SESSION['userId'])) {
     exit;
 }
 
-$userId = $_SESSION['userId'];
-$errors = [];
+$userId  = $_SESSION['userId'];
+$errors  = [];
 $success = '';
+
+// Fetch latest user data for display (AVANT POST pour pouvoir comparer)
+$stmt = $cnx->prepare("
+    SELECT 
+        user_id,
+        email,
+        first_name,
+        last_name,
+        phone,
+        default_address
+    FROM USER
+    WHERE user_id = ?
+");
+$stmt->execute([$userId]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user) {
+    http_response_code(404);
+    die("User not found");
+}
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     // Validate CSRF token
     if (!csrf_validate($_POST['csrf'] ?? null)) {
         $errors[] = tr('account.session_expired', 'Session expired. Please refresh.');
     } else {
-        // Sanitize input fields
-        $username = trim($_POST['username']);
-        $name     = trim($_POST['name']);
-        $surname  = trim($_POST['surname']);
-        $phone    = trim($_POST['phone']);
-        $year     = !empty($_POST['year_of_birth']) ? (int)$_POST['year_of_birth'] : null;
-        $address  = trim($_POST['default_address']);
 
-        // Check if username is already taken
-        if ($username !== $_SESSION['username']) {
-            $stmt = $cnx->prepare("SELECT user_id AS id_user FROM USER WHERE email = ? AND user_id != ?");
-            $stmt->execute([$username, $userId]);
-            if ($stmt->fetch()) {
+        // Sanitize input fields
+        $username = trim($_POST['username'] ?? ''); // chez toi "username" = email
+        $name     = trim($_POST['name'] ?? '');
+        $surname  = trim($_POST['surname'] ?? '');
+        $phone    = trim($_POST['phone'] ?? '');
+        $year     = !empty($_POST['year_of_birth']) ? $_POST['year_of_birth'] : null; // pas stocké (colonne inexistante)
+        $address  = trim($_POST['default_address'] ?? '');
+
+        if ($username === '') {
+            $errors[] = "Username is required.";
+        }
+
+        // Check if username/email is already taken (si modifié)
+        if (empty($errors) && $username !== $user['email']) {
+            $check = $cnx->prepare("SELECT 1 FROM USER WHERE email = ? AND user_id <> ?");
+            $check->execute([$username, $userId]);
+            if ($check->fetchColumn()) {
                 $errors[] = "Username '$username' is already taken.";
             }
         }
@@ -40,19 +66,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Update user information in database
         if (empty($errors)) {
             try {
-                $sql = "UPDATE Users SET 
-                            username = ?, 
-                            name = ?, 
-                            surname = ?, 
-                            phone = ?, 
-                            year_of_birth = ?, 
-                            default_address = ? 
-                            WHERE id_user = ?";
-                $stmt = $cnx->prepare($sql);
-                $stmt->execute([$username, $name, $surname, $phone, $year, $address, $userId]);
+                // IMPORTANT: on met à jour USER et les bonnes colonnes
+                $sql = "
+                    UPDATE USER
+                    SET 
+                        email = ?,
+                        first_name = ?,
+                        last_name = ?,
+                        phone = ?,
+                        default_address = ?
+                    WHERE user_id = ?
+                ";
+                $upd = $cnx->prepare($sql);
+                $upd->execute([$username, $name, $surname, $phone, $address, $userId]);
 
-                // Update session variable
+                // Update session variable (optionnel, utile pour navbar)
                 $_SESSION['username'] = $username;
+
+                // Re-fetch user data to display updated values
+                $stmt->execute([$userId]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
                 $success = tr('account.update_success', 'Information updated successfully!');
             } catch (PDOException $e) {
                 $errors[] = "Database error: " . $e->getMessage();
@@ -61,10 +95,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch latest user data for display
-$stmt = $cnx->prepare("SELECT user_id AS id_user, email AS username, email, password, is_verified AS is_active, phone, default_address, first_name AS name, last_name AS surname, NULL AS year_of_birth, NULL AS creation_date FROM USER WHERE user_id = ? ");
-$stmt->execute([$userId]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
+// Adapter ton ancien mapping : garder $user['username'], $user['name'], etc.
+$user = [
+    'username'        => $user['email'],
+    'email'           => $user['email'],
+    'name'            => $user['first_name'],
+    'surname'         => $user['last_name'],
+    'phone'           => $user['phone'],
+    'default_address' => $user['default_address'],
+    'year_of_birth'   => null,
+];
 ?>
 
 <!DOCTYPE html>
@@ -90,7 +130,7 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             <?php if (!empty($errors)): ?>
                 <div class="alert alert-danger">
-                    <ul class="mb-0"><?php foreach ($errors as $e) echo "<li>$e</li>"; ?></ul>
+                    <ul class="mb-0"><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>
                 </div>
             <?php endif; ?>
 

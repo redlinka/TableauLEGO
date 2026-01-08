@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) 
 }
 
 
-include("./includes/navbar.php");
+
 
 function money($v) {
     return number_format((float)$v, 2, ".", " ") . " EUR";
@@ -311,10 +311,10 @@ body{
 <head>
     <meta charset="UTF-8">
     <title><?=   htmlspecialchars(tr('cart.page_title', 'My Cart')) ?></title>
-    <link rel="stylesheet" href="css/cart.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-
+<?php include("./includes/navbar.php"); ?>   
 <main class="cart-page">
 </br>
     <h1 class="title" data-i18n="cart.title">My Cart</h1>

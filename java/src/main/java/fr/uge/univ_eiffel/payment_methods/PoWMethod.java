@@ -1,18 +1,17 @@
-package fr.uge.univ_eiffel.payment_methods.pow;
+package fr.uge.univ_eiffel.payment_methods;
 
 import java.io.IOException;
 import java.util.HexFormat;
 
 import com.google.gson.Gson;
 import fr.uge.univ_eiffel.mediators.FactoryClient;
-import fr.uge.univ_eiffel.payment_methods.PaymentMethod;
 
 /**
  * One of the methods to refill the prepaid account on the Lego factory.
  * Uses computational power (Proof of Work) to solve SHA-256 challenges in exchange for credits.
  * Fields: The solver instance, the API client, and a Gson instance.
  */
-public class PoWMethod implements PaymentMethod {
+public final class PoWMethod implements PaymentMethod {
 
     public static final ProofOfWorkSolver POW_SOLVER = new ProofOfWorkSolver("SHA-256");
     private final FactoryClient client;

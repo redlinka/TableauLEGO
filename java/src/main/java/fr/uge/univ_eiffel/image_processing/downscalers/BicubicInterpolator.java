@@ -7,7 +7,7 @@ import static fr.uge.univ_eiffel.image_processing.ImageUtils.*;
 /** Implementation of bicubic interpolation for image resizing.
  * Provides higher quality results than linear methods but is computationally heavier.
  * Fields: None. */
-public class BicubicInterpolator implements Downscaler {
+public final class BicubicInterpolator implements Downscaler {
 
     /** uses the bicubic interpolation formula to determine the best ARGB value of a given destination pixel during rescaling
      * Input: 4 color values and the distance 'd'.
