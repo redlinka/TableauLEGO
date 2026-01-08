@@ -7,8 +7,11 @@ $message = '';
 $status = 'neutral'; // neutral, success, error
 $errors = [];
 
+$userEmail = $_SESSION['unverified_email'] ?? $_SESSION['email'] ?? null;
+
+
 // Redirect if session invalid
-if (!$_SESSION['tempId'] || !isset($_SESSION['email'])) {
+if (!$_SESSION['tempId'] || !$userEmail) {
     header('Location: creation.php');
     exit;
 }
@@ -43,9 +46,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         try {
             // Generate new token
             $token = bin2hex(random_bytes(32));
+            $expire_at = date('Y-m-d H:i:s', time() + 60);
 
-            $ins = $cnx->prepare("INSERT INTO Tokens2FA (user_id, token, is_used, created_at) VALUES (?, ?, ?, NOW())");
-            $ins->execute([$_SESSION['tempId'], $token, 0]);
+            $cleanup = $cnx->prepare("DELETE FROM 2FA WHERE user_id = ?");
+            $cleanup->execute([$_SESSION['tempId']]);
+
+            $ins = $cnx->prepare("INSERT INTO 2FA (user_id, verification_token, token_expire_at) VALUES (?, ?, ?)");
+            $ins->execute([$_SESSION['tempId'], $token, $expire_at]);
 
             // Construct verification link (creates the link depending on whether i'm testing it on my own machine or on the server)
             $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
@@ -64,7 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 </div>";
 
             sendMail(
-                    $_SESSION['email'],
+                    $userEmail,
                     'Welcome to Img2Brick - Verify your account',
                     $emailBody
             );
