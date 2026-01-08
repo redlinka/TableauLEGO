@@ -287,8 +287,8 @@ function getTilingStats($file)
 
         if (count($valeurs) >= 2) {
             $result = [
-                'nbBrick' => $valeurs[0],
-                'price' => $valeurs[1]
+                'price' => $valeurs[0],
+                'quality' => $valeurs[1]
             ];
         }
     }
