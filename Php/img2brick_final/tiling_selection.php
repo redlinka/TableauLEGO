@@ -190,15 +190,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $legoImageId = (int)$_SESSION['step4_image_id'];
-
-                if (!file_exists($outputTxtPath)) {
-                    throw new Exception("TXT introuvable: " . $outputTxtPath);
-                }
-
                 $txtContent = file_get_contents($outputTxtPath);
-                if ($txtContent === false || $txtContent === '') {
-                    throw new Exception("TXT vide ou illisible: " . $outputTxtPath);
-                }
+
+                $legoImageId = (int)$_SESSION['step4_image_id'];
+                $pavageFile = $finalTxtName; 
 
                 $stmt = $cnx->prepare("SELECT pavage_id FROM TILLING WHERE image_id = ? LIMIT 1");
                 $stmt->execute([$legoImageId]);
@@ -206,25 +201,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($pavageId) {
                     $stmt = $cnx->prepare("UPDATE TILLING SET pavage_txt = ? WHERE image_id = ?");
-                    $stmt->execute([$txtContent, $legoImageId]);
+                    $stmt->execute([$pavageFile, $legoImageId]);
                 } else {
                     $stmt = $cnx->prepare("INSERT INTO TILLING (image_id, pavage_txt) VALUES (?, ?)");
-                    $stmt->execute([$legoImageId, $txtContent]);
+                    $stmt->execute([$legoImageId, $pavageFile]);
                 }
 
-                $stmt = $cnx->prepare("SELECT pavage_id FROM TILLING WHERE image_id = ? LIMIT 1");
-                $stmt->execute([$legoImageId]);
-                $check = (int)$stmt->fetchColumn();
-                if ($check <= 0) {
-                    throw new Exception("Insertion TILLING échouée (aucune ligne créée) pour image_id=" . $legoImageId);
-                }
-
-
-                
                 $previewImage = $imgFolder . $finalPngName . ".png" . '?t=' . time(); // add .png
 
-            } catch (Throwable $e) {
-                $errors[] = $e->getMessage();
+            } catch (PDOException $e) {
+                $errors[] = "Database Error";
             }
         } else {
             $errors[] = "Java/C Error :" . $javaCmd;
