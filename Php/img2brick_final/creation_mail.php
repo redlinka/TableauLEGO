@@ -117,7 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <p class="text-muted mb-4">
                 We have sent a verification link to<br>
-                <strong class="text-dark"><?= htmlspecialchars($_SESSION['email']) ?></strong>
+                <strong class="text-dark"><?= htmlspecialchars($userEmail) ?></strong>
             </p>
 
             <?php if ($status === 'success'): ?>
