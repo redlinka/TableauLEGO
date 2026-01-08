@@ -1,13 +1,24 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 global $cnx;
 include("./config/cnx.php");
 require_once __DIR__ . '/includes/i18n.php';
 
-$errors = [];
 
-$id_uti = $_SESSION['userId'];
+
+if (!isset($_SESSION['userId'])) {
+    header("Location: connexion.php");
+    exit;
+}
+
+$errors = [];
+$id_uti = (int)$_SESSION['userId'];
 $imgFolder = 'users/imgs/';
+
 
 
 /*  BOUTON SUPRIMER  */
@@ -16,10 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) 
     $pavageId = (int) $_POST['remove_pavage_id'];
     $userId   = (int) ($_SESSION['userId'] ?? 0);
 
-    // Récupérer le panier 
     $stmt = $cnx->prepare("
         SELECT order_id
-        FROM order_bill
+        FROM ORDER_BILL
         WHERE user_id = :user_id
           AND created_at IS NULL
         LIMIT 1
@@ -27,13 +37,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) 
     $stmt->execute(['user_id' => $userId]);
     $cartOrderId = (int) $stmt->fetchColumn();
 
-    // Supprimer une ligne dans contain
     if ($cartOrderId > 0) {
         $del = $cnx->prepare("
             DELETE FROM contain
             WHERE order_id = :order_id
               AND pavage_id = :pavage_id
-            LIMIT 1
         ");
         $del->execute([
             'order_id'  => $cartOrderId,
@@ -41,8 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) 
         ]);
     }
 
-   /* header("Location: cart.php");
-    exit;*/
+
+    // header("Location: cart.php");
+    // exit;
 }
 
 
@@ -63,10 +72,10 @@ $stmt = $cnx->prepare("
         i.path,
         i.filename,
         t.pavage_txt
-    FROM order_bill o
+    FROM ORDER_BILL o
     JOIN contain c ON c.order_id = o.order_id
-    JOIN tilling t ON t.pavage_id = c.pavage_id
-    JOIN image i ON i.image_id = t.image_id
+    JOIN TILLING t ON t.pavage_id = c.pavage_id
+    JOIN IMAGE i ON i.image_id = t.image_id
     WHERE o.user_id = :user_id
       AND o.created_at IS NULL
 ");
