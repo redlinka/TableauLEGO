@@ -39,13 +39,21 @@ try {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title><?= htmlspecialchars(tr('orders.page_title', 'My Orders')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .order-card { transition: transform 0.2s, box-shadow 0.2s; border: none; }
-        .order-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+        .order-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+        }
+
+        .order-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+        }
 
         .mosaic-thumb {
             width: 100%;
@@ -56,94 +64,106 @@ try {
             border-top-right-radius: 6px;
         }
 
-        .status-badge { font-size: 0.8rem; padding: 0.5em 0.8em; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 0.5em 0.8em;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
         /* Modal Styles */
-        .modal-img { width: 100%; border-radius: 8px; image-rendering: pixelated; border: 2px solid #eee; }
+        .modal-img {
+            width: 100%;
+            border-radius: 8px;
+            image-rendering: pixelated;
+            border: 2px solid #eee;
+        }
     </style>
 </head>
+
 <body class="bg-light d-flex flex-column min-vh-100">
 
-<?php include("./includes/navbar.php"); ?>
+    <?php include("./includes/navbar.php"); ?>
 
-<div class="container py-5 flex-grow-1">
+    <div class="container py-5 flex-grow-1">
 
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5">
-        <div>
-            <h1 class="fw-bold mb-2" data-i18n="orders.title">My Orders</h1>
-            <p class="text-muted mb-0" data-i18n="orders.subtitle">Find here all the orders you made.</p>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5">
+            <div>
+                <h1 class="fw-bold mb-2" data-i18n="orders.title">My Orders</h1>
+                <p class="text-muted mb-0" data-i18n="orders.subtitle">Find here all the orders you made.</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a href="index.php" class="btn btn-primary btn-lg shadow-sm" data-i18n="orders.new_order">+ New Order</a>
+            </div>
         </div>
-        <div class="mt-3 mt-md-0">
-            <a href="index.php" class="btn btn-primary btn-lg shadow-sm" data-i18n="orders.new_order">+ New Order</a>
-        </div>
-    </div>
 
-    <?php if (empty($orders)): ?>
-        <div class="text-center py-5">
-            <div class="display-1 text-muted mb-3">X</div>
-            <h3 class="text-muted" data-i18n="orders.empty_title">You didn't make any orders with us.</h3>
-            <a href="index.php" class="btn btn-outline-primary mt-3" data-i18n="orders.empty_cta">Create my first mosaic</a>
-        </div>
-    <?php else: ?>
+        <?php if (empty($orders)): ?>
+            <div class="text-center py-5">
+                <div class="display-1 text-muted mb-3">X</div>
+                <h3 class="text-muted" data-i18n="orders.empty_title">You didn't make any orders with us.</h3>
+                <a href="index.php" class="btn btn-outline-primary mt-3" data-i18n="orders.empty_cta">Create my first mosaic</a>
+            </div>
+        <?php else: ?>
 
-        <div class="row g-4">
-            <?php foreach ($orders as $order):
-                // Format order data
-                $ref = "CMD-" . date("Y", strtotime($order['created_at'])) . "-" . str_pad($order['id_order'], 5, '0', STR_PAD_LEFT);
-                $date = date("d/m/Y", strtotime($order['created_at']));
-                $imagePath = $imgFolder . $order['filename'];
-                $fullPath = __DIR__ . '/' . $imagePath;
+            <div class="row g-4">
+                <?php foreach ($orders as $order):
+                    // Format order data
+                    $ref = "CMD-" . date("Y", strtotime($order['created_at'])) . "-" . str_pad($order['id_order'], 5, '0', STR_PAD_LEFT);
+                    $date = date("d/m/Y", strtotime($order['created_at']));
+                    $imagePath = $imgFolder . $order['filename'];
+                    $fullPath = __DIR__ . '/' . $imagePath;
 
-                // Calculate image dimensions
-                $dimensions = "Standard";
-                if (file_exists($fullPath)) {
-                    list($w, $h) = getimagesize($fullPath);
-                    if ($w && $h) {
-                        // Divide by 10 as requested
-                        $dimW = round($w / 10);
-                        $dimH = round($h / 10);
-                        $dimensions = "{$dimW}x{$dimH}";
+                    // Calculate image dimensions
+                    $dimensions = "Standard";
+                    if (file_exists($fullPath)) {
+                        list($w, $h) = getimagesize($fullPath);
+                        if ($w && $h) {
+                            // Divide by 10 as requested
+                            $dimW = round($w / 10);
+                            $dimH = round($h / 10);
+                            $dimensions = "{$dimW}x{$dimH}";
+                        }
                     }
-                }
 
-                // Define file paths
-                $baseName = pathinfo($order['filename'], PATHINFO_FILENAME);
-                $txtPath = $tilingFolder . $baseName . '.txt';
+                    // Define file paths
+                    $baseName = pathinfo($order['filename'], PATHINFO_FILENAME);
+                    $txtPath = $tilingFolder . $baseName . '.txt';
 
-                // Map status colors
-                $badges = [
+                    // Map status colors
+                    $badges = [
                         'PREPARATION' => 'bg-warning text-dark',
                         'SHIPPED' => 'bg-info text-white',
                         'DELIVERED' => 'bg-success text-white',
                         'CANCELLED' => 'bg-danger text-white'
-                ];
-                $badgeClass = $badges[$order['status']] ?? 'bg-secondary';
-                $statusMap = [
+                    ];
+                    $badgeClass = $badges[$order['status']] ?? 'bg-secondary';
+                    $statusMap = [
                         'PREPARATION' => 'orders.status.preparation',
                         'SHIPPED' => 'orders.status.shipped',
                         'DELIVERED' => 'orders.status.delivered',
                         'CANCELLED' => 'orders.status.cancelled'
-                ];
-                $statusKey = $statusMap[$order['status']] ?? null;
-                $statusLabel = $statusKey ? tr($statusKey, $order['status']) : $order['status'];
+                    ];
+                    $statusKey = $statusMap[$order['status']] ?? null;
+                    $statusLabel = $statusKey ? tr($statusKey, $order['status']) : $order['status'];
                 ?>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card shadow-sm h-100 order-card">
-                        <img src="<?= htmlspecialchars($imagePath) ?>" class="mosaic-thumb bg-dark" alt="">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card shadow-sm h-100 order-card">
+                            <img src="<?= htmlspecialchars($imagePath) ?>" class="mosaic-thumb bg-dark" alt="">
 
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="card-title fw-bold text-primary mb-0"><?= $ref ?></h5>
-                                <span class="badge <?= $badgeClass ?> status-badge"><?= htmlspecialchars($statusLabel) ?></span>
-                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title fw-bold text-primary mb-0"><?= $ref ?></h5>
+                                    <span class="badge <?= $badgeClass ?> status-badge"><?= htmlspecialchars($statusLabel) ?></span>
+                                </div>
 
-                                                        <p class="text-muted small mb-3">
-                                <span data-i18n="orders.label_date">Date:</span> <?= $date ?><br>
-                                <span data-i18n="orders.label_size">Size:</span> <strong><?= $dimensions ?></strong><br>
-                                <span data-i18n="orders.label_price">Price:</span> <strong><?= $order['total_price'] ?> EUR</strong>
-                            </p>
+                                <p class="text-muted small mb-3">
+                                    <span data-i18n="orders.label_date">Date:</span> <?= $date ?><br>
+                                    <span data-i18n="orders.label_size">Size:</span> <strong><?= $dimensions ?></strong><br>
+                                    <span data-i18n="orders.label_price">Price:</span> <strong><?= $order['total_price'] ?> EUR</strong>
+                                </p>
 
-                            <button type="button" class="btn btn-outline-dark w-100" data-i18n="orders.see_more"
+                                <button type="button" class="btn btn-outline-dark w-100" data-i18n="orders.see_more"
                                     data-bs-toggle="modal"
                                     data-bs-target="#orderModal"
                                     data-ref="<?= $ref ?>"
@@ -155,140 +175,139 @@ try {
                                     data-img="<?= $imagePath ?>"
                                     data-dims="<?= $dimensions ?>"
                                     data-txt="<?= file_exists($txtPath) ? $txtPath : '' ?>">See More</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
-</div>
-
-<div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="modalRef" data-i18n="orders.modal_title">Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <?php endforeach; ?>
             </div>
-            <div class="modal-body">
-                <div class="row g-4">
-                    <div class="col-md-5 text-center">
-                        <img src="" id="modalImg" class="modal-img bg-dark mb-2">
-                        <p class="text-muted small mb-0" data-i18n="orders.modal_preview">preview</p>
-                    </div>
+        <?php endif; ?>
+    </div>
 
-                    <div class="col-md-7">
-                        <h6 class="fw-bold border-bottom pb-2" data-i18n="orders.modal_info">Information</h6>
-                        <ul class="list-unstyled small mb-4">
-                            <li><strong data-i18n="orders.modal_date">Date:</strong> <span id="modalDate"></span></li>
-                            <li><strong data-i18n="orders.modal_status">Status:</strong> <span id="modalStatus" class="badge bg-secondary"></span></li>
-                            <li><strong data-i18n="orders.modal_size">Size:</strong> <span id="modalDims" class="fw-bold"></span></li>
-                            <li><strong data-i18n="orders.modal_price">Price:</strong> <span id="modalPrice"></span> EUR</li>
-                        </ul>
+    <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="modalRef" data-i18n="orders.modal_title">Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-4">
+                        <div class="col-md-5 text-center">
+                            <img src="" id="modalImg" class="modal-img bg-dark mb-2">
+                            <p class="text-muted small mb-0" data-i18n="orders.modal_preview">preview</p>
+                        </div>
 
-                        <h6 class="fw-bold border-bottom pb-2" data-i18n="orders.modal_shipping">Shipping</h6>
-                                                <p class="small mb-4">
-                            <span data-i18n="orders.modal_contact">Contact:</span> <strong id="modalContact"></strong><br>
-                            <span data-i18n="orders.modal_address">Address:</span> <span id="modalAddress" style="white-space: pre-line;"></span>
-                        </p>
+                        <div class="col-md-7">
+                            <h6 class="fw-bold border-bottom pb-2" data-i18n="orders.modal_info">Information</h6>
+                            <ul class="list-unstyled small mb-4">
+                                <li><strong data-i18n="orders.modal_date">Date:</strong> <span id="modalDate"></span></li>
+                                <li><strong data-i18n="orders.modal_status">Status:</strong> <span id="modalStatus" class="badge bg-secondary"></span></li>
+                                <li><strong data-i18n="orders.modal_size">Size:</strong> <span id="modalDims" class="fw-bold"></span></li>
+                                <li><strong data-i18n="orders.modal_price">Price:</strong> <span id="modalPrice"></span> EUR</li>
+                            </ul>
 
-                        <h6 class="fw-bold border-bottom pb-2" data-i18n="orders.modal_files">Files</h6>
-                        <div class="d-grid gap-2 mb-3">
-                            <a href="#" id="btnDownloadImg" class="btn btn-sm btn-outline-primary" download data-i18n="orders.download_image">Download the preview image (.png)</a>
-                            <a href="#" id="btnDownloadTxt" class="btn btn-sm btn-outline-secondary" download data-i18n="orders.download_list">Brick List (.txt)</a>
+                            <h6 class="fw-bold border-bottom pb-2" data-i18n="orders.modal_shipping">Shipping</h6>
+                            <p class="small mb-4">
+                                <span data-i18n="orders.modal_contact">Contact:</span> <strong id="modalContact"></strong><br>
+                                <span data-i18n="orders.modal_address">Address:</span> <span id="modalAddress" style="white-space: pre-line;"></span>
+                            </p>
+
+                            <h6 class="fw-bold border-bottom pb-2" data-i18n="orders.modal_files">Files</h6>
+                            <div class="d-grid gap-2 mb-3">
+                                <a href="#" id="btnDownloadImg" class="btn btn-sm btn-outline-primary" download data-i18n="orders.download_image">Download the preview image (.png)</a>
+                                <a href="#" id="btnDownloadTxt" class="btn btn-sm btn-outline-secondary" download data-i18n="orders.download_list">Brick List (.txt)</a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<?php include("./includes/footer.php"); ?>
+    <?php include("./includes/footer.php"); ?>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<script>
-    function t(key, fallback) {
-        if (window.I18N && typeof window.I18N.t === 'function') {
-            return window.I18N.t(key, fallback);
-        }
-        return fallback || key;
-    }
-
-    function formatText(key, vars, fallback) {
-        if (window.I18N && typeof window.I18N.format === 'function') {
-            return window.I18N.format(key, vars, fallback);
-        }
-        var text = fallback || key;
-        if (!vars) return text;
-        return text.replace(/\{(\w+)\}/g, function (match, k) {
-            return Object.prototype.hasOwnProperty.call(vars, k) ? vars[k] : match;
-        });
-    }
-
-    function translateStatus(status) {
-        var map = {
-            PREPARATION: 'orders.status.preparation',
-            SHIPPED: 'orders.status.shipped',
-            DELIVERED: 'orders.status.delivered',
-            CANCELLED: 'orders.status.cancelled'
-        };
-        return t(map[status] || '', status);
-    }
-
-    const orderModal = document.getElementById('orderModal');
-    if (orderModal) {
-        orderModal.addEventListener('show.bs.modal', function (event) {
-            // Identify trigger button
-            const button = event.relatedTarget;
-
-            // Retrieve data attributes
-            const ref = button.getAttribute('data-ref');
-            const date = button.getAttribute('data-date');
-            const status = button.getAttribute('data-status');
-            const price = button.getAttribute('data-price');
-            const address = button.getAttribute('data-address');
-            const contact = button.getAttribute('data-contact');
-            const imgPath = button.getAttribute('data-img');
-            const dims = button.getAttribute('data-dims');
-            const txtPath = button.getAttribute('data-txt');
-
-            // Inject data into modal
-            document.getElementById('modalRef').textContent = ref;
-            document.getElementById('modalDate').textContent = date;
-            document.getElementById('modalStatus').textContent = translateStatus(status);
-            document.getElementById('modalPrice').textContent = price;
-            document.getElementById('modalAddress').textContent = address;
-            document.getElementById('modalContact').textContent = contact;
-            document.getElementById('modalImg').src = imgPath;
-            document.getElementById('modalDims').textContent = formatText(
-                'dims.studs_suffix',
-                { value: dims },
-                dims + ' studs'
-            );
-
-            // Configure download buttons
-            const btnImg = document.getElementById('btnDownloadImg');
-            btnImg.href = imgPath;
-
-            const btnTxt = document.getElementById('btnDownloadTxt');
-            if (txtPath) {
-                btnTxt.href = txtPath;
-                btnTxt.classList.remove('disabled', 'btn-light');
-                btnTxt.classList.add('btn-outline-secondary');
-                btnTxt.innerHTML = t('orders.brick_list', 'Brick List (.txt)');
-            } else {
-                btnTxt.href = '#';
-                btnTxt.classList.remove('btn-outline-secondary');
-                btnTxt.classList.add('disabled', 'btn-light');
-                btnTxt.innerHTML = t('orders.list_unavailable', 'List Unavailable');
+    <script>
+        function t(key, fallback) {
+            if (window.I18N && typeof window.I18N.t === 'function') {
+                return window.I18N.t(key, fallback);
             }
-        });
-    }
-</script>
+            return fallback || key;
+        }
+
+        function formatText(key, vars, fallback) {
+            if (window.I18N && typeof window.I18N.format === 'function') {
+                return window.I18N.format(key, vars, fallback);
+            }
+            var text = fallback || key;
+            if (!vars) return text;
+            return text.replace(/\{(\w+)\}/g, function(match, k) {
+                return Object.prototype.hasOwnProperty.call(vars, k) ? vars[k] : match;
+            });
+        }
+
+        function translateStatus(status) {
+            var map = {
+                PREPARATION: 'orders.status.preparation',
+                SHIPPED: 'orders.status.shipped',
+                DELIVERED: 'orders.status.delivered',
+                CANCELLED: 'orders.status.cancelled'
+            };
+            return t(map[status] || '', status);
+        }
+
+        const orderModal = document.getElementById('orderModal');
+        if (orderModal) {
+            orderModal.addEventListener('show.bs.modal', function(event) {
+                // Identify trigger button
+                const button = event.relatedTarget;
+
+                // Retrieve data attributes
+                const ref = button.getAttribute('data-ref');
+                const date = button.getAttribute('data-date');
+                const status = button.getAttribute('data-status');
+                const price = button.getAttribute('data-price');
+                const address = button.getAttribute('data-address');
+                const contact = button.getAttribute('data-contact');
+                const imgPath = button.getAttribute('data-img');
+                const dims = button.getAttribute('data-dims');
+                const txtPath = button.getAttribute('data-txt');
+
+                // Inject data into modal
+                document.getElementById('modalRef').textContent = ref;
+                document.getElementById('modalDate').textContent = date;
+                document.getElementById('modalStatus').textContent = translateStatus(status);
+                document.getElementById('modalPrice').textContent = price;
+                document.getElementById('modalAddress').textContent = address;
+                document.getElementById('modalContact').textContent = contact;
+                document.getElementById('modalImg').src = imgPath;
+                document.getElementById('modalDims').textContent = formatText(
+                    'dims.studs_suffix', {
+                        value: dims
+                    },
+                    dims + ' studs'
+                );
+
+                // Configure download buttons
+                const btnImg = document.getElementById('btnDownloadImg');
+                btnImg.href = imgPath;
+
+                const btnTxt = document.getElementById('btnDownloadTxt');
+                if (txtPath) {
+                    btnTxt.href = txtPath;
+                    btnTxt.classList.remove('disabled', 'btn-light');
+                    btnTxt.classList.add('btn-outline-secondary');
+                    btnTxt.innerHTML = t('orders.brick_list', 'Brick List (.txt)');
+                } else {
+                    btnTxt.href = '#';
+                    btnTxt.classList.remove('btn-outline-secondary');
+                    btnTxt.classList.add('disabled', 'btn-light');
+                    btnTxt.innerHTML = t('orders.list_unavailable', 'List Unavailable');
+                }
+            });
+        }
+    </script>
 </body>
+
 </html>
-
-
-
