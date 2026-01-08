@@ -317,7 +317,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <a href="filter_selection.php" class="btn btn-outline-secondary" data-i18n="tiling.back">Back</a>
 
                                             <?php if ($previewImage): ?>
-                                                <a href="order.php" class="btn btn-success fw-bold" data-i18n="tiling.finalize">Finalize & Order</a>
+                                                <a href="add_cart.php" class="btn btn-success fw-bold" data-i18n="tiling.finalize">Finalize & Order</a>
                                             <?php else: ?>
                                                 <button type="button" class="btn btn-secondary" data-i18n="tiling.finalize" disabled>Finalize & Order</button>
                                             <?php endif; ?>
