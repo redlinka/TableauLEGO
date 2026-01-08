@@ -104,9 +104,16 @@ foreach ($row_pan as $row) {
 
     /* GESTION DES PRIX */
     $price = 0.0;
-    $txt = $row['pavage_txt'];
-    if (preg_match('/\d+/', $txt, $m)) {
-        $price = (float)$m[0]/100;
+
+    $pavageFile = trim((string)($row['pavage_txt'] ?? ''));
+    $txtPath = __DIR__ . '/users/tilings/' . $pavageFile;
+
+    if ($pavageFile !== '' && is_file($txtPath) && is_readable($txtPath)) {
+        $txtContent = file_get_contents($txtPath);
+
+        if ($txtContent !== false && preg_match('/\d+/', $txtContent, $m)) {
+            $price = ((float)$m[0]) / 100;
+        }
     }
     $subtotal += $price;
     $line_total = $price * 0.10;
