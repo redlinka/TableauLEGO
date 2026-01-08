@@ -129,7 +129,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['step4_image_id'] = $cnx->lastInsertId();
                 }
 
-                // Set preview image path
+                $legoImageId = (int)$_SESSION['step4_image_id'];
+                $txtContent = file_get_contents($outputTxtPath);
+
+                $stmt = $cnx->prepare("SELECT pavage_id FROM TILLING WHERE image_id = ? LIMIT 1");
+                $stmt->execute([$legoImageId]);
+                $pavageId = $stmt->fetchColumn();
+
+                if ($pavageId) {
+                    $stmt = $cnx->prepare("UPDATE TILLING SET pavage_txt = ? WHERE image_id = ?");
+                    $stmt->execute([$txtContent, $legoImageId]);
+                } else {
+                    $stmt = $cnx->prepare("INSERT INTO TILLING (image_id, pavage_txt) VALUES (?, ?)");
+                    $stmt->execute([$legoImageId, $txtContent]);
+                }
+
+                
                 $previewImage = $imgFolder . $finalPngName . ".png" . '?t=' . time(); // add .png
 
             } catch (PDOException $e) {
