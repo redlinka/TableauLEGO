@@ -100,7 +100,27 @@ try {
     $orderStatus = 'PREPARATION';
 
     // 6) Prix (tu le stockes ailleurs ? sinon session ou fixe)
-    $totalPrice = isset($_SESSION['moneyea']) ? (float)$_SESSION['moneyea'] : 49.99;
+
+    $stmt = $cnx->prepare("
+        SELECT t.pavage_txt
+        FROM contain c
+        JOIN tilling t ON t.pavage_id = c.pavage_id
+        WHERE c.order_id = :oid
+    ");
+    $stmt->execute(['oid' => $orderId]);
+    $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    $total = 0.0;
+
+    foreach ($rows as $txt) {
+        if (preg_match('/^\d+(\.\d+)?/', $txt, $m)) {
+            $total += (float)$m[0]/100;
+        }
+    }
+
+    $totalPrice = $total;
+    $livraison = $total*0.10;
+    $totaux = $livraison + $totalPrice;
 
 } catch (PDOException $e) {
     die("System Error: " . $e->getMessage());
@@ -156,10 +176,7 @@ try {
                 <div class="card-body p-4">
                     <div class="row g-4">
 
-                        <div class="col-md-5 text-center">
-                            <h6 class="text-muted mb-3" data-i18n="order_completed.custom_kit">Your Custom Kit</h6>
-                            <img src="<?= htmlspecialchars($previewSrc) ?>" class="lego-preview" alt="Lego Mosaic">
-                        </div>
+                        
 
                         <div class="col-md-7">
                             <h6 class="text-muted border-bottom pb-2" data-i18n="order_completed.delivery">Delivery Details</h6>
@@ -189,12 +206,12 @@ try {
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span data-i18n="order_completed.shipping">Shipping</span>
-                                <span class="text-success" data-i18n="order_completed.free">Free</span>
+                                <span>$<?= htmlspecialchars(number_format($livraison, 2)) ?></span>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between fs-5 fw-bold">
                                 <span data-i18n="order_completed.total">Total</span>
-                                <span>$<?= htmlspecialchars(number_format($totalPrice, 2)) ?></span>
+                                <span>$<?= htmlspecialchars(number_format($totaux, 2)) ?></span>
                             </div>
 
                             <div class="mt-3 text-muted small">
