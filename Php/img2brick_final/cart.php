@@ -8,6 +8,16 @@ global $cnx;
 include("./config/cnx.php");
 require_once __DIR__ . '/includes/i18n.php';
 
+$stmt = $cnx->query("SHOW TABLES");
+$tables = $stmt->fetchAll(PDO::FETCH_NUM);
+
+echo "<pre>";
+foreach ($tables as $t) {
+    echo $t[0] . "\n";
+}
+echo "</pre>";
+exit;
+
 if (!isset($_SESSION['userId'])) {
     header("Location: connexion.php");
     exit;
