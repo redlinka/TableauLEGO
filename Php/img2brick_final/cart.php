@@ -8,15 +8,7 @@ global $cnx;
 include("./config/cnx.php");
 require_once __DIR__ . '/includes/i18n.php';
 
-$stmt = $cnx->query("SHOW TABLES");
-$tables = $stmt->fetchAll(PDO::FETCH_NUM);
 
-echo "<pre>";
-foreach ($tables as $t) {
-    echo $t[0] . "\n";
-}
-echo "</pre>";
-exit;
 
 if (!isset($_SESSION['userId'])) {
     header("Location: connexion.php");
@@ -37,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) 
 
     $stmt = $cnx->prepare("
         SELECT order_id
-        FROM order_bill
+        FROM ORDER_BILL
         WHERE user_id = :user_id
           AND created_at IS NULL
         LIMIT 1
@@ -80,7 +72,7 @@ $stmt = $cnx->prepare("
         i.path,
         i.filename,
         t.pavage_txt
-    FROM order_bill o
+    FROM ORDER_BILL o
     JOIN contain c ON c.order_id = o.order_id
     JOIN tilling t ON t.pavage_id = c.pavage_id
     JOIN image i ON i.image_id = t.image_id
