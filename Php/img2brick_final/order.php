@@ -203,6 +203,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+ $stmt = $cnx->prepare("
+        SELECT t.pavage_txt
+        FROM contain c
+        JOIN tilling t ON t.pavage_id = c.pavage_id
+        WHERE c.order_id = :oid
+    ");
+    $stmt->execute(['oid' => $cartOrderId]);
+    $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    $total = 0.0;
+
+    foreach ($rows as $txt) {
+        if (preg_match('/^\d+(\.\d+)?/', $txt, $m)) {
+            $total += (float)$m[0]/100;
+        }
+    }
+
+    $totalPrice = $total;
+    $livraison = $total*0.10;
+    $totaux = $livraison + $totalPrice;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -327,7 +348,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                         <a href="cart.php" class="btn btn-outline-secondary">← Back to Cart</a>
                         <button class="btn btn-primary btn-lg" type="submit">
-                            Confirm Order ($<?= number_format((float)$totalPrice, 2) ?>)
+                            Confirm Order ($<?= number_format($totaux, 2) ?>)
                         </button>
                     </div>
                 </form>
