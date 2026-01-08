@@ -253,7 +253,7 @@ public class InventoryManager implements AutoCloseable {
         Integer catalogId = getCatalogId(brick.name());
 
         // Insert the brick into inventory
-        String insertSql = "INSERT INTO INVENTORY (certificate, serial_num, unit_price, pavage_id, id_catalogue) VALUES (?, ?, ?, ?, ?)";
+        String insertSql = "INSERT INTO INVENTORY (certificate, serial_num, pavage_id, id_catalogue) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(insertSql)) {
             stmt.setString(1, brick.certificate());

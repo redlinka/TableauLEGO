@@ -16,7 +16,7 @@ import java.util.Properties;
  * Fields: API URL, user email, and secret key. */
 public class FactoryClient {
 
-    private static final String BASE_URL = "http://legofactory.plade.org";
+    private static final String BASE_URL = "http://localhost:8080";
     private final String EMAIL;
     private final String API_KEY;
     private final Gson gson = new Gson();
