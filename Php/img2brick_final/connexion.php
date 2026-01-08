@@ -41,8 +41,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['tempId'] = $user['user_id'];
                 $_SESSION['unverified_email'] = $user['email'];
 
-                $errors[] = 'Your account is not activated yet. Please check your email or click <a href="creation_mail.php">here</a> to resend the activation email.';
-                csrf_rotate();
+                $token = bin2hex(random_bytes(32));
+                $expire_at = date('Y-m-d H:i:s', time() + 3600); // Augmenté à 1h pour l'UX
+
+                $cleanup = $cnx->prepare("DELETE FROM 2FA WHERE user_id = ?");
+                $cleanup->execute([$user['user_id']]);
+
+                $ins = $cnx->prepare("INSERT INTO 2FA (user_id, verification_token, token_expire_at) VALUES (?, ?, ?)");
+                $ins->execute([$user['user_id'], $token, $expire_at]);
+
+                $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+                $link = $protocol . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/verify_account.php?token=' . $token;
+
+                $emailBody = "
+        <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; max-width: 600px;'>
+            <h2 style='color: #0d6efd;'>Activate Your Account 🧱</h2>
+            <p>It looks like your account isn't active yet. Click below to verify your email:</p>
+            <p style='text-align: center;'>
+                <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Verify My Account</a>
+            </p>
+        </div>";
+
+                sendMail($user['email'], 'Activate your Img2Brick account', $emailBody);
+
+                $errors[] = 'Your account is not activated. A new verification email has been sent to your inbox. If you didn\'t receive it, click <a href="creation_mail.php">here</a>.';                csrf_rotate();
             } else {
                 // Update password hash if algorithm changed
                 if (password_needs_rehash($user['password'], $_ENV['ALGO'])) {
