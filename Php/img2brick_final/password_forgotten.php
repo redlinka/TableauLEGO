@@ -36,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             } else {
                 try {
                     // Check email existence
-                    $stmt = $cnx->prepare("SELECT * FROM Users WHERE email = ?");
+                    $stmt = $cnx->prepare("SELECT * FROM USER WHERE email = ?");
                     $stmt->execute([$email]);
                     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -46,10 +46,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if ($user !== false) {
                         // Generate secure token
                         $token = bin2hex(random_bytes(32));
+                        $expire_at = date('Y-m-d H:i:s', time() + 60); // 1min
 
-                        // Store token
-                        $ins = $cnx->prepare("INSERT INTO Tokens2FA (user_id, token, is_used, created_at) VALUES (?, ?, ?, NOW())");
-                        $ins->execute([$user['id_user'], $token, 0]);
+                        // delete old token
+                        $cleanup = $cnx->prepare("DELETE FROM `2FA` WHERE user_id = ?");
+                        $cleanup->execute([$user['user_id']]);
+
+                        // Store token in database
+                        $ins = $cnx->prepare("INSERT INTO 2FA (user_id, verification_token, token_expire_at) VALUES (?, ?, ?)");
+                        $ins->execute([$user['user_id'], $token, $expire_at]);
 
                         // Build reset link
                         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
@@ -77,6 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 } catch (PDOException $e) {
                     $viewState = 'error';
                     $message = 'Database error. Please try again later.';
+                    //echo $e->getMessage();
                 }
             }
         }

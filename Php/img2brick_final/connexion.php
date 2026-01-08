@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $cleanup->execute([$user['user_id']]);
 
                 // Store token in database
-                $ins = $cnx->prepare("INSERT INTO 2FA (user_id, `2FA`.verification_token, token_expire_at) VALUES (?, ?, ?)");
+                $ins = $cnx->prepare("INSERT INTO 2FA (user_id, verification_token, token_expire_at) VALUES (?, ?, ?)");
                 $ins->execute([$user['user_id'], $token, $expire_at]);
 
                 // Construct magic link
