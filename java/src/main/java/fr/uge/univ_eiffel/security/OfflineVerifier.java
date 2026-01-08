@@ -7,7 +7,7 @@ import java.security.*;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
-public class OfflineVerifier implements BrickVerifier {
+public final class OfflineVerifier implements BrickVerifier {
     private final String publicKey;
 
     public OfflineVerifier(String publicKey) {

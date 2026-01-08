@@ -94,7 +94,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // foreach ($output as $o) {
         //     echo $o . "\n";
         // }
-        // appel a la class marche mais a corrige les erreurs
 
         if ($returnCode === 0) {
             // Persist results to database
