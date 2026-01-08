@@ -24,10 +24,10 @@ if ($orderId <= 0) {
 }
 
 try {
-    // 1) Récupérer la commande (order_bill)
+    // 1) Récupérer la commande (ORDER_BILL)
     $stmt = $cnx->prepare("
         SELECT order_id, user_id, created_at, address_id
-        FROM order_bill
+        FROM ORDER_BILL
         WHERE order_id = :oid AND user_id = :uid
         LIMIT 1
     ");
@@ -82,8 +82,8 @@ try {
     $stmt = $cnx->prepare("
         SELECT i.path, i.filename
         FROM contain c
-        LEFT JOIN tilling t ON t.pavage_id = c.pavage_id
-        LEFT JOIN image i ON i.image_id = t.image_id
+        LEFT JOIN TILLING t ON t.pavage_id = c.pavage_id
+        LEFT JOIN IMAGE i ON i.image_id = t.image_id
         WHERE c.order_id = :oid
         LIMIT 1
     ");
@@ -96,7 +96,7 @@ try {
         $previewSrc = $path . $img['filename'];
     }
 
-    // 5) Statut (dans ta BDD, order_bill n'a pas status => valeur fixe)
+    // 5) Statut (dans ta BDD, ORDER_BILL n'a pas status => valeur fixe)
     $orderStatus = 'PREPARATION';
 
     // 6) Prix (tu le stockes ailleurs ? sinon session ou fixe)
@@ -104,7 +104,7 @@ try {
     $stmt = $cnx->prepare("
         SELECT t.pavage_txt
         FROM contain c
-        JOIN tilling t ON t.pavage_id = c.pavage_id
+        JOIN TILLING t ON t.pavage_id = c.pavage_id
         WHERE c.order_id = :oid
     ");
     $stmt->execute(['oid' => $orderId]);
