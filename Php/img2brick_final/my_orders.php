@@ -1,313 +1,109 @@
 <?php
 session_start();
-global $cnx;
-include("./config/cnx.php");
-require_once __DIR__ . '/includes/i18n.php';
+require_once 'cnx.php';
 
-// Enforce login security
-if (!isset($_SESSION['userId'])) {
-    header("Location: connexion.php");
-    exit;
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
 }
 
-$userId = $_SESSION['userId'];
-$imgFolder = 'users/imgs/';
-$tilingFolder = 'users/tilings/';
-
-// Fetch user orders
-$sql = "SELECT 
-            o.id_order, 
-            o.total_price, 
-            o.status, 
-            o.created_at, 
-            o.shipping_address,
-            o.first_name, o.last_name, o.phone,
-            i.filename, 
-            i.status as algo_status
-        FROM Orders o
-        JOIN Images i ON o.image_id = i.id_image
-        WHERE o.user_id = ?
-        ORDER BY o.created_at DESC";
-
-try {
-    $stmt = $cnx->prepare($sql);
-    $stmt->execute([$userId]);
-    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Database Error");
+$conn = new mysqli("localhost", "root", "", "img2brick_db");
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
+
+$user_id = $_SESSION['user_id'];
+$sql_orders = "SELECT order_id, created_at FROM ORDER_BILL WHERE user_id = ? ORDER BY created_at DESC";
+$stmt = $conn->prepare($sql_orders);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result_orders = $stmt->get_result();
 ?>
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <title><?= htmlspecialchars(tr('orders.page_title', 'My Orders')) ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .order-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: none;
-        }
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>My Orders</title>
+        <style>
+            body { font-family: sans-serif; }
+            .order-container { border: 1px solid #ccc; margin-bottom: 20px; padding: 10px; }
+            .order-header { background-color: #f9f9f9; padding: 10px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; }
+            .order-items { margin-top: 10px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; }
+        </style>
+    </head>
+    <body>
 
-        .order-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
-        }
+    <h1>My Orders</h1>
 
-        .mosaic-thumb {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            image-rendering: pixelated;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
-        }
+    <?php if ($result_orders->num_rows > 0): ?>
+        <?php while($order = $result_orders->fetch_assoc()):
+            $sql_items = "SELECT t.pavage_txt 
+                      FROM TILLING t 
+                      JOIN contain c ON t.pavage_id = c.pavage_id 
+                      WHERE c.order_id = ?";
 
-        .status-badge {
-            font-size: 0.8rem;
-            padding: 0.5em 0.8em;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+            $stmt_items = $conn->prepare($sql_items);
+            $stmt_items->bind_param("i", $order['order_id']);
+            $stmt_items->execute();
+            $result_items = $stmt_items->get_result();
 
-        /* Modal Styles */
-        .modal-img {
-            width: 100%;
-            border-radius: 8px;
-            image-rendering: pixelated;
-            border: 2px solid #eee;
-        }
-    </style>
-</head>
+            $order_items_data = [];
+            $total_price_cents = 0;
 
-<body class="bg-light d-flex flex-column min-vh-100">
+            while($item = $result_items->fetch_assoc()) {
+                $path = 'users/tillings/' . $item['pavage_txt'];
+                $stats = getTilingStats($path);
 
-    <?php include("./includes/navbar.php"); ?>
-
-    <div class="container py-5 flex-grow-1">
-
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5">
-            <div>
-                <h1 class="fw-bold mb-2" data-i18n="orders.title">My Orders</h1>
-                <p class="text-muted mb-0" data-i18n="orders.subtitle">Find here all the orders you made.</p>
-            </div>
-            <div class="mt-3 mt-md-0">
-                <a href="index.php" class="btn btn-primary btn-lg shadow-sm" data-i18n="orders.new_order">+ New Order</a>
-            </div>
-        </div>
-
-        <?php if (empty($orders)): ?>
-            <div class="text-center py-5">
-                <div class="display-1 text-muted mb-3">X</div>
-                <h3 class="text-muted" data-i18n="orders.empty_title">You didn't make any orders with us.</h3>
-                <a href="index.php" class="btn btn-outline-primary mt-3" data-i18n="orders.empty_cta">Create my first mosaic</a>
-            </div>
-        <?php else: ?>
-
-            <div class="row g-4">
-                <?php foreach ($orders as $order):
-                    // Format order data
-                    $ref = "CMD-" . date("Y", strtotime($order['created_at'])) . "-" . str_pad($order['id_order'], 5, '0', STR_PAD_LEFT);
-                    $date = date("d/m/Y", strtotime($order['created_at']));
-                    $imagePath = $imgFolder . $order['filename'];
-                    $fullPath = __DIR__ . '/' . $imagePath;
-
-                    // Calculate image dimensions
-                    $dimensions = "Standard";
-                    if (file_exists($fullPath)) {
-                        list($w, $h) = getimagesize($fullPath);
-                        if ($w && $h) {
-                            // Divide by 10 as requested
-                            $dimW = round($w / 10);
-                            $dimH = round($h / 10);
-                            $dimensions = "{$dimW}x{$dimH}";
-                        }
-                    }
-
-                    // Define file paths
-                    $baseName = pathinfo($order['filename'], PATHINFO_FILENAME);
-                    $txtPath = $tilingFolder . $baseName . '.txt';
-
-                    // Map status colors
-                    $badges = [
-                        'PREPARATION' => 'bg-warning text-dark',
-                        'SHIPPED' => 'bg-info text-white',
-                        'DELIVERED' => 'bg-success text-white',
-                        'CANCELLED' => 'bg-danger text-white'
-                    ];
-                    $badgeClass = $badges[$order['status']] ?? 'bg-secondary';
-                    $statusMap = [
-                        'PREPARATION' => 'orders.status.preparation',
-                        'SHIPPED' => 'orders.status.shipped',
-                        'DELIVERED' => 'orders.status.delivered',
-                        'CANCELLED' => 'orders.status.cancelled'
-                    ];
-                    $statusKey = $statusMap[$order['status']] ?? null;
-                    $statusLabel = $statusKey ? tr($statusKey, $order['status']) : $order['status'];
-                ?>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card shadow-sm h-100 order-card">
-                            <img src="<?= htmlspecialchars($imagePath) ?>" class="mosaic-thumb bg-dark" alt="">
-
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <h5 class="card-title fw-bold text-primary mb-0"><?= $ref ?></h5>
-                                    <span class="badge <?= $badgeClass ?> status-badge"><?= htmlspecialchars($statusLabel) ?></span>
-                                </div>
-
-                                <p class="text-muted small mb-3">
-                                    <span data-i18n="orders.label_date">Date:</span> <?= $date ?><br>
-                                    <span data-i18n="orders.label_size">Size:</span> <strong><?= $dimensions ?></strong><br>
-                                    <span data-i18n="orders.label_price">Price:</span> <strong><?= $order['total_price'] ?> EUR</strong>
-                                </p>
-
-                                <button type="button" class="btn btn-outline-dark w-100" data-i18n="orders.see_more"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#orderModal"
-                                    data-ref="<?= $ref ?>"
-                                    data-date="<?= $date ?>"
-                                    data-status="<?= $order['status'] ?>"
-                                    data-price="<?= $order['total_price'] ?>"
-                                    data-address="<?= htmlspecialchars($order['shipping_address']) ?>"
-                                    data-contact="<?= htmlspecialchars($order['first_name'] . ' ' . $order['last_name']) ?>"
-                                    data-img="<?= $imagePath ?>"
-                                    data-dims="<?= $dimensions ?>"
-                                    data-txt="<?= file_exists($txtPath) ? $txtPath : '' ?>">See More</button>
-                            </div>
-                        </div>
+                $total_price_cents += $stats['price'];
+                $order_items_data[] = [
+                        'name' => $item['pavage_txt'],
+                        'price' => $stats['price'],
+                        'percent' => $stats['percent']
+                ];
+            }
+            ?>
+            <div class="order-container">
+                <div class="order-header">
+                    <div>
+                        <strong>Order #<?php echo htmlspecialchars($order['order_id']); ?></strong>
+                        <br>
+                        <small><?php echo htmlspecialchars($order['created_at']); ?></small>
                     </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
-    </div>
-
-    <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold" id="modalRef" data-i18n="orders.modal_title">Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-4">
-                        <div class="col-md-5 text-center">
-                            <img src="" id="modalImg" class="modal-img bg-dark mb-2">
-                            <p class="text-muted small mb-0" data-i18n="orders.modal_preview">preview</p>
-                        </div>
-
-                        <div class="col-md-7">
-                            <h6 class="fw-bold border-bottom pb-2" data-i18n="orders.modal_info">Information</h6>
-                            <ul class="list-unstyled small mb-4">
-                                <li><strong data-i18n="orders.modal_date">Date:</strong> <span id="modalDate"></span></li>
-                                <li><strong data-i18n="orders.modal_status">Status:</strong> <span id="modalStatus" class="badge bg-secondary"></span></li>
-                                <li><strong data-i18n="orders.modal_size">Size:</strong> <span id="modalDims" class="fw-bold"></span></li>
-                                <li><strong data-i18n="orders.modal_price">Price:</strong> <span id="modalPrice"></span> EUR</li>
-                            </ul>
-
-                            <h6 class="fw-bold border-bottom pb-2" data-i18n="orders.modal_shipping">Shipping</h6>
-                            <p class="small mb-4">
-                                <span data-i18n="orders.modal_contact">Contact:</span> <strong id="modalContact"></strong><br>
-                                <span data-i18n="orders.modal_address">Address:</span> <span id="modalAddress" style="white-space: pre-line;"></span>
-                            </p>
-
-                            <h6 class="fw-bold border-bottom pb-2" data-i18n="orders.modal_files">Files</h6>
-                            <div class="d-grid gap-2 mb-3">
-                                <a href="#" id="btnDownloadImg" class="btn btn-sm btn-outline-primary" download data-i18n="orders.download_image">Download the preview image (.png)</a>
-                                <a href="#" id="btnDownloadTxt" class="btn btn-sm btn-outline-secondary" download data-i18n="orders.download_list">Brick List (.txt)</a>
-                            </div>
-                        </div>
+                    <div>
+                        <strong>Total: $<?php echo number_format($total_price_cents / 100, 2); ?></strong>
                     </div>
                 </div>
+                <div class="order-items">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Tiling File</th>
+                            <th>Quality</th>
+                            <th>Price</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach($order_items_data as $data): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($data['name']); ?></td>
+                                <td><?php echo round($data['percent'], 2); ?>%</td>
+                                <td>$<?php echo number_format($data['price'] / 100, 2); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-    </div>
+        <?php endwhile; ?>
+    <?php else: ?>
+        <p>You have no orders yet.</p>
+    <?php endif; ?>
 
-    <?php include("./includes/footer.php"); ?>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        function t(key, fallback) {
-            if (window.I18N && typeof window.I18N.t === 'function') {
-                return window.I18N.t(key, fallback);
-            }
-            return fallback || key;
-        }
-
-        function formatText(key, vars, fallback) {
-            if (window.I18N && typeof window.I18N.format === 'function') {
-                return window.I18N.format(key, vars, fallback);
-            }
-            var text = fallback || key;
-            if (!vars) return text;
-            return text.replace(/\{(\w+)\}/g, function(match, k) {
-                return Object.prototype.hasOwnProperty.call(vars, k) ? vars[k] : match;
-            });
-        }
-
-        function translateStatus(status) {
-            var map = {
-                PREPARATION: 'orders.status.preparation',
-                SHIPPED: 'orders.status.shipped',
-                DELIVERED: 'orders.status.delivered',
-                CANCELLED: 'orders.status.cancelled'
-            };
-            return t(map[status] || '', status);
-        }
-
-        const orderModal = document.getElementById('orderModal');
-        if (orderModal) {
-            orderModal.addEventListener('show.bs.modal', function(event) {
-                // Identify trigger button
-                const button = event.relatedTarget;
-
-                // Retrieve data attributes
-                const ref = button.getAttribute('data-ref');
-                const date = button.getAttribute('data-date');
-                const status = button.getAttribute('data-status');
-                const price = button.getAttribute('data-price');
-                const address = button.getAttribute('data-address');
-                const contact = button.getAttribute('data-contact');
-                const imgPath = button.getAttribute('data-img');
-                const dims = button.getAttribute('data-dims');
-                const txtPath = button.getAttribute('data-txt');
-
-                // Inject data into modal
-                document.getElementById('modalRef').textContent = ref;
-                document.getElementById('modalDate').textContent = date;
-                document.getElementById('modalStatus').textContent = translateStatus(status);
-                document.getElementById('modalPrice').textContent = price;
-                document.getElementById('modalAddress').textContent = address;
-                document.getElementById('modalContact').textContent = contact;
-                document.getElementById('modalImg').src = imgPath;
-                document.getElementById('modalDims').textContent = formatText(
-                    'dims.studs_suffix', {
-                        value: dims
-                    },
-                    dims + ' studs'
-                );
-
-                // Configure download buttons
-                const btnImg = document.getElementById('btnDownloadImg');
-                btnImg.href = imgPath;
-
-                const btnTxt = document.getElementById('btnDownloadTxt');
-                if (txtPath) {
-                    btnTxt.href = txtPath;
-                    btnTxt.classList.remove('disabled', 'btn-light');
-                    btnTxt.classList.add('btn-outline-secondary');
-                    btnTxt.innerHTML = t('orders.brick_list', 'Brick List (.txt)');
-                } else {
-                    btnTxt.href = '#';
-                    btnTxt.classList.remove('btn-outline-secondary');
-                    btnTxt.classList.add('disabled', 'btn-light');
-                    btnTxt.innerHTML = t('orders.list_unavailable', 'List Unavailable');
-                }
-            });
-        }
-    </script>
-</body>
-
-</html>
+    </body>
+    </html>
+<?php
+$conn->close();
+?>
