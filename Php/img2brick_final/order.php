@@ -24,7 +24,7 @@ $isLocal = in_array($_SERVER['SERVER_NAME'] ?? '', ['localhost', '127.0.0.1'], t
 
 $stmt = $cnx->prepare("
     SELECT order_id, address_id
-    FROM order_bill
+    FROM ORDER_BILL
     WHERE user_id = :uid
       AND created_at IS NULL
     LIMIT 1
@@ -43,7 +43,7 @@ $cartAddressId = !empty($cart['address_id']) ? (int)$cart['address_id'] : 0;
 
 $stmt = $cnx->prepare("
     SELECT first_name, last_name, phone, default_address
-    FROM user
+    FROM USER
     WHERE user_id = :uid
     LIMIT 1
 ");
@@ -156,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
             $stmt = $cnx->prepare("
-                UPDATE user
+                UPDATE USER
                 SET first_name = :fn,
                     last_name = :ln,
                     phone = :ph,
@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
             $stmt = $cnx->prepare("
-                UPDATE order_bill
+                UPDATE ORDER_BILL
                 SET created_at = NOW(),
                     address_id = :aid
                 WHERE order_id = :oid
