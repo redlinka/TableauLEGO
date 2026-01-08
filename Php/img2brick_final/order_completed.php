@@ -4,7 +4,7 @@ global $cnx;
 include("./config/cnx.php");
 require_once __DIR__ . '/includes/i18n.php';
 
-// Enforce authentication
+
 if (!isset($_SESSION['userId'])) {
     header("Location: connexion.php");
     exit;
@@ -12,7 +12,7 @@ if (!isset($_SESSION['userId'])) {
 
 $userId = (int)$_SESSION['userId'];
 
-// ✅ On accepte l'id via GET (recommandé), sinon fallback session
+
 $orderId = isset($_GET['order_id']) ? (int)$_GET['order_id'] : 0;
 if ($orderId <= 0 && isset($_SESSION['last_order_id'])) {
     $orderId = (int)$_SESSION['last_order_id'];
@@ -24,7 +24,7 @@ if ($orderId <= 0) {
 }
 
 try {
-    // 1) Récupérer la commande (order_bill)
+
     $stmt = $cnx->prepare("
         SELECT order_id, user_id, created_at, address_id
         FROM ORDER_BILL
@@ -38,7 +38,7 @@ try {
         die("Order not found or access denied.");
     }
 
-    // Sécurité : si created_at est NULL, ce n'est pas une commande validée
+   
     if (empty($orderBill['created_at'])) {
         header("Location: cart.php");
         exit;
@@ -46,17 +46,17 @@ try {
 
     $addressId = !empty($orderBill['address_id']) ? (int)$orderBill['address_id'] : 0;
 
-    // 2) Récupérer user
+
     $stmt = $cnx->prepare("
         SELECT first_name, last_name, phone
-        FROM USER
+        FROM user
         WHERE user_id = :uid
         LIMIT 1
     ");
     $stmt->execute(['uid' => $userId]);
     $u = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-    // 3) Récupérer adresse (si liée)
+
     $addr = [
         'street' => '',
         'postal_code' => '',
@@ -67,7 +67,7 @@ try {
     if ($addressId > 0) {
         $stmt = $cnx->prepare("
             SELECT street, postal_code, city, country
-            FROM ADDRESS
+            FROM address
             WHERE address_id = :aid AND user_id = :uid
             LIMIT 1
         ");
@@ -76,8 +76,8 @@ try {
         if ($a) $addr = $a;
     }
 
-    // 4) Image preview optionnelle via contain -> tilling -> image
-    $previewSrc = 'images/placeholder.png'; // adapte si besoin
+
+    $previewSrc = 'images/placeholder.png'; 
 
     $stmt = $cnx->prepare("
         SELECT i.path, i.filename
@@ -96,10 +96,10 @@ try {
         $previewSrc = $path . $img['filename'];
     }
 
-    // 5) Statut (dans ta BDD, order_bill n'a pas status => valeur fixe)
+
     $orderStatus = 'PREPARATION';
 
-    // 6) Prix (tu le stockes ailleurs ? sinon session ou fixe)
+
 
     $stmt = $cnx->prepare("
         SELECT t.pavage_txt
@@ -108,7 +108,7 @@ try {
         WHERE c.order_id = :oid
     ");
     $stmt->execute(['oid' => $orderId]);
-    $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $files = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
     foreach ($rows as $filename) {
         $stats = getTilingStats('users/tillings/' . $filename);
@@ -117,9 +117,21 @@ try {
         $quality = $stats['percent'];
     }
 
-    foreach ($rows as $txt) {
-        if (preg_match('/^\d+(\.\d+)?/', $txt, $m)) {
-            $total += (float)$m[0]/100;
+    foreach ($files as $fileName) {
+        $fileName = trim((string)$fileName);
+        if ($fileName === '') continue;
+
+        $filePath = __DIR__ . '/users/tilings/' . $fileName;
+
+        if (!is_file($filePath) || !is_readable($filePath)) {
+            continue;
+        }
+
+        $content = file_get_contents($filePath);
+        if ($content === false) continue;
+
+        if (preg_match('/\b(\d+)\b/', $content, $m)) {
+            $total += ((float)$m[1]) / 100;
         }
     }
 
