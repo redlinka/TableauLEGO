@@ -108,13 +108,25 @@ try {
         WHERE c.order_id = :oid
     ");
     $stmt->execute(['oid' => $orderId]);
-    $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $files = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
     $total = 0.0;
 
-    foreach ($rows as $txt) {
-        if (preg_match('/^\d+(\.\d+)?/', $txt, $m)) {
-            $total += (float)$m[0]/100;
+    foreach ($files as $fileName) {
+        $fileName = trim((string)$fileName);
+        if ($fileName === '') continue;
+
+        $filePath = __DIR__ . '/users/tilings/' . $fileName;
+
+        if (!is_file($filePath) || !is_readable($filePath)) {
+            continue;
+        }
+
+        $content = file_get_contents($filePath);
+        if ($content === false) continue;
+
+        if (preg_match('/\b(\d+)\b/', $content, $m)) {
+            $total += ((float)$m[1]) / 100;
         }
     }
 
