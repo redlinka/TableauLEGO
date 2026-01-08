@@ -26,7 +26,7 @@ $stmt->execute([$parentId]);
 $sourceFile = $stmt->fetchColumn();
 
 // Generate downscaled variations
-$jarPath = realpath(__DIR__ . '/java2BrickFusion-1.0-SNAPSHOT.jar');
+$jarPath = realpath(__DIR__ . '/brain.jar');
 $sourcePath = __DIR__ . '/' . $imgDir . $sourceFile;
 $libDir = realpath(__DIR__ . '/lib');
 
