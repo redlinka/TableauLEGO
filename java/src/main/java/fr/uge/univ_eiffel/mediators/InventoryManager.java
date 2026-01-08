@@ -241,6 +241,8 @@ public class InventoryManager implements AutoCloseable {
         }
     }
 
+
+
     /** Adds a newly delivered brick into the inventory table.
      * Links the brick to the correct catalog entry ID.
      * @param brick (name, serial, certificate).
@@ -257,7 +259,11 @@ public class InventoryManager implements AutoCloseable {
             stmt.setString(1, brick.certificate());
             stmt.setString(2, brick.serial());
             stmt.setDouble(3, getUnitPrice(catalogId));
-            stmt.setInt(4, tilingID);
+            if(tilingID == null) {
+                stmt.setNull(4, NULL);
+            } else {
+                stmt.setInt(4, tilingID);
+            }
             stmt.setInt(5, catalogId);
             stmt.executeUpdate();
         }
@@ -465,19 +471,50 @@ public class InventoryManager implements AutoCloseable {
         return true;
     }
 
+    /**
+     * Reserves existing stock for a specific tiling project.
+     * Tries to update 'pavage_id' to the given tilingID for the requested quantity of each brick.
+     *
+     * @param needed A map of <CatalogID, QuantityNeeded>.
+     * @param tilingID The ID of the tiling project to assign these bricks to.
+     */
+    public void reserveStockForTiling(Map<Integer, Integer> needed, int tilingID) {
+        System.out.println("Reserving existing stock for tiling " + tilingID + "...");
+        String updateSql = "UPDATE INVENTORY SET pavage_id = ? WHERE id_catalogue = ? AND pavage_id IS NULL LIMIT ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(updateSql)) {
+            for (Map.Entry<Integer, Integer> entry : needed.entrySet()) {
+                int catalogId = entry.getKey();
+                int amountToReserve = entry.getValue();
+
+                stmt.setInt(1, tilingID);
+                stmt.setInt(2, catalogId);
+                stmt.setInt(3, amountToReserve);
+
+                int reservedCount = stmt.executeUpdate();
+
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error reserving stock for tiling " + tilingID, e);
+        }
+    }
+
     private double getUnitPrice(int idCatalog) {
-        String sqlPrice = "SELECT unit_price FROM catalog_with_price_and_stock WHERE id_catalogue = ?";
+        // Directly call the SQL function using the dimensions from the CATALOG table
+        String sqlPrice = "SELECT calculate_brick_price(0.01, 0.9, width, height) AS price " +
+                "FROM CATALOG WHERE id_catalogue = ?";
 
         try (PreparedStatement priceStmt = connection.prepareStatement(sqlPrice)) {
             priceStmt.setInt(1, idCatalog);
             ResultSet rs = priceStmt.executeQuery();
+
             if (rs.next()) {
-                return rs.getDouble("unit_price");
+                return rs.getDouble("price");
             } else {
-                throw new SQLException("No unit_price found for id_catalogue=" + idCatalog);
+                throw new SQLException("Catalog ID not found: " + idCatalog);
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error calculating unit price", e);
         }
     }
 }

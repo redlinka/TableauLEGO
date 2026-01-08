@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workingSetManager>
-<workingSet editPageId="org.eclipse.jdt.internal.ui.DynamicSourcesWorkingSet" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1760196441179_0" label="Java fr.uge.univ_eiffel.PaymentTester Sources" name="Java fr.uge.univ_eiffel.PaymentTester Sources"/>
+<workingSet editPageId="org.eclipse.jdt.internal.ui.DynamicSourcesWorkingSet" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1760196441179_0" label="Java fr.uge.univ_eiffel.Refiller Sources" name="Java fr.uge.univ_eiffel.Refiller Sources"/>
 <workingSet editPageId="org.eclipse.jdt.internal.ui.DynamicSourcesWorkingSet" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1760196441203_1" label="Java Test Sources" name="Java Test Sources"/>
 <workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1760196442667_2" label="Window Working Set" name="Aggregate for window 1760196442666"/>
 <workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1760196893519_3" label="Window Working Set" name="Aggregate for window 1760196893519"/>

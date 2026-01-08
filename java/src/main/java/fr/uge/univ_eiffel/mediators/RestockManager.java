@@ -188,6 +188,35 @@ public class RestockManager {
     }
 
     /**
+     * Directly restocks inventory from a provided file without checking current stock levels.
+     * Useful for manual bulk orders or initial seeding.
+     *
+     * @param filePath Path to the file containing brick counts (format compatible with OrderManager).
+     * @return true if successful.
+     * @throws Exception if parsing or ordering fails.
+     */
+    public boolean restockFromFile(String filePath) throws Exception {
+        System.out.println("Processing direct restock from file: " + filePath);
+        // 1. Parse the file to get the order
+        Map<String, Integer> order = OrderManager.parseSolutionCounts(filePath);
+
+        if (order.isEmpty()) {
+            System.out.println("No bricks found in file.");
+            return false;
+        }
+
+        System.out.println("Ordering bricks directly: " + order);
+
+        // 2. Place the order. Pass NULL for tilingID since this is a general restock.
+        refillInventory(order, null);
+
+        // 3. Log it in history
+        inventory.addRestockHistory(order);
+
+        return true;
+    }
+
+    /**
      * Performs reactive restocking based on the inputed tiling solution.
      * This method analyzes the provided tiling solution to determine
      * which pieces need to be restocked in the inventory.
@@ -211,6 +240,9 @@ public class RestockManager {
 
         // calculates the number of parts to be ordered for each type
         Map<Integer, Integer> difference = calculateRestock(needed, stock);
+
+        // if the difference is positive we need to order more pieces
+        inventory.reserveStockForTiling(needed, tilingID);
 
         //order the pieces
         Map<String, Integer> order = parseQuoteRequest(difference);
