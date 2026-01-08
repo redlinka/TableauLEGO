@@ -110,7 +110,12 @@ try {
     $stmt->execute(['oid' => $orderId]);
     $files = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-    $total = 0.0;
+    foreach ($rows as $filename) {
+        $stats = getTilingStats('users/tillings/' . $filename);
+
+        $total = $stats['price'];     // Price in cents
+        $quality = $stats['percent'];
+    }
 
     foreach ($files as $fileName) {
         $fileName = trim((string)$fileName);
