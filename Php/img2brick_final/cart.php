@@ -74,7 +74,7 @@ $stmt = $cnx->prepare("
         t.pavage_txt
     FROM ORDER_BILL o
     JOIN contain c ON c.order_id = o.order_id
-    JOIN tilling t ON t.pavage_id = c.pavage_id
+    JOIN TILLING t ON t.pavage_id = c.pavage_id
     JOIN image i ON i.image_id = t.image_id
     WHERE o.user_id = :user_id
       AND o.created_at IS NULL
