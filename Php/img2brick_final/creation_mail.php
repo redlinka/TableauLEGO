@@ -19,7 +19,7 @@ if (!$_SESSION['tempId'] || !$userEmail) {
 // Set initial success message on first load
 if (isset($_SESSION['email_sent'])) {
     $status = 'success';
-    $message = 'A verification email has been sent. It will be valid for 10 minutes.';
+    $message = 'A verification email has been sent. It will be valid for 1 minute.';
     unset($_SESSION['email_sent']);
 }
 
