@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) 
         FROM order_bill
         WHERE user_id = :user_id
           AND created_at IS NULL
-        LIMIT 1
+
     ");
     $stmt->execute(['user_id' => $userId]);
     $cartOrderId = (int) $stmt->fetchColumn();
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) 
             DELETE FROM contain
             WHERE order_id = :order_id
               AND pavage_id = :pavage_id
-            LIMIT 1
+
         ");
         $del->execute([
             'order_id'  => $cartOrderId,
