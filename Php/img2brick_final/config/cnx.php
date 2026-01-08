@@ -250,7 +250,6 @@ function cleanStorage($cnx, $imgDir, $brickDir)
             }
         }
     } catch (Exception $e) {
-
     }
 }
 
@@ -269,4 +268,30 @@ function addLog($cnx, $agent, $logAction, $logObject)
             $cnx->rollback();
         }
     }
+}
+
+function getTilingStats($file)
+{
+    $result = [];
+    $filePath = __DIR__ . "/../users/tilings/" . $file;
+    if (!file_exists($filePath)) {
+        echo 'No file found at this path ' . $filePath;
+        exit;
+    }
+
+    $ligne = fgets(fopen($filePath, 'r'));
+    if ($ligne !== false) {
+        $ligne = trim($ligne);
+
+        $valeurs = explode(' ', $ligne);
+
+        if (count($valeurs) >= 2) {
+            $result = [
+                'nbBrick' => $valeurs[0],
+                'price' => $valeurs[1]
+            ];
+        }
+    }
+
+    return $result;
 }
