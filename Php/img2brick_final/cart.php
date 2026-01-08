@@ -20,24 +20,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) 
     $pavageId = (int) $_POST['remove_pavage_id'];
     $userId   = (int) ($_SESSION['userId'] ?? 0);
 
-    // Récupérer le panier 
     $stmt = $cnx->prepare("
         SELECT order_id
         FROM order_bill
         WHERE user_id = :user_id
           AND created_at IS NULL
-
+        LIMIT 1
     ");
     $stmt->execute(['user_id' => $userId]);
     $cartOrderId = (int) $stmt->fetchColumn();
 
-    // Supprimer une ligne dans contain
     if ($cartOrderId > 0) {
         $del = $cnx->prepare("
             DELETE FROM contain
             WHERE order_id = :order_id
               AND pavage_id = :pavage_id
-
         ");
         $del->execute([
             'order_id'  => $cartOrderId,
@@ -45,8 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) 
         ]);
     }
 
-   /* header("Location: cart.php");
-    exit;*/
+
+    // header("Location: cart.php");
+    // exit;
 }
 
 
