@@ -1,17 +1,20 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 global $cnx;
 include("./config/cnx.php");
 require_once __DIR__ . '/includes/i18n.php';
-
-$errors = [];
 
 if (!isset($_SESSION['userId'])) {
     header("Location: connexion.php");
     exit;
 }
 
-$id_uti = $_SESSION['userId'];
+$errors = [];
+$id_uti = (int)$_SESSION['userId'];
 $imgFolder = 'users/imgs/';
 
 
