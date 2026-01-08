@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 session_start();
 global $cnx;
 include("./config/cnx.php");
@@ -14,15 +17,17 @@ $userId  = $_SESSION['userId'];
 $errors  = [];
 $success = '';
 
-// Fetch latest user data for display (AVANT POST pour pouvoir comparer)
+// Fetch latest user data for display
 $stmt = $cnx->prepare("
     SELECT 
         user_id,
+        username,
         email,
         first_name,
         last_name,
         phone,
-        default_address
+        default_address,
+        birth_year
     FROM USER
     WHERE user_id = ?
 ");
@@ -43,67 +48,114 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
 
         // Sanitize input fields
-        $username = trim($_POST['username'] ?? ''); // chez toi "username" = email
+        $username = trim($_POST['username'] ?? '');
+        $newEmail = !empty($_POST['email']) ? trim($_POST['email']) : $user['email']; //$newEmail    = trim($_POST['email'] ?? '');
         $name     = trim($_POST['name'] ?? '');
         $surname  = trim($_POST['surname'] ?? '');
         $phone    = trim($_POST['phone'] ?? '');
-        $year     = !empty($_POST['year_of_birth']) ? $_POST['year_of_birth'] : null; // pas stocké (colonne inexistante)
         $address  = trim($_POST['default_address'] ?? '');
+        $birthYear = !empty($_POST['birth_year']) ? (int)$_POST['birth_year'] : null;
 
-        if ($username === '') {
-            $errors[] = "Username is required.";
-        }
+        if (empty($username)) $errors[] = "Username is required.";
+        if (empty($newEmail)) $errors[] = "Email is required.";
 
-        // Check if username/email is already taken (si modifié)
-        if (empty($errors) && $username !== $user['email']) {
-            $check = $cnx->prepare("SELECT 1 FROM USER WHERE email = ? AND user_id <> ?");
+        // Check if username/email is already taken
+        if (empty($errors) && $username !== $user['username']) {
+            $check = $cnx->prepare("SELECT 1 FROM USER WHERE username = ? AND user_id <> ?");
             $check->execute([$username, $userId]);
             if ($check->fetchColumn()) {
                 $errors[] = "Username '$username' is already taken.";
             }
         }
 
+        // Check if email is already taken
+        if (empty($errors) && $newEmail !== $user['email']) {
+            $checkEmail = $cnx->prepare("SELECT 1 FROM USER WHERE email = ? AND user_id <> ?");
+            $checkEmail->execute([$newEmail, $userId]);
+            if ($checkEmail->fetchColumn()) {
+                $errors[] = "The email address '$newEmail' is already associated with another account.";
+            }
+        }
+
         // Update user information in database
         if (empty($errors)) {
             try {
-                // IMPORTANT: on met à jour USER et les bonnes colonnes
-                $sql = "
-                    UPDATE USER
-                    SET 
-                        email = ?,
-                        first_name = ?,
-                        last_name = ?,
-                        phone = ?,
-                        default_address = ?
-                    WHERE user_id = ?
-                ";
-                $upd = $cnx->prepare($sql);
-                $upd->execute([$username, $name, $surname, $phone, $address, $userId]);
+                $emailChanged = ($newEmail !== $user['email']);
+                $sql = "UPDATE USER SET 
+                username = ?, 
+                email = ?, 
+                first_name = ?, 
+                last_name = ?, 
+                phone = ?, 
+                default_address = ?,
+                birth_year = ?" . ($emailChanged ? ", is_verified = 0" : "") . " 
+                WHERE user_id = ?";
 
-                // Update session variable (optionnel, utile pour navbar)
+                $upd = $cnx->prepare($sql);
+                $upd->execute([$username, $newEmail, $name, $surname, $phone, $address, $birthYear, $userId]);
+
+                if ($emailChanged) {
+                    // Generate verification token
+                    $token = bin2hex(random_bytes(32));
+                    $expire_at = date('Y-m-d H:i:s', time() + 120);
+
+                    // delete old token
+                    $cnx->prepare("DELETE FROM 2FA WHERE user_id = ?")->execute([$userId]);
+                    // Store token in database
+                    $ins = $cnx->prepare("INSERT INTO 2FA (user_id, verification_token, token_expire_at) VALUES (?, ?, ?)");
+                    $ins->execute([$userId, $token, $expire_at]);
+
+                    // Construct magic link
+                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+                    $domain = $_SERVER['HTTP_HOST'];
+                    $link = $protocol . $domain . dirname($_SERVER['PHP_SELF']) . '/verify_connexion.php?token=' . $token;
+
+                    $emailBody = "
+                            <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; max-width: 600px;'>
+                                <h2 style='color: #0d6efd;'>Verify Your New Email Address</h2>
+                                <p>You recently updated your email address on Img2Brick. To maintain your account security and verification status, please click the button below:</p>
+                                <p style='text-align: center;'>
+                                    <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Verify My Email</a>
+                                </p>
+                                <p style='color: #6c757d; font-size: 12px; margin-top: 20px;'>If the button doesn't work, copy this link: {$link}</p>
+                                <p style='color: #6c757d; font-size: 12px;'>This link will expire in 2 minutes.</p>
+                            </div>";
+
+                    sendMail(
+                            $newEmail,
+                            'Verify your new email address - Img2Brick',
+                            $emailBody
+                    );
+
+                    $success = "Information updated successfully. A verification link has been sent to your new email address.";
+                } else {
+                    $success = tr('account.update_success', 'Information updated successfully!');
+                }
+
+                // Update session variable
+                $_SESSION['email']    = $newEmail;
                 $_SESSION['username'] = $username;
 
                 // Re-fetch user data to display updated values
                 $stmt->execute([$userId]);
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                $success = tr('account.update_success', 'Information updated successfully!');
             } catch (PDOException $e) {
-                $errors[] = "Database error: " . $e->getMessage();
+                //$errors[] = "Database error: " . $e->getMessage();
+                $errors[] = "Database error";
             }
         }
     }
 }
 
-// Adapter ton ancien mapping : garder $user['username'], $user['name'], etc.
 $user = [
-    'username'        => $user['email'],
-    'email'           => $user['email'],
-    'name'            => $user['first_name'],
-    'surname'         => $user['last_name'],
-    'phone'           => $user['phone'],
-    'default_address' => $user['default_address'],
-    'year_of_birth'   => null,
+        'username'        => $user['username'],
+        'email'           => $user['email'],
+        'name'            => $user['first_name'],
+        'surname'         => $user['last_name'],
+        'phone'           => $user['phone'],
+        'default_address' => $user['default_address'],
+        'birth_year'   => $user['birth_year'],
 ];
 ?>
 
@@ -149,7 +201,7 @@ $user = [
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" data-i18n="account.email">Email</label>
-                                <input type="text" class="form-control" value="<?= htmlspecialchars($user['email']) ?>" disabled>
+                                <input type="text" class="form-control" name="email" value="<?= htmlspecialchars($user['email']) ?>" disabled>
                                 <div class="form-text" data-i18n="account.email_hint">Email cannot be changed directly.</div>
                             </div>
                             <div class="col-md-6">
@@ -166,9 +218,9 @@ $user = [
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
                                 <label class="form-label" data-i18n="account.birth_year">Year of Birth</label>
-                                <input type="number" class="form-control" name="year_of_birth"
+                                <input type="number" class="form-control" name="birth_year"
                                        min="1900" max="<?= date('Y') ?>"
-                                       value="<?= htmlspecialchars($user['year_of_birth'] ?? '') ?>"
+                                       value="<?= htmlspecialchars($user['birth_year'] ?? '') ?>"
                                        placeholder="YYYY" data-i18n-attr="placeholder:account.birth_year_placeholder">
                                 <div class="form-text" data-i18n="account.birth_year_hint">Used for age statistics only.</div>
                             </div>
