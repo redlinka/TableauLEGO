@@ -30,7 +30,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // Retrieve form inputs
         $method = $_POST['method'] ?? 'quadtree';
+        $mode = $_POST['mode'] ?? 'relax';
         $threshold = (int)($_POST['threshold'] ?? 2000);
+        $tileWidth = (int)($_POST['tileWidth'] ?? 0);
+        $tileHeight = (int)($_POST['tileHeight'] ?? 0);
+
+        $cmdArgs = [];
+
+        switch ($method) {
+            case '1x1':
+                break;
+            case 'quadtree':
+                $cmdArgs[] = $threshold;
+                break;
+            case 'tile':
+                $cmdArgs[] = $tileWidth;
+                $cmdArgs[] = $tileHeight;
+                $cmdArgs[] = $threshold;
+                break;
+        }
 
         // Handle atomic update logic
         $existingId = $_SESSION['step4_image_id'] ?? null;
@@ -72,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $javaCmd = '"C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.1.8-hotspot\\bin\\java.exe"';
             $exePath      = __DIR__ . '/C_tiler';
         }
+
         // Execute Java tiling application
         // Usage: <inPng> <outPng> <outTxt> <catalog> <exe> <method> <thresh>
         $cmd = sprintf(
@@ -80,20 +99,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             escapeshellarg($jarPath),
             escapeshellarg($inputPath),     // 0
             escapeshellarg($outputPngPath), // 1
-            escapeshellarg($outputTxtPath), // 2 (Brick List)
-            escapeshellarg($exePath),       // 4
-            escapeshellarg($method),        // 5 (New!)
-            escapeshellarg("relax"),
-            escapeshellarg($threshold)      // 6
+            escapeshellarg($outputTxtPath), // 2
+            escapeshellarg($exePath),       // 3
+            escapeshellarg($method),        // 4
+            escapeshellarg($mode),          // 5
+            implode(' ', array_map('escapeshellarg', $cmdArgs)) // 6+
         );
 
         $output = [];
         $returnCode = 0;
         exec($cmd, $output, $returnCode);
 
-        // foreach ($output as $o) {
-        //     echo $o . "\n";
-        // }
+        foreach ($output as $o) {
+            echo $o . "\n";
+        }
 
         if ($returnCode === 0) {
             // Persist results to database
@@ -112,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Set preview image path
                 $previewImage = $imgFolder . $finalPngName . ".png" . '?t=' . time(); // add .png
-                echo $finalPngName;
+
             } catch (PDOException $e) {
                 $errors[] = "Database Error";
             }
@@ -255,7 +274,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_get()) ?>">
 
                                     <h6 class="fw-bold mb-3" data-i18n="tiling.step_method">1. Select Method</h6>
-                                    <div class="btn-group w-100 mb-4" role="group">
+
+                                    <div class="mb-3">
+                                        <select id="algorithmSelect" name="method" class="form-select" onchange="toggleAlgorithmParams()">
+                                            <option value="1x1">1x1 (No extra args)</option>
+                                            <option value="quadtree">Quadtree (Threshold)</option>
+                                            <option value="tile">Tile (Width, Height, Threshold)</option>
+                                        </select>
+                                    </div>
+                                    <!-- <div class="btn-group w-100 mb-4" role="group">
                                         <input type="radio" class="btn-check" name="method" id="methodQuad" value="quadtree" checked onchange="toggleThresholds()">
                                         <label class="btn btn-outline-primary py-3" for="methodQuad">
                                             <strong data-i18n="tiling.method_quadtree">Quadtree</strong><br>
@@ -267,41 +294,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <strong data-i18n="tiling.method_1x1">1x1</strong><br>
                                             <small data-i18n="tiling.method_1x1_hint">Pixel Perfect (Expensive)</small>
                                         </label>
-                                    </div>
+                                    </div> -->
 
                                     <div id="thresholdSection">
-                                        <h6 class="fw-bold mb-3" data-i18n="tiling.step_budget">2. Select Budget / Precision</h6>
+
 
                                         <input type="hidden" name="threshold" id="thresholdInput" value="2000">
 
-                                        <div class="d-grid gap-2 mb-3">
-                                            <button type="button" class="btn btn-outline-secondary preset-btn" onclick="setThreshold(1000, this)">
-                                                <strong data-i18n="tiling.preset_high">High Detail</strong>
-                                                <small data-i18n="tiling.preset_high_hint">Threshold: 1,000</small>
-                                            </button>
-
-                                            <button type="button" class="btn btn-outline-secondary preset-btn active" onclick="setThreshold(2000, this)">
-                                                <strong data-i18n="tiling.preset_balanced">Balanced</strong>
-                                                <small data-i18n="tiling.preset_balanced_hint">Threshold: 2,000 (Recommended)</small>
-                                            </button>
-
-                                            <button type="button" class="btn btn-outline-secondary preset-btn" onclick="setThreshold(100000, this)">
-                                                <strong data-i18n="tiling.preset_minimal">Minimal Price</strong>
-                                                <small data-i18n="tiling.preset_minimal_hint">Threshold: 100,000 (Abstract)</small>
-                                            </button>
-
-                                            <button type="button" class="btn btn-outline-secondary preset-btn" id="customBtn" onclick="enableCustom()">
-                                                <strong data-i18n="tiling.preset_custom">Custom Value</strong>
-                                                <small data-i18n="tiling.preset_custom_hint">Enter manually...</small>
-                                            </button>
-                                        </div>
-
-                                        <div class="collapse" id="customInputDiv">
-                                            <div class="input-group">
-                                                <span class="input-group-text" data-i18n="tiling.custom_value">Value</span>
-                                                <input type="number" class="form-control" id="customNumber" placeholder="e.g. 5000" data-i18n-attr="placeholder:tiling.custom_placeholder">
-                                                <button class="btn btn-primary" type="button" onclick="applyCustom()" data-i18n="tiling.custom_set">Set</button>
-                                            </div>
+                                        <div id="algoParams" class="mb-3">
+                                            <!-- Dynamic inputs -->
                                         </div>
                                     </div>
 
@@ -340,19 +341,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script>
         const thresholdSection = document.getElementById('thresholdSection');
         const thresholdInput = document.getElementById('thresholdInput');
-        const customDiv = document.getElementById('customInputDiv');
-        const customNum = document.getElementById('customNumber');
-        const presetBtns = document.querySelectorAll('.preset-btn');
+        // const customDiv = document.getElementById('customInputDiv');
+        // const customNum = document.getElementById('customNumber');
+        // const presetBtns = document.querySelectorAll('.preset-btn');
 
         // Toggle threshold visibility
-        function toggleThresholds() {
-            const isQuad = document.getElementById('methodQuad').checked;
-            if (isQuad) {
-                thresholdSection.style.display = 'block';
-            } else {
-                thresholdSection.style.display = 'none';
+        // function toggleThresholds() {
+        //     const isQuad = document.getElementById('methodQuad').checked;
+        //     if (isQuad) {
+        //         thresholdSection.style.display = 'block';
+        //     } else {
+        //         thresholdSection.style.display = 'none';
+        //     }
+        // }
+
+        function toggleAlgorithmParams() {
+            const algo = document.getElementById('algorithmSelect').value;
+            const container = document.getElementById('algoParams');
+            container.innerHTML = ''; // reset
+
+            if (algo === 'quadtree') {
+                container.innerHTML = `
+                <h6 class="fw-bold mb-3" data-i18n="tiling.step_budget">2. Select Budget / Precision</h6>
+                <div class="d-grid gap-2 mb-3">
+                    <button type="button" class="btn btn-outline-secondary preset-btn" onclick="setThreshold(1000, this)">
+                        <strong data-i18n="tiling.preset_high">High Detail</strong>
+                        <small data-i18n="tiling.preset_high_hint">Threshold: 1,000</small>
+                    </button>
+
+                    <button type="button" class="btn btn-outline-secondary preset-btn active" onclick="setThreshold(2000, this)">
+                        <strong data-i18n="tiling.preset_balanced">Balanced</strong>
+                        <small data-i18n="tiling.preset_balanced_hint">Threshold: 2,000 (Recommended)</small>
+                    </button>
+
+                    <button type="button" class="btn btn-outline-secondary preset-btn" onclick="setThreshold(100000, this)">
+                        <strong data-i18n="tiling.preset_minimal">Minimal Price</strong>
+                        <small data-i18n="tiling.preset_minimal_hint">Threshold: 100,000 (Abstract)</small>
+                    </button>
+
+                    <button type="button" class="btn btn-outline-secondary preset-btn" id="customBtn" onclick="enableCustom()">
+                        <strong data-i18n="tiling.preset_custom">Custom Value</strong>
+                        <small data-i18n="tiling.preset_custom_hint">Enter manually...</small>
+                    </button>
+                </div>
+
+                <div class="collapse" id="customInputDiv">
+                    <div class="input-group">
+                        <span class="input-group-text" data-i18n="tiling.custom_value">Value</span>
+                        <input type="number" class="form-control" id="customNumber" placeholder="e.g. 5000" data-i18n-attr="placeholder:tiling.custom_placeholder">
+                        <button class="btn btn-primary" type="button" onclick="applyCustom()" data-i18n="tiling.custom_set">Set</button>
+                    </div>
+                </div>
+        `;
+                presetBtns = container.querySelectorAll('.preset-btn');
+                customDiv = document.getElementById('customInputDiv');
+                customNum = document.getElementById('customNumber');
+
+                customNum.addEventListener('input', (e) => {
+                    thresholdInput.value = e.target.value;
+                });
+            } else if (algo === 'tile') {
+                container.innerHTML = `
+                <h6 class="fw-bold mb-3" data-i18n="tiling.step_budget">2. Select Budget / Precision</h6>
+            <label>Width:</label>
+            <input type="number" name="tileWidth" class="form-control" value="32" min="1">
+            <label class="mt-2">Height:</label>
+            <input type="number" name="tileHeight" class="form-control" value="32" min="1">
+            <label class="mt-2">Threshold:</label>
+            <input type="number" name="threshold" class="form-control" value="2000" min="1">
+        `;
             }
         }
+
+        // Init on page load
+        document.addEventListener('DOMContentLoaded', toggleAlgorithmParams);
 
         // Handle threshold preset selection
         function setThreshold(val, btn) {
