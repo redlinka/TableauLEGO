@@ -20,7 +20,7 @@
             <h2 class="fw-bold mb-3">Check your inbox</h2>
             <p class="text-muted mb-4">
                 We have sent a secure login link to your email address.
-                Please click the link to complete your sign-in.
+                Please click the link to complete your login.
             </p>
         </div>
     </div>

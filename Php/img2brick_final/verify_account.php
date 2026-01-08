@@ -14,37 +14,47 @@ if (!isset($_GET['token'])) {
 } else {
     try {
         // Query token Verify validity and expiration
-        $stmt = $cnx->prepare("SELECT *, TIMESTAMPDIFF(MINUTE, created_at, NOW()) as age_minutes 
-                                   FROM Tokens2FA 
-                                   WHERE token = ? AND is_used = 0 
+        $stmt = $cnx->prepare("SELECT * 
+                                   FROM 2FA 
+                                   WHERE verification_token = ?
                                    LIMIT 1");
         $stmt->execute([$_GET['token']]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$result) {
             $status = 'error';
-            $message = tr('verify_account.invalid_link', 'Invalid or expired verification link.');
-        } elseif ((int)$result['age_minutes'] > 10) {
-            $status = 'error';
-            $message = tr('verify_account.expired', 'This link has expired. Please request a new one.');
+            $message = tr('verify_account.invalid_link', 'Invalid verification link.');
         } else {
-            // Invalidate token Prevent reuse
-            $updateStmt = $cnx->prepare("UPDATE Tokens2FA SET is_used = 1 WHERE token = ?");
-            $updateStmt->execute([$_GET['token']]);
+            // Check expiration (1 minute)
+            $now = new DateTime();
+            $expiry = new DateTime($result['token_expire_at']);
 
-            // Activate user Enable account access
-            $verifyUserStmt = $cnx->prepare("UPDATE Users SET is_active = 1 WHERE id_user = ?");
-            $verifyUserStmt->execute([$result['user_id']]);
+            if ($now > $expiry) {
+                $status = 'error';
+                $message = tr('verify_account.expired', 'This link has expired. Please request a new one.');
+            } else {
+                $cnx->beginTransaction();
 
-            // Clear session Clean up temporary data
-            unset($_SESSION['emailToken']);
-            unset($_SESSION['email_sent']);
-            unset($_SESSION['last_email_sent']);
+                // Delete used token
+                $cnx->prepare("DELETE FROM `2FA` WHERE id_token = ?")->execute([$result['id_token']]);
 
-            $status = 'success';
-            $message = tr('verify_account.success_message', 'Your account has been successfully verified!');
+                // Activate user Enable account access
+                $verifyUserStmt = $cnx->prepare("UPDATE USER SET is_verified = 1 WHERE user_id = ?");
+                $verifyUserStmt->execute([$result['user_id']]);
+
+                $cnx->commit();
+
+                // Clear session Clean up temporary data
+                unset($_SESSION['emailToken']);
+                unset($_SESSION['email_sent']);
+                unset($_SESSION['last_email_sent']);
+
+                $status = 'success';
+                $message = tr('verify_account.success_message', 'Your account has been successfully verified!');
+            }
         }
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         $status = 'error';
         $message = tr('verify_account.system_error', 'System error. Please try again later.');
     }
