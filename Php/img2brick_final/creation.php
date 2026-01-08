@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 session_start();
 global $cnx;
 include("./config/cnx.php");
@@ -120,7 +123,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     }
                 } else {
                     // if email already exist
-                    usleep(rand(100000, 300000)); // Sleep 100 to 300ms to deceive time analyses
+                    $errors[] = 'Unable to create an account with this email address.';
+                    //usleep(rand(100000, 300000)); // Sleep 100 to 300ms to deceive time analyses
                 }
             } catch (PDOException $e) {
                 http_response_code(500);
