@@ -2,6 +2,6 @@ package fr.uge.univ_eiffel.payment_methods;
 
 import java.io.IOException;
 
-public interface PaymentMethod {
+public sealed interface PaymentMethod permits PoWMethod {
     void pay(double amount) throws IOException;
 }
