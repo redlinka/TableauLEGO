@@ -128,8 +128,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 }
             } catch (PDOException $e) {
                 http_response_code(500);
-                $cnx->rollBack();
+                if ($cnx->inTransaction()) {
+                    $cnx->rollBack();
+                }
                 $errors[] = 'Database error. Please try again later.';
+                die("Erreur SQL réelle : " . $e->getMessage());
             }
         }
     }
