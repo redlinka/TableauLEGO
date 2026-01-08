@@ -49,7 +49,7 @@ try {
 
     $stmt = $cnx->prepare("
         SELECT first_name, last_name, phone
-        FROM user
+        FROM USER
         WHERE user_id = :uid
         LIMIT 1
     ");
