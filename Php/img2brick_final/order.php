@@ -210,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
  $stmt = $cnx->prepare("
         SELECT t.pavage_txt
         FROM contain c
-        JOIN tilling t ON t.pavage_id = c.pavage_id
+        JOIN TILLING t ON t.pavage_id = c.pavage_id
         WHERE c.order_id = :oid
     ");
     $stmt->execute(['oid' => $cartOrderId]);
