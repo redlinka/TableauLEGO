@@ -4,14 +4,12 @@ global $cnx;
 include("./config/cnx.php");
 require_once __DIR__ . '/includes/i18n.php';
 
-
 if (!isset($_SESSION['userId'])) {
     header("Location: connexion.php");
     exit;
 }
 
 $userId = (int)$_SESSION['userId'];
-
 
 $orderId = isset($_GET['order_id']) ? (int)$_GET['order_id'] : 0;
 if ($orderId <= 0 && isset($_SESSION['last_order_id'])) {
@@ -38,7 +36,6 @@ try {
         die("Order not found or access denied.");
     }
 
-   
     if (empty($orderBill['created_at'])) {
         header("Location: cart.php");
         exit;
@@ -46,16 +43,14 @@ try {
 
     $addressId = !empty($orderBill['address_id']) ? (int)$orderBill['address_id'] : 0;
 
-
     $stmt = $cnx->prepare("
         SELECT first_name, last_name, phone
-        FROM user
+        FROM USER
         WHERE user_id = :uid
         LIMIT 1
     ");
     $stmt->execute(['uid' => $userId]);
     $u = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
-
 
     $addr = [
         'street' => '',
@@ -67,7 +62,7 @@ try {
     if ($addressId > 0) {
         $stmt = $cnx->prepare("
             SELECT street, postal_code, city, country
-            FROM address
+            FROM ADDRESS
             WHERE address_id = :aid AND user_id = :uid
             LIMIT 1
         ");
@@ -76,8 +71,8 @@ try {
         if ($a) $addr = $a;
     }
 
-
-    $previewSrc = 'images/placeholder.png'; 
+    // 4) Image preview optionnelle via contain -> tilling -> image
+    $previewSrc = 'images/placeholder.png'; // adapte si besoin
 
     $stmt = $cnx->prepare("
         SELECT i.path, i.filename
@@ -96,10 +91,7 @@ try {
         $previewSrc = $path . $img['filename'];
     }
 
-
     $orderStatus = 'PREPARATION';
-
-
 
     $stmt = $cnx->prepare("
         SELECT t.pavage_txt
@@ -108,7 +100,7 @@ try {
         WHERE c.order_id = :oid
     ");
     $stmt->execute(['oid' => $orderId]);
-    $files = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
     foreach ($rows as $filename) {
         $stats = getTilingStats('users/tillings/' . $filename);
@@ -117,21 +109,9 @@ try {
         $quality = $stats['percent'];
     }
 
-    foreach ($files as $fileName) {
-        $fileName = trim((string)$fileName);
-        if ($fileName === '') continue;
-
-        $filePath = __DIR__ . '/users/tilings/' . $fileName;
-
-        if (!is_file($filePath) || !is_readable($filePath)) {
-            continue;
-        }
-
-        $content = file_get_contents($filePath);
-        if ($content === false) continue;
-
-        if (preg_match('/\b(\d+)\b/', $content, $m)) {
-            $total += ((float)$m[1]) / 100;
+    foreach ($rows as $txt) {
+        if (preg_match('/^\d+(\.\d+)?/', $txt, $m)) {
+            $total += (float)$m[0]/100;
         }
     }
 
