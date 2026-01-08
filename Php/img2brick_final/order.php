@@ -18,8 +18,8 @@ $totalPrice = isset($_SESSION['moneyea']) ? (float)$_SESSION['moneyea'] : 49.99;
 
 
 $isLocal = in_array($_SERVER['SERVER_NAME'] ?? '', ['localhost', '127.0.0.1'], true)
-        || str_starts_with($_SERVER['HTTP_HOST'] ?? '', 'localhost')
-        || str_starts_with($_SERVER['HTTP_HOST'] ?? '', '127.0.0.1');
+    || str_starts_with($_SERVER['HTTP_HOST'] ?? '', 'localhost')
+    || str_starts_with($_SERVER['HTTP_HOST'] ?? '', '127.0.0.1');
 
 
 $stmt = $cnx->prepare("
@@ -107,7 +107,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($token === '') {
             $errors[] = "Please complete the captcha.";
         } else {
-            set_error_handler(function () { return true; });
+            set_error_handler(function () {
+                return true;
+            });
             $ts = validateTurnstile();
             restore_error_handler();
             if (empty($ts['success'])) {
@@ -195,7 +197,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['last_order_id'] = $cartOrderId;
             header("Location: order_completed.php?order_id=" . $cartOrderId);
             exit;
-
         } catch (Exception $e) {
             $cnx->rollBack();
             $errors[] = "System Error: " . $e->getMessage();
@@ -205,127 +206,137 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Checkout - Img2Brick</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
-        .payment-warning { background-color:#fff3cd;color:#856404;border:1px solid #ffeeba;border-radius:4px;padding:10px;font-size:.9rem; }
+        .payment-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: .9rem;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container bg-light py-5">
-    <div class="row justify-content-center">
-        <div class="col-12 col-lg-8">
+    <div class="container bg-light py-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8">
 
-            <h4 class="mb-3">Checkout</h4>
+                <h4 class="mb-3">Checkout</h4>
 
-            <?php if (!empty($errors)): ?>
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        <?php foreach ($errors as $e): ?>
-                            <li><?= htmlspecialchars($e) ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-            <?php endif; ?>
+                <?php if (!empty($errors)): ?>
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            <?php foreach ($errors as $e): ?>
+                                <li><?= htmlspecialchars($e) ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
 
-            <form method="POST" novalidate>
-                <input type="hidden" name="csrf" value="<?= csrf_get() ?>">
+                <form method="POST" novalidate>
+                    <input type="hidden" name="csrf" value="<?= csrf_get() ?>">
 
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-white fw-bold">1. Contact Details</div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">First Name</label>
-                                <input type="text" class="form-control" name="first_name" value="<?= htmlspecialchars($fillName) ?>" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Last Name</label>
-                                <input type="text" class="form-control" name="last_name" value="<?= htmlspecialchars($fillSurname) ?>" required>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">Phone Number</label>
-                                <input type="tel" class="form-control" name="phone" value="<?= htmlspecialchars($fillPhone) ?>" required>
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white fw-bold">1. Contact Details</div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">First Name</label>
+                                    <input type="text" class="form-control" name="first_name" value="<?= htmlspecialchars($fillName) ?>" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" name="last_name" value="<?= htmlspecialchars($fillSurname) ?>" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" name="phone" value="<?= htmlspecialchars($fillPhone) ?>" required>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-white fw-bold">2. Shipping Address</div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label">Address</label>
-                                <input type="text" class="form-control" name="address" value="<?= htmlspecialchars($fillAddr) ?>" required>
-                            </div>
-                            <div class="col-md-5">
-                                <label class="form-label">Country</label>
-                                <select class="form-select" name="country" required>
-                                    <option value="France" <?= ($fillCountry === 'France' ? 'selected' : '') ?>>France</option>
-                                    <option value="USA" <?= ($fillCountry === 'USA' ? 'selected' : '') ?>>United States</option>
-                                    <option value="UK" <?= ($fillCountry === 'UK' ? 'selected' : '') ?>>United Kingdom</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">City</label>
-                                <input type="text" class="form-control" name="city" value="<?= htmlspecialchars($fillCity) ?>" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Zip</label>
-                                <input type="text" class="form-control" name="zip" value="<?= htmlspecialchars($fillZip) ?>" required>
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white fw-bold">2. Shipping Address</div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label">Address</label>
+                                    <input type="text" class="form-control" name="address" value="<?= htmlspecialchars($fillAddr) ?>" required>
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label">Country</label>
+                                    <select class="form-select" name="country" required>
+                                        <option value="France" <?= ($fillCountry === 'France' ? 'selected' : '') ?>>France</option>
+                                        <option value="USA" <?= ($fillCountry === 'USA' ? 'selected' : '') ?>>United States</option>
+                                        <option value="UK" <?= ($fillCountry === 'UK' ? 'selected' : '') ?>>United Kingdom</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">City</label>
+                                    <input type="text" class="form-control" name="city" value="<?= htmlspecialchars($fillCity) ?>" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Zip</label>
+                                    <input type="text" class="form-control" name="zip" value="<?= htmlspecialchars($fillZip) ?>" required>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-white fw-bold">3. Payment</div>
-                    <div class="card-body">
-                        <div class="payment-warning mb-3 text-center">
-                            ⚠️ <strong>SIMULATED PAYMENT MODE</strong><br>No real money charged.
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Name on card</label>
-                                <input type="text" class="form-control" name="card_name" value="John Placeholder" required>
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white fw-bold">3. Payment</div>
+                        <div class="card-body">
+                            <div class="payment-warning mb-3 text-center">
+                                ⚠️ <strong>SIMULATED PAYMENT MODE</strong><br>No real money charged.
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Card number</label>
-                                <input type="text" class="form-control" name="card_number" value="4242 4242 4242 4242" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Expiration</label>
-                                <input type="text" class="form-control" name="card_exp" value="12/34" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">CVC</label>
-                                <input type="text" class="form-control" name="card_cvc" value="123" required>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Name on card</label>
+                                    <input type="text" class="form-control" name="card_name" value="John Placeholder" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Card number</label>
+                                    <input type="text" class="form-control" name="card_number" value="4242 4242 4242 4242" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Expiration</label>
+                                    <input type="text" class="form-control" name="card_exp" value="12/34" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">CVC</label>
+                                    <input type="text" class="form-control" name="card_cvc" value="123" required>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="mb-4 d-flex justify-content-center">
-                    <div class="cf-turnstile" data-sitekey="<?= htmlspecialchars($_ENV['CLOUDFLARE_TURNSTILE_PUBLIC'] ?? '') ?>"></div>
-                </div>
+                    <div class="mb-4 d-flex justify-content-center">
+                        <div class="cf-turnstile" data-sitekey="<?= htmlspecialchars($_ENV['CLOUDFLARE_TURNSTILE_PUBLIC'] ?? '') ?>"></div>
+                    </div>
 
-                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                    <a href="cart.php" class="btn btn-outline-secondary">← Back to Cart</a>
-                    <button class="btn btn-primary btn-lg" type="submit">
-                        Confirm Order ($<?= number_format((float)$totalPrice, 2) ?>)
-                    </button>
-                </div>
-            </form>
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                        <a href="cart.php" class="btn btn-outline-secondary">← Back to Cart</a>
+                        <button class="btn btn-primary btn-lg" type="submit">
+                            Confirm Order ($<?= number_format((float)$totalPrice, 2) ?>)
+                        </button>
+                    </div>
+                </form>
 
+            </div>
         </div>
     </div>
-</div>
 
-<?php include("./includes/footer.php"); ?>
+    <?php include("./includes/footer.php"); ?>
 </body>
+
 </html>
