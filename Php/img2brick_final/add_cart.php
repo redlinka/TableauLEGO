@@ -4,7 +4,7 @@ global $cnx;
 include("./config/cnx.php");
 
 if (!isset($_SESSION['userId'])) {
-    header("Location: connexion.php");
+    header("Location: index.php");
     exit;
 }
 
