@@ -93,7 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             if (!is_dir($imgDir) || !is_writable($imgDir)) {
 
-                http_response_code(500);
+                http_response_code(503);
                 $errors[] = "Server error: preview folder is not writable.";
             } else {
 
@@ -101,7 +101,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $targetPath = $imgDir . '/' . $safeName;
 
                 if (!move_uploaded_file($img["tmp_name"], $targetPath)) {
-                    http_response_code(500);
+                    http_response_code(504);
                     $errors[] = "Server error: could not store uploaded file.";
                 } else {
 
