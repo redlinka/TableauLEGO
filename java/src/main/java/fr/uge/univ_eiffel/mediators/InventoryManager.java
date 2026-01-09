@@ -263,7 +263,7 @@ public class InventoryManager implements AutoCloseable {
         Integer catalogId = getCatalogId(brick.name());
 
         // Insert the brick into inventory
-        String insertSql = "INSERT INTO INVENTORY (certificate, serial_num, pavage_id, id_catalogue) VALUES (?, ?, ?, ?, ?)";
+        String insertSql = "INSERT INTO INVENTORY (certificate, serial_num, unit_price, pavage_id, id_catalogue) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(insertSql)) {
             stmt.setString(1, brick.certificate());
@@ -342,7 +342,7 @@ public class InventoryManager implements AutoCloseable {
     public Map<Integer, Integer> getFullStock() throws SQLException {
         Map<Integer, Integer> stock = new HashMap<>();
         // Query the view directly
-        String sql = "SELECT id_catalogue, stock FROM catalog_with_price_and_stock";
+        String sql = "SELECT id_catalogue, stock FROM catalog_with_price_and_stock WHERE stock > 0";
 
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
