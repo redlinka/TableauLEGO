@@ -382,7 +382,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <option value="relax">Relax</option>
                                             <option value="strict">Strict</option>
                                         </select>
-                                        <small class="text-muted">Choose tiling mode: Relax for faster results, Strict for precision.</small>
                                     </div>
 
 
