@@ -12,6 +12,12 @@ $tilingDir = __DIR__ . '/users/tilings';
 $_SESSION['redirect_after_login'] = 'index.php';
 $errors = [];
 
+if (isset($_GET['error'])) {
+    if ($_GET['error'] === 'db_fail') {
+        $errors[] = "A database error occurred.";
+    }
+}
+
 if (rand(1, 20) === 1) {
     cleanStorage($cnx, $imgDir, $tilingDir);
 }

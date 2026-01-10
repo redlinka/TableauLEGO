@@ -17,6 +17,12 @@ $tilingFolder = 'users/tilings/';
 $errors = [];
 $previewImage = null;
 
+if (isset($_GET['error'])) {
+    if ($_GET['error'] === 'missing_files') {
+        $errors[] = "Required processing files are missing. Please regenerate the preview.";
+    }
+}
+
 // Retrieve source image filename
 $stmt = $cnx->prepare("SELECT path FROM IMAGE WHERE image_id = ?");
 $stmt->execute([$parentId]);
