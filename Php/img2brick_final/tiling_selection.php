@@ -376,13 +376,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                     <div id="thresholdSection">
 
-
                                         <input type="hidden" name="threshold" id="thresholdInput" value="2000">
 
                                         <div id="algoParams" class="mb-3">
                                             <!-- Dynamic inputs -->
                                         </div>
                                     </div>
+
+                                    <h6 class="fw-bold mb-3">Mode</h6>
+                                    <div class="mb-3">
+                                        <select name="mode" class="form-select">
+                                            <option value="relax" <?= ($mode ?? 'relax') === 'relax' ? 'selected' : '' ?>>Relax</option>
+                                            <option value="strict" <?= ($mode ?? '') === 'strict' ? 'selected' : '' ?>>Strict</option>
+                                        </select>
+                                        <small class="text-muted">Choose tiling mode: Relax for faster results, Strict for precision.</small>
+                                    </div>
+
 
                                     <div class="mt-4 pt-3 border-top">
                                         <?php if ($previewImage): ?>
