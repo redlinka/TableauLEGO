@@ -4,7 +4,7 @@ global $cnx;
 include("./config/cnx.php");
 
 if (!isset($_SESSION['userId'])) {
-    header("Location: creation.php");
+    header("Location: connexion.php");
     exit;
 }
 
@@ -16,99 +16,92 @@ if (!isset($_SESSION['step4_image_id'])) {
 $userId  = (int)$_SESSION['userId'];
 $imageId = (int)$_SESSION['step4_image_id'];
 
-$stmt = $cnx->prepare("SELECT image_id FROM IMAGE WHERE image_id = ? AND user_id = ? LIMIT 1");
-$stmt->execute([$imageId, $userId]);
-if (!$stmt->fetchColumn()) {
-    header("Location: tiling_selection.php");
-    exit;
-}
+try {
+    // Tiling verification
+    $stmt = $cnx->prepare("SELECT pavage_id, pavage_txt FROM TILLING WHERE image_id = ? LIMIT 1");
+    $stmt->execute([$imageId]);
+    $tiling = $stmt->fetch(PDO::FETCH_ASSOC);
 
-$stmt = $cnx->prepare("SELECT pavage_id FROM TILLING WHERE image_id = ? LIMIT 1");
-$stmt->execute([$imageId]);
-$pavageId = (int)$stmt->fetchColumn();
+    if (!$tiling) {
+        header("Location: tiling_selection.php");
+        exit;
+    }
+    $tilingId = (int)$tiling['pavage_id'];
 
-if ($pavageId <= 0) {
-    header("Location: tiling_selection.php");
-    exit;
-}
-
-$stmt = $cnx->prepare("
-    SELECT order_id
-    FROM ORDER_BILL
-    WHERE user_id = ?
-      AND created_at IS NULL
-    LIMIT 1
-");
-$stmt->execute([$userId]);
-$orderId = (int)$stmt->fetchColumn();
-
-if ($orderId <= 0) {
-    $stmt = $cnx->prepare("
-        SELECT address_id
-        FROM ADDRESS
-        WHERE user_id = ?
-        ORDER BY address_id ASC
-        LIMIT 1
-    ");
+    // ORDER_BILL
+    $stmt = $cnx->prepare("SELECT order_id FROM ORDER_BILL WHERE user_id = ? AND created_at IS NULL LIMIT 1"); // An order without a date is a "pending shopping cart"
     $stmt->execute([$userId]);
-    $addressId = (int)$stmt->fetchColumn();
+    $orderId = (int)$stmt->fetchColumn();
 
-    if ($addressId <= 0) {
-        $addressId = 1;
+    if ($orderId <= 0) {
+        // Search for an address
+        $stmt = $cnx->prepare("SELECT address_id FROM ADDRESS WHERE user_id = ? LIMIT 1");
+        $stmt->execute([$userId]);
+        $addressId = (int)$stmt->fetchColumn();
+
+        if ($addressId <= 0) {
+            $addressId = 1; // default/temporary address
+        }
+
+        $stmt = $cnx->prepare("INSERT INTO ORDER_BILL (user_id, address_id) VALUES (?, ?)");
+        $stmt->execute([$userId, $addressId]);
+        $orderId = (int)$cnx->lastInsertId();
     }
 
-    $stmt = $cnx->prepare("INSERT INTO ORDER_BILL (user_id, address_id) VALUES (?, ?)");
-    $stmt->execute([$userId, $addressId]);
-    $orderId = (int)$cnx->lastInsertId();
+    // Add to cart (contain)
+    $stmt = $cnx->prepare("SELECT 1 FROM contain WHERE order_id = ? AND pavage_id = ? LIMIT 1");
+    $stmt->execute([$orderId, $tilingId]);
+
+    if (!$stmt->fetchColumn()) {
+        $stmt = $cnx->prepare("INSERT INTO contain (order_id, pavage_id) VALUES (?, ?)");
+        $stmt->execute([$orderId, $tilingId]);
+    }
+
+    // Java processing execution (Stock/Reaction)
+    $jarPath = __DIR__ . '/brain.jar';
+    $javaCmd = 'java';
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+        $javaCmd = '"C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.1.8-hotspot\\bin\\java.exe"';
+        $exePath      = __DIR__ . '/C_tiler';
+    }
+    $tilingPath = __DIR__ . "/users/tilings/" . $tiling['pavage_txt'];
+
+    if (file_exists($jarPath) && file_exists($tilingPath)) {
+        $cmd = sprintf(
+            '%s -cp %s fr.uge.univ_eiffel.ReactionRestock %s %s 2>&1',
+            $javaCmd,
+            escapeshellarg($jarPath),
+            escapeshellarg($tilingPath),
+            escapeshellarg($imageId)
+        );
+        exec($cmd, $output, $returnCode);
+    }
+
+    $stmt = $cnx->prepare("SELECT * FROM TILLING WHERE pavage_id = ?");
+    $stmt->execute([$tilingId]);
+    $res = $stmt->fetch();
+
+    if (file_exists($res['pavage_txt'])) {
+        $cmd = sprintf(
+            '%s -cp %s fr.uge.univ_eiffel.ReactionRestock %s %s 2>&1',
+            $javaCmd,
+            escapeshellarg($jarPath),
+            escapeshellarg($tilingPath),
+            escapeshellarg($res['image_id']),
+        );
+        exec($cmd, $output, $returnCode);
+        foreach ($output as $o) {
+            echo $o . "\n";
+        }
+    }
+
+    // Cleaning and Redirection
+    unset($_SESSION['step0_image_id'], $_SESSION['step1_image_id'], $_SESSION['step2_image_id'], $_SESSION['step3_image_id'], $_SESSION['step4_image_id']);
+
+    header("Location: cart.php");
+    exit;
+
+} catch (PDOException $e) {
+    header("Location: index.php"); // create an error message
+    exit;
 }
-
-$stmt = $cnx->prepare("SELECT 1 FROM contain WHERE order_id = ? AND pavage_id = ? LIMIT 1");
-$stmt->execute([$orderId, $pavageId]);
-
-
-if (!$stmt->fetchColumn()) {
-    $stmt = $cnx->prepare("INSERT INTO contain (order_id, pavage_id) VALUES (?, ?)");
-    $stmt->execute([$orderId, $pavageId]);
-}
-
-
-$jarPath = __DIR__ . '/brain.jar';
-
-$javaCmd = 'java';
-if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-    $javaCmd = '"C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.1.8-hotspot\\bin\\java.exe"';
-    $exePath      = __DIR__ . '/C_tiler';
-}
-
-if (!file_exists($jarPath)) {
-    echo "brain.jar does not exist";
-}
-
-$stmt = $cnx->prepare("SELECT * FROM TILLING WHERE pavage_id = ?");
-$stmt->execute([$pavageId]);
-$res = $stmt->fetch();
-
-if (!file_exists($res['pavage_txt'])) {
-
-    echo 'TXT file not found';
-}
-
-$cmd = sprintf(
-    '%s -cp %s fr.uge.univ_eiffel.ReactionRestock %s %s 2>&1',
-    $javaCmd,
-    escapeshellarg($jarPath),
-    escapeshellarg(__DIR__ . "/users/tiling/" . $res['pavage_txt']),
-    escapeshellarg($res['image_id']),
-);
-
-$output = [];
-$returnCode = 0;
-
-exec($cmd, $output, $returnCode);
-
-foreach ($output as $o) {
-    echo $o . "\n";
-}
-
-header("Location: cart.php");
-exit;
