@@ -15,7 +15,7 @@ import fr.uge.univ_eiffel.security.OfflineVerifier;
  * the quantities specified in the input file.
  * * Usage: java ManualRestocker <path/to/order.txt>
  */
-public class ManualRestocker {
+public class ManualRestock {
     public static void main(String[] args) {
 
         // Check if the user provided the argument
