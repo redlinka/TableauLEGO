@@ -170,9 +170,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         exec($cmd, $output, $returnCode);
 
-        // foreach ($output as $o) {
-        //     echo $o . "\n";
-        // }
+        foreach ($output as $o) {
+            echo $o . "\n";
+        }
 
         if ($returnCode === 0) {
             // Persist results to database
@@ -193,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $txtContent = file_get_contents($outputTxtPath);
 
                 $legoImageId = (int)$_SESSION['step4_image_id'];
-                $pavageFile = $finalTxtName; 
+                $pavageFile = $finalTxtName;
 
                 $stmt = $cnx->prepare("SELECT pavage_id FROM TILLING WHERE image_id = ? LIMIT 1");
                 $stmt->execute([$legoImageId]);
