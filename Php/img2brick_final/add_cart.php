@@ -75,24 +75,9 @@ try {
             escapeshellarg($imageId)
         );
         exec($cmd, $output, $returnCode);
-    }
-
-    $stmt = $cnx->prepare("SELECT * FROM TILLING WHERE pavage_id = ?");
-    $stmt->execute([$tilingId]);
-    $res = $stmt->fetch();
-
-    if (file_exists($res['pavage_txt'])) {
-        $cmd = sprintf(
-            '%s -cp %s fr.uge.univ_eiffel.ReactionRestock %s %s 2>&1',
-            $javaCmd,
-            escapeshellarg($jarPath),
-            escapeshellarg($tilingPath),
-            escapeshellarg($res['image_id']),
-        );
-        exec($cmd, $output, $returnCode);
-        foreach ($output as $o) {
-            echo $o . "\n";
-        }
+    } else {
+        header("Location: tiling_selection.php"); // create an error message
+        exit;
     }
 
     // Cleaning and Redirection
