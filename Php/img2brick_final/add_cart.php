@@ -71,45 +71,6 @@ if (!$stmt->fetchColumn()) {
     $stmt->execute([$orderId, $pavageId]);
 }
 
-$jarPath = __DIR__ . '/brain.jar';
-
-// Detect Java executable (if the code is runnning on my personnal machine or the server)
-$javaCmd = 'java';
-if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-    $javaCmd = '"C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.1.8-hotspot\\bin\\java.exe"';
-    $exePath      = __DIR__ . '/C_tiler';
-}
-
-if (!file_exists($jarPath)) {
-    return [
-        'success' => false,
-        'error'   => 'brain.jar not found'
-    ];
-}
-
-$stmt = $cnx->prepare("SELECT * FROM TILLING WHERE pavage_id = ?");
-$stmt->execute([$pavageId]);
-$res = $stmt->fetch();
-
-if (!file_exists($res['pavage_txt'])) {
-    return [
-        'success' => false,
-        'error'   => 'TXT file not found'
-    ];
-}
-
-$cmd = sprintf(
-    '%s -cp %s fr.uge.univ_eiffel.ReactionRestock %s %s 2>&1',
-    $javaCmd,
-    escapeshellarg($jarPath),
-    escapeshellarg(__DIR__ . "/users/tiling/" . $res['pavage_txt']),
-    escapeshellarg($res['image_id']),
-);
-
-$output = [];
-$returnCode = 0;
-
-exec($cmd, $output, $returnCode);
 
 header("Location: cart.php");
 exit;
