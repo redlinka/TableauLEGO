@@ -76,7 +76,7 @@ try {
         );
         exec($cmd, $output, $returnCode);
     } else {
-        header("Location: tiling_selection.php"); // create an error message
+        header("Location: tiling_selection.php?error=missing_files");
         exit;
     }
 
@@ -87,6 +87,6 @@ try {
     exit;
 
 } catch (PDOException $e) {
-    header("Location: index.php"); // create an error message
+    header("Location: index.php?error=db_fail"); // create an error message
     exit;
 }
