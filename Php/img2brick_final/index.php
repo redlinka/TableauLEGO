@@ -14,7 +14,7 @@ $errors = [];
 
 if (isset($_GET['error'])) {
     if ($_GET['error'] === 'db_fail') {
-        $errors[] = "A database error occurred.";
+        $errors[] = tr('errors.cart_db_fail','A database error occurred.');
     }
 }
 

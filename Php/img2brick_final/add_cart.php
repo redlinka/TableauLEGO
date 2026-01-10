@@ -39,8 +39,12 @@ try {
         $stmt->execute([$userId]);
         $addressId = (int)$stmt->fetchColumn();
 
+        // Create a temporary empty address
         if ($addressId <= 0) {
-            $addressId = 1; // default/temporary address
+            $stmt = $cnx->prepare("INSERT INTO ADDRESS (user_id) 
+                               VALUES (?)");
+            $stmt->execute([$userId]);
+            $addressId = (int)$cnx->lastInsertId();
         }
 
         $stmt = $cnx->prepare("INSERT INTO ORDER_BILL (user_id, address_id) VALUES (?, ?)");
@@ -87,6 +91,6 @@ try {
     exit;
 
 } catch (PDOException $e) {
-    header("Location: index.php?error=db_fail"); // create an error message
+    header("Location: index.php?error=db_fail");
     exit;
 }

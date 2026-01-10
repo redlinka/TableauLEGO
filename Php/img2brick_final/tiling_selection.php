@@ -19,7 +19,7 @@ $previewImage = null;
 
 if (isset($_GET['error'])) {
     if ($_GET['error'] === 'missing_files') {
-        $errors[] = "Required processing files are missing. Please regenerate the preview.";
+        $errors[] = tr('errors.cart_missing_files', 'Required processing files are missing. Please regenerate the preview.');
     }
 }
 
