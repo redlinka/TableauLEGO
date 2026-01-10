@@ -87,6 +87,6 @@ try {
     exit;
 
 } catch (PDOException $e) {
-    header("Location: index.php?error=db_fail"); // create an error message
+    header("Location: index.php?error=db_fail");
     exit;
 }
