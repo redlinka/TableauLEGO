@@ -170,9 +170,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         exec($cmd, $output, $returnCode);
 
-        foreach ($output as $o) {
-            echo $o . "\n";
-        }
+        // foreach ($output as $o) {
+        //     echo $o . "\n";
+        // }
 
         if ($returnCode === 0) {
             // Persist results to database
