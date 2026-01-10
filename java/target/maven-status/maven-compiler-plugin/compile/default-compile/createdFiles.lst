@@ -11,7 +11,7 @@ fr\uge\univ_eiffel\TileAndDraw.class
 fr\uge\univ_eiffel\security\OfflineVerifier.class
 fr\uge\univ_eiffel\security\BrickVerifier.class
 fr\uge\univ_eiffel\payment_methods\PoWMethod.class
-fr\uge\univ_eiffel\ManualRestocker.class
+fr\uge\univ_eiffel\ManualRestock.class
 fr\uge\univ_eiffel\image_processing\downscalers\NearestNeighbour.class
 fr\uge\univ_eiffel\image_processing\downscalers\Downscaler.class
 fr\uge\univ_eiffel\security\OnlineVerifier.class
