@@ -111,12 +111,5 @@ $returnCode = 0;
 
 exec($cmd, $output, $returnCode);
 
-return [
-    'success'    => ($returnCode === 0),
-    'exit_code' => $returnCode,
-    'output'    => $output,
-    'command'   => $cmd
-];
-
 header("Location: cart.php");
 exit;
