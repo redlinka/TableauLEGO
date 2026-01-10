@@ -170,9 +170,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         exec($cmd, $output, $returnCode);
 
-        // foreach ($output as $o) {
-        //     echo $o . "\n";
-        // }
+        foreach ($output as $o) {
+            echo $o . "\n";
+        }
 
         if ($returnCode === 0) {
             // Persist results to database
@@ -360,19 +360,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <option value="tile">Tile (Width, Height, Threshold)</option>
                                         </select>
                                     </div>
-                                    <!-- <div class="btn-group w-100 mb-4" role="group">
-                                        <input type="radio" class="btn-check" name="method" id="methodQuad" value="quadtree" checked onchange="toggleThresholds()">
-                                        <label class="btn btn-outline-primary py-3" for="methodQuad">
-                                            <strong data-i18n="tiling.method_quadtree">Quadtree</strong><br>
-                                            <small data-i18n="tiling.method_quadtree_hint">Smart sizing (Cheaper)</small>
-                                        </label>
-
-                                        <input type="radio" class="btn-check" name="method" id="method1x1" value="1x1" onchange="toggleThresholds()">
-                                        <label class="btn btn-outline-primary py-3" for="method1x1">
-                                            <strong data-i18n="tiling.method_1x1">1x1</strong><br>
-                                            <small data-i18n="tiling.method_1x1_hint">Pixel Perfect (Expensive)</small>
-                                        </label>
-                                    </div> -->
 
                                     <div id="thresholdSection">
 
@@ -386,8 +373,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <h6 class="fw-bold mb-3">Mode</h6>
                                     <div class="mb-3">
                                         <select name="mode" class="form-select">
-                                            <option value="relax" <?= ($mode ?? 'relax') === 'relax' ? 'selected' : '' ?>>Relax</option>
-                                            <option value="strict" <?= ($mode ?? '') === 'strict' ? 'selected' : '' ?>>Strict</option>
+                                            <option value="relax">Relax</option>
+                                            <option value="strict">Strict</option>
                                         </select>
                                         <small class="text-muted">Choose tiling mode: Relax for faster results, Strict for precision.</small>
                                     </div>
@@ -429,19 +416,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script>
         const thresholdSection = document.getElementById('thresholdSection');
         const thresholdInput = document.getElementById('thresholdInput');
-        // const customDiv = document.getElementById('customInputDiv');
-        // const customNum = document.getElementById('customNumber');
-        // const presetBtns = document.querySelectorAll('.preset-btn');
 
-        // Toggle threshold visibility
-        // function toggleThresholds() {
-        //     const isQuad = document.getElementById('methodQuad').checked;
-        //     if (isQuad) {
-        //         thresholdSection.style.display = 'block';
-        //     } else {
-        //         thresholdSection.style.display = 'none';
-        //     }
-        // }
 
         function toggleAlgorithmParams() {
             const algo = document.getElementById('algorithmSelect').value;
