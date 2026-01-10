@@ -1,4 +1,5 @@
 <?php
+// verify an unverified account
 session_start();
 global $cnx;
 include("./config/cnx.php");

@@ -13,8 +13,6 @@ if (rand(1, 20) === 1) {
     cleanStorage($cnx, $imgDir, $tilingDir);
 }
 
-
-
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (isset($_SESSION['step0_image_id'])) {
         // Delete existing image tree to prevent orphans
@@ -31,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     if (!isset($_FILES["image"])) {
-        http_response_code(450);
+        http_response_code(400);
         $errors[] = "No file received.";
     } else {
         $img = $_FILES["image"];
@@ -94,7 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if (!is_dir($imgDir) || !is_writable($imgDir)) {
 
                 http_response_code(500);
-                $errors[] = "Server error: preview folder is not writable.";
+                $errors[] = "A server error occurred. Please contact support.";
             } else {
 
                 $safeName = bin2hex(random_bytes(16)) . '.' . $fileExtension;
@@ -102,7 +100,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 if (!move_uploaded_file($img["tmp_name"], $targetPath)) {
                     http_response_code(500);
-                    $errors[] = "Server error: could not store uploaded file.";
+                    $errors[] = "Failed to store the image. Please try again.";
                 } else {
 
                     try {
@@ -131,7 +129,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         if (file_exists($targetPath)) {
                             unlink($targetPath);
                         }
-                        $errors[] = "Database error: " . $e->getMessage();
+                        //$errors[] = "Database error: " . $e->getMessage();
                         $errors[] = "Database error. Please try again.";
                     }
                 }

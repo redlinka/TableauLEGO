@@ -1,4 +1,5 @@
 <?php
+// verify the connection of a verified account
 session_start();
 global $cnx;
 include("./config/cnx.php");
@@ -78,5 +79,4 @@ try {
     http_response_code(500);
     die(tr('verify_connexion.db_error', 'Database error. Please try again later.'));
 }
-?>
 

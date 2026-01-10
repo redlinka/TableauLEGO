@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['unverified_email'] = $user['email'];
 
                 $token = bin2hex(random_bytes(32));
-                $expire_at = date('Y-m-d H:i:s', time() + 3600); // Augmenté à 1h pour l'UX
+                $expire_at = date('Y-m-d H:i:s', time() + 60);
 
                 $cleanup = $cnx->prepare("DELETE FROM 2FA WHERE user_id = ?");
                 $cleanup->execute([$user['user_id']]);
@@ -54,13 +54,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $link = $protocol . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/verify_account.php?token=' . $token;
 
                 $emailBody = "
-        <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; max-width: 600px;'>
-            <h2 style='color: #0d6efd;'>Activate Your Account 🧱</h2>
-            <p>It looks like your account isn't active yet. Click below to verify your email:</p>
-            <p style='text-align: center;'>
-                <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Verify My Account</a>
-            </p>
-        </div>";
+                    <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; max-width: 600px;'>
+                        <h2 style='color: #0d6efd;'>Activate Your Account 🧱</h2>
+                        <p>It looks like your account isn't active yet. Click below to verify your email:</p>
+                        <p style='text-align: center;'>
+                            <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Verify My Account</a>
+                        </p>
+                    </div>";
 
                 sendMail($user['email'], 'Activate your Img2Brick account', $emailBody);
 
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         } catch (PDOException $e) {
             http_response_code(500);
-            $errors[] = 'Database error: ' . $e->getMessage();
+            //$errors[] = 'Database error: ' . $e->getMessage();
             $errors[] = 'Database error. Please try again later.';
         }
     }

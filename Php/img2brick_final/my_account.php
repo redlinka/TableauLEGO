@@ -1,7 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 session_start();
 global $cnx;
 include("./config/cnx.php");
@@ -35,8 +32,9 @@ $stmt->execute([$userId]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$user) {
-    http_response_code(404);
-    die("User not found");
+    //http_response_code(404);
+    header("Location: index.php");
+    exit;
 }
 
 // Handle form submission
@@ -97,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($emailChanged) {
                     // Generate verification token
                     $token = bin2hex(random_bytes(32));
-                    $expire_at = date('Y-m-d H:i:s', time() + 120);
+                    $expire_at = date('Y-m-d H:i:s', time() + 60);
 
                     // delete old token
                     $cnx->prepare("DELETE FROM 2FA WHERE user_id = ?")->execute([$userId]);
@@ -118,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Verify My Email</a>
                                 </p>
                                 <p style='color: #6c757d; font-size: 12px; margin-top: 20px;'>If the button doesn't work, copy this link: {$link}</p>
-                                <p style='color: #6c757d; font-size: 12px;'>This link will expire in 2 minutes.</p>
+                                <p style='color: #6c757d; font-size: 12px;'>This link will expire in 1 minute.</p>
                             </div>";
 
                     sendMail(
