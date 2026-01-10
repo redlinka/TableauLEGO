@@ -1,3 +1,4 @@
+<!-- Page stating that an email has been sent for connection -->
 <!DOCTYPE html>
 <html lang="en">
 <head>

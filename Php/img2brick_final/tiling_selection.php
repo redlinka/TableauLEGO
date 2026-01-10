@@ -210,10 +210,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $previewImage = $imgFolder . $finalPngName . ".png" . '?t=' . time(); // add .png
 
             } catch (PDOException $e) {
-                $errors[] = "Database Error";
+                $errors[] = "A database error occurred. Please try again later.";
             }
         } else {
-            $errors[] = "Java/C Error :" . $javaCmd;
+            $errors[] = "An error occurred during image processing. Please try again.";
+            //$errors[] = "Java/C Error :" . $javaCmd; // in dev
         }
     }
 } else {
