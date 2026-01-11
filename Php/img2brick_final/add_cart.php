@@ -78,6 +78,11 @@ try {
             escapeshellarg($imageId)
         );
         exec($cmd, $output, $returnCode);
+        // echo "Ordering pieces\n";
+        // foreach ($output as $o) {
+        //     echo $o . "\n";
+        // }
+        // exit;
     } else {
         header("Location: tiling_selection.php?error=missing_files");
         exit;
@@ -89,7 +94,6 @@ try {
     addLog($cnx, "USER", "ADD", "pavage");
     header("Location: cart.php");
     exit;
-
 } catch (PDOException $e) {
     header("Location: index.php?error=db_fail");
     exit;
