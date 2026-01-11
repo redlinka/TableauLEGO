@@ -16,12 +16,13 @@ import java.util.Properties;
  * Fields: API URL, user email, and secret key. */
 public class FactoryClient {
 
-    private static final String BASE_URL = "http://localhost:8080";
+    private final String BASE_URL;
     private final String EMAIL;
     private final String API_KEY;
     private final Gson gson = new Gson();
 
-    private FactoryClient(String email, String apiKey) {
+    private FactoryClient(String url, String email, String apiKey) {
+        this.BASE_URL = url;
         this.EMAIL = email;
         this.API_KEY = apiKey;
     }
@@ -204,13 +205,14 @@ public class FactoryClient {
             }
             props.load(input);
 
+            String url = props.getProperty("API_URL");
             String email = props.getProperty("USER_MAIL");
             String key = props.getProperty("API_KEY");
 
             if (email == null || key == null) {
                 throw new RuntimeException("USER_MAIL or API_KEY missing in properties file.");
             }
-            return new FactoryClient(email, key);
+            return new FactoryClient(url, email, key);
 
         } catch (IOException e) {
             throw new RuntimeException(e);

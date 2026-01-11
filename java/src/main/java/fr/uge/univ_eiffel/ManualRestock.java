@@ -37,7 +37,6 @@ public class ManualRestock {
             final RestockManager restorer = new RestockManager(inventory, client, orderer, payer, verifier);
 
             restorer.restockFromFile(filePath);
-
         } catch (Exception e) {e.printStackTrace();}
     }
 }

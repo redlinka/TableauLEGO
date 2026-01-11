@@ -263,23 +263,83 @@ public class InventoryManager implements AutoCloseable {
         Integer catalogId = getCatalogId(brick.name());
 
         // Insert the brick into inventory
-        String insertSql = "INSERT INTO INVENTORY (certificate, serial_num, unit_price, pavage_id, id_catalogue) VALUES (?, ?, ?, ?, ?)";
+        String insertSql = "INSERT INTO INVENTORY (certificate, serial_num, pavage_id, id_catalogue) VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(insertSql)) {
             stmt.setString(1, brick.certificate());
             stmt.setString(2, brick.serial());
-            stmt.setDouble(3, getUnitPrice(catalogId));
             if(tilingID == null) {
-                stmt.setNull(4, NULL);
+                stmt.setNull(3, NULL);
             } else {
-                stmt.setInt(4, tilingID);
+                stmt.setInt(3, tilingID);
             }
-            stmt.setInt(5, catalogId);
+            stmt.setInt(4, catalogId);
             stmt.executeUpdate();
         }
-        System.out.println("Adding brick " + brick.name() + " to inventory...");
         return true;
     }
+
+    // java
+    public void addBatch(List<Brick> bricks, Integer tilingID) throws SQLException {
+        String insertSql = "INSERT INTO INVENTORY (certificate, serial_num, pavage_id, id_catalogue) VALUES (?, ?, ?, ?)";
+
+        connection.setAutoCommit(false);
+
+        // caches to avoid DB roundtrips
+        Map<String, Integer> catalogCache = new HashMap<>();      // brick.name() -> id_catalogue
+        Map<Integer, Double> priceCache = new HashMap<>();       // id_catalogue -> unit price
+
+        final int BATCH_SIZE = 1000;
+        try (PreparedStatement stmt = connection.prepareStatement(insertSql)) {
+            int count = 0;
+
+            for (Brick brick : bricks) {
+                String name = brick.name();
+
+                // get or cache catalog id
+                Integer catalogId = catalogCache.get(name);
+                if (catalogId == null) {
+                    catalogId = getCatalogId(name); // one DB call only on first occurrence
+                    catalogCache.put(name, catalogId);
+                }
+
+                // compute or reuse unit price locally (avoids per-brick SQL price call)
+                Double unitPrice = priceCache.get(catalogId);
+                if (unitPrice == null) {
+                    // parse width and height from name like "W-H[/holes]/hex"
+                    String[] parts = name.split("/");
+                    String[] sizeTokens = parts[0].split("-");
+                    int width = Integer.parseInt(sizeTokens[0]);
+                    int height = Integer.parseInt(sizeTokens[1]);
+                }
+
+                stmt.setString(1, brick.certificate());
+                stmt.setString(2, brick.serial());
+                if (tilingID == null) {
+                    stmt.setNull(3, NULL);
+                } else {
+                    stmt.setInt(3, tilingID);
+                }
+                stmt.setInt(4, catalogId);
+
+                stmt.addBatch();
+
+                if (++count % BATCH_SIZE == 0) {
+                    stmt.executeBatch();
+                }
+            }
+
+            stmt.executeBatch();
+            connection.commit();
+            System.out.println("Batch insert complete: " + bricks.size() + " bricks added.");
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        } finally {
+            connection.setAutoCommit(true);
+        }
+    }
+
 
 
     //---------------Restock methode-----------------
@@ -342,7 +402,7 @@ public class InventoryManager implements AutoCloseable {
     public Map<Integer, Integer> getFullStock() throws SQLException {
         Map<Integer, Integer> stock = new HashMap<>();
         // Query the view directly
-        String sql = "SELECT id_catalogue, stock FROM catalog_with_price_and_stock WHERE stock > 0";
+        String sql = "SELECT id_catalogue, stock FROM catalog_with_price_and_stock";
 
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -418,60 +478,104 @@ public class InventoryManager implements AutoCloseable {
 
     /**
      * Adds a restocking history entry and its associated inventory entries.
-     *
-     * This method creates a new stock entry with the current date and time,
-     * then inserts one entry per brick type to be restocked. For each brick,
-     * it retrieves the corresponding catalog identifier, determines the unit
-     * price from the inventory, computes the total price, and stores the
-     * information in the ENTRY table.
+     * Uses batch processing and local caching to optimize performance.
      *
      * @param stockToRefill a map associating brick type names with quantities
-     *                      to be restocked, formatted as "width-height/color_hex"
+     * to be restocked, formatted as "width-height/color_hex"
      * @return true if the restock history is successfully added
      * @throws RuntimeException if a database access error occurs during the process
      */
-    public boolean addRestockHistory(Map<String, Integer> stockToRefill){
-        System.out.println("Adding restock history..." );
-
+    public boolean addRestockHistory(Map<String, Integer> stockToRefill) {
+        System.out.println("Adding restock history (Batch Mode)...");
 
         String insertStockEntrySql = "INSERT INTO STOCK_ENTRY (date_stock) VALUES (NOW())";
+        String insertEntrySql = "INSERT INTO `entry` (id_catalogue, id_stock_entry, quantity, total_price) VALUES (?, ?, ?, ?)";
 
-        int stockEntryId;
+        final int BATCH_SIZE = 1000;
 
-        try (PreparedStatement stmt = connection.prepareStatement( insertStockEntrySql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.executeUpdate();
-            // Get the entry id
-            try (ResultSet rs = stmt.getGeneratedKeys()) {
-                if (rs.next()) {
-                    stockEntryId = rs.getInt(1);
-                } else {
-                    throw new SQLException("Cannot get the id_stock_entry");
+        // Caches to avoid DB roundtrips inside the loop
+        Map<String, Integer> catalogCache = new HashMap<>();      // brickName -> id_catalogue
+        Map<Integer, Double> priceCache = new HashMap<>();        // id_catalogue -> unit price
+
+        try {
+            connection.setAutoCommit(false); // Start transaction
+
+            // 1. Create the main Stock Entry
+            int stockEntryId;
+            try (PreparedStatement stmt = connection.prepareStatement(insertStockEntrySql, Statement.RETURN_GENERATED_KEYS)) {
+                stmt.executeUpdate();
+                try (ResultSet rs = stmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        stockEntryId = rs.getInt(1);
+                    } else {
+                        throw new SQLException("Cannot get the id_stock_entry");
+                    }
                 }
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
 
-        for(Map.Entry<String, Integer> entry : stockToRefill.entrySet()){
-            String insertEntrySql = "INSERT INTO `entry` (id_catalogue, id_stock_entry, quantity, total_price) " +
-                    "VALUES (?, ?, ?, ?)";
-
+            // 2. Batch Insert the Entries
             try (PreparedStatement stmt = connection.prepareStatement(insertEntrySql)) {
-                int idCatalog = getCatalogId(entry.getKey());
-                int amount = entry.getValue();
+                int count = 0;
 
-                stmt.setInt(1, idCatalog);       // id_catalogue
-                stmt.setInt(2, stockEntryId);    // id_stock_entry
-                stmt.setInt(3, amount);          // quantity
-                double unitPrice = getUnitPrice(idCatalog);
-                stmt.setDouble(4, amount * unitPrice);     // total_price
+                for (Map.Entry<String, Integer> entry : stockToRefill.entrySet()) {
+                    String brickName = entry.getKey();
+                    int quantity = entry.getValue();
 
-                stmt.executeUpdate();
+                    // Resolve Catalog ID (Cache -> DB)
+                    Integer idCatalog = catalogCache.get(brickName);
+                    if (idCatalog == null) {
+                        idCatalog = getCatalogId(brickName);
+                        catalogCache.put(brickName, idCatalog);
+                    }
+
+                    // Resolve Unit Price (Cache -> Local Calculation)
+                    // We calculate locally to avoid N+1 SQL calls to 'getUnitPrice'
+                    Double unitPrice = priceCache.get(idCatalog);
+                    if (unitPrice == null) {
+                        // Parse dimensions from name "width-height/hex"
+                        String[] parts = brickName.split("/");
+                        String[] sizeTokens = parts[0].split("-");
+                        int width = Integer.parseInt(sizeTokens[0]);
+                        int height = Integer.parseInt(sizeTokens[1]);
+
+                        unitPrice = computeUnitPrice(width, height);
+                        priceCache.put(idCatalog, unitPrice);
+                    }
+
+                    stmt.setInt(1, idCatalog);       // id_catalogue
+                    stmt.setInt(2, stockEntryId);    // id_stock_entry
+                    stmt.setInt(3, quantity);        // quantity
+                    stmt.setDouble(4, quantity * unitPrice); // total_price
+
+                    stmt.addBatch();
+
+                    if (++count % BATCH_SIZE == 0) {
+                        stmt.executeBatch();
+                    }
+                }
+
+                // Execute any remaining in the batch
+                stmt.executeBatch();
+            }
+
+            connection.commit();
+            System.out.println("Restock history added successfully.");
+            return true;
+
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                e.addSuppressed(ex);
+            }
+            throw new RuntimeException("Transaction failed during restock history add", e);
+        } finally {
+            try {
+                connection.setAutoCommit(true);
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
-        return true;
     }
 
     /**
@@ -503,7 +607,6 @@ public class InventoryManager implements AutoCloseable {
     }
 
     private double getUnitPrice(int idCatalog) {
-        // Directly call the SQL function using the dimensions from the CATALOG table
         String sqlPrice = "SELECT calculate_brick_price(0.01, 0.9, width, height) AS price " +
                 "FROM CATALOG WHERE id_catalogue = ?";
 

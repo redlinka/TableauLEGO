@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.lang.Thread.sleep;
 import static java.sql.Types.NULL;
 
 public class RestockManager {
@@ -87,20 +88,20 @@ public class RestockManager {
      * @param stock a Map representing the current stock levels, where the key is the product catalog ID and the value is the stock count
      * @return a Map where the key is the product catalog ID and the value is the amount of stock to prepare
      */
-    public @NotNull Map<Integer, Integer> calculateRestock(Map<Integer, Integer> need, Map<Integer, Integer> stock){
+    public @NotNull Map<Integer, Integer> calculateRestock(@NotNull Map<Integer, Integer> need, Map<Integer, Integer> stock){
 
-        System.out.println("Calculating stock to prepare...");
+        System.out.println("Calculating stock to prepare..."+ need.size() + " needed items and " + stock.size() + " stock items.");
         Map<Integer, Integer> stockToPrepare = new HashMap<>();
 
         // for each daily average amount of piece
-        for(Map.Entry<Integer, Integer> a : need.entrySet()){
+        for(Map.Entry<Integer, Integer> a : stock.entrySet()){
 
             //if there is no piece in stock, we set 0 by default
-            int pieceAmount = stock.get(a.getKey()) != null ?  stock.get(a.getKey()) : 0 ;
+            int pieceAmount = need.get(a.getKey()) != null ?  need.get(a.getKey()) : 0 ;
             // average - piece in stock
-            int amountToRestock = a.getValue() -  pieceAmount;
-            if(pieceAmount < 10){
-                amountToRestock +=10;
+            int amountToRestock = pieceAmount - a.getValue();
+            if(pieceAmount < 100){
+                amountToRestock +=100;
             }
             if(amountToRestock > 0){
                 stockToPrepare.put(a.getKey(), amountToRestock);
@@ -164,30 +165,26 @@ public class RestockManager {
 
         OrderManager.Delivery status;
 
+        var publicKey = client.signaturePublicKey();
+
         do {
-            //we check every 5 secs
-            Thread.sleep(5000);
+            sleep(5000); // wait 5 seconds before polling again
             status = orderer.deliveryStatus(quote.id());
             System.out.println("pending bricks :" + status.pendingBricks());
+            System.out.println("Adding already ordered bricks...");
+
+            /*
+            for (Brick brick : status.bricks()) {
+                boolean valid = verifier.verify(brick);
+            }
+            */
+            inventory.addBatch(status.bricks(), tilingID);
+
+            status.bricks().clear();
+
         } while (!status.completed());
 
         System.out.println("Order completed. Adding bricks...");
-        var publicKey = client.signaturePublicKey();
-        OfflineVerifier offline = new OfflineVerifier(publicKey);
-        OnlineVerifier online = new OnlineVerifier(client);
-
-        for (Brick brick : status.bricks()) {
-
-            boolean valid = verifier.verify(brick);
-
-            if (valid) {
-                boolean added = inventory.add(brick, tilingID);
-                System.out.println("Brick " + brick.name() + " added to inventory");
-            } else {
-                System.out.println("Brick " + brick.name() + " failed verification or already exists");
-            }
-        }
-
     }
 
     /**
@@ -295,7 +292,7 @@ public class RestockManager {
                 System.out.println("No bricks found");
                 return true;
             }
-            refillInventory(invoice, NULL);
+            refillInventory(invoice, null);
             inventory.addRestockHistory(invoice);
             return true;
         } catch (SQLException e) {
