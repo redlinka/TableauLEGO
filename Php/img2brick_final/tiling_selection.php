@@ -351,6 +351,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         </div>
                                     <?php endif; ?>
                                 </div>
+
                             </div>
 
                             <div class="col-md-6 d-flex flex-column">
@@ -386,7 +387,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
                                     <div class="mt-4 pt-3 border-top">
+
                                         <?php if ($previewImage): ?>
+                                            <p class="fw-bold mb-3"> <?= number_format(getTilingStats($pavageFile)['price'] / 100, 2, ".", " ") . '€' ?></p>
                                             <button type="submit" class="btn btn-primary w-100 btn-lg mb-3" data-i18n="tiling.regenerate">Regenerate Preview</button>
                                         <?php else: ?>
                                             <button type="submit" class="btn btn-primary w-100 btn-lg mb-3" data-i18n="tiling.generate">Generate Preview</button>
@@ -396,9 +399,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <a href="filter_selection.php" class="btn btn-outline-secondary" data-i18n="tiling.back">Back</a>
 
                                             <?php if ($previewImage): ?>
-                                                <a href="add_cart.php" class="btn btn-success fw-bold" data-i18n="tiling.finalize">Finalize & Order</a>
+                                                <a href="add_cart.php" class="btn btn-success fw-bold" data-i18n="tiling.finalize">Add to basket</a>
                                             <?php else: ?>
-                                                <button type="button" class="btn btn-secondary" data-i18n="tiling.finalize" disabled>Finalize & Order</button>
+                                                <button type="button" class="btn btn-secondary" data-i18n="tiling.finalize" disabled>Add to basket</button>
                                             <?php endif; ?>
                                         </div>
 
