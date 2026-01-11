@@ -389,7 +389,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <div class="mt-4 pt-3 border-top">
 
                                         <?php if ($previewImage): ?>
-                                            <p class="fw-bold mb-3"> <?= number_format(getTilingStats($pavageFile)['price'] / 100, 2, ".", " ") . '€' ?> </br> <?= getTilingStats($pavageFile)['error'] ?></p>
+                                            <p class="fw-bold mb-3"> <?= number_format(getTilingStats($pavageFile)['price'] / 100, 2, ".", " ") . '€' ?> </br> <?= getTilingStats($pavageFile)['error'] . '%' ?></p>
                                             <button type="submit" class="btn btn-primary w-100 btn-lg mb-3" data-i18n="tiling.regenerate">Regenerate Preview</button>
                                         <?php else: ?>
                                             <button type="submit" class="btn btn-primary w-100 btn-lg mb-3" data-i18n="tiling.generate">Generate Preview</button>
