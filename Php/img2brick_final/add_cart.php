@@ -79,11 +79,11 @@ try {
             escapeshellarg($imageId)
         );
         exec($cmd, $output, $returnCode);
-        echo "Ordering pieces\n";
-        foreach ($output as $o) {
-            echo $o . "\n";
-        }
-        exit;
+        // echo "Ordering pieces\n";
+        // foreach ($output as $o) {
+        //     echo $o . "\n";
+        // }
+        // exit;
     } else {
         header("Location: tiling_selection.php?error=missing_files");
         exit;
