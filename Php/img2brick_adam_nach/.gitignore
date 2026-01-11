@@ -1,7 +1,0 @@
-﻿users/uploads/*
-!users/uploads/.gitkeep
-config/.env
-vendor/
-*.env
-.idea/
-*.xml
