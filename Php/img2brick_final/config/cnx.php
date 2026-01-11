@@ -5,6 +5,7 @@ require __DIR__ . '/../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+
 // Load configuration credentials from .env file to avoid hardcoding secrets
 $envPath = __DIR__ . '/.env';
 if (!is_file($envPath)) {
@@ -16,6 +17,11 @@ $pass = $_ENV["PASS"] ?? '';
 $db = $_ENV["DB"] ?? '';
 $host = $_ENV["HOST"] ?? '';
 $port = $_ENV["PORT"] ?? '3306';
+
+// Specif settings in local here
+if (isset($_ENV['LOCAL_DEVELOPMENT']) && ($_ENV['LOCAL_DEVELOPMENT'] == "1" || $_ENV['LOCAL_DEVELOPMENT'] == "true")) {
+    date_default_timezone_set('Europe/Paris');
+}
 
 // Establish database connection using PDO
 try {
