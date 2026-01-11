@@ -15,7 +15,12 @@ $user = $_ENV["USER"] ?? '';
 $pass = $_ENV["PASS"] ?? '';
 $db = $_ENV["DB"] ?? '';
 $host = $_ENV["HOST"] ?? '';
-$port = $_ENV["PORT"] ?? '3306'
+$port = $_ENV["PORT"] ?? '3306';
+
+// Specific local settings here
+if (isset($_ENV['LOCAL_DEVELOPMENT']) && ($_ENV['LOCAL_DEVELOPMENT'] == "1" || $_ENV['LOCAL_DEVELOPMENT'] == "true")) {
+    date_default_timezone_set('Europe/Paris');
+}
 
 // Establish database connection using PDO
 try {
