@@ -387,7 +387,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
                                     <div class="mt-4 pt-3 border-top">
+
                                         <?php if ($previewImage): ?>
+                                            <p class="fw-bold mb-3"> <?= '(' . getTilingStats($pavageFile)['price'] . ')' ?></p>
                                             <button type="submit" class="btn btn-primary w-100 btn-lg mb-3" data-i18n="tiling.regenerate">Regenerate Preview</button>
                                         <?php else: ?>
                                             <button type="submit" class="btn btn-primary w-100 btn-lg mb-3" data-i18n="tiling.generate">Generate Preview</button>
@@ -397,7 +399,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <a href="filter_selection.php" class="btn btn-outline-secondary" data-i18n="tiling.back">Back</a>
 
                                             <?php if ($previewImage): ?>
-                                                <a href="add_cart.php" class="btn btn-success fw-bold" data-i18n="tiling.finalize">Add to basket <?= '(' . getTilingStats($pavageFile)['price'] . ')' ?></a>
+                                                <a href="add_cart.php" class="btn btn-success fw-bold" data-i18n="tiling.finalize">Add to basket</a>
                                             <?php else: ?>
                                                 <button type="button" class="btn btn-secondary" data-i18n="tiling.finalize" disabled>Add to basket</button>
                                             <?php endif; ?>
