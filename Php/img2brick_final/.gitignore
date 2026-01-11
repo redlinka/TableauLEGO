@@ -1,0 +1,22 @@
+# Sécurité
+.env
+config/.env
+*.sql
+*.zip
+# Données utilisateurs
+users/imgs/*
+users/tilings/*
+!users/imgs/.gitkeep
+!users/tilings/.gitkeep
+users/imgs/temp_*
+# Dépendances
+vendor/
+docker-compose.yml
+Dockerfile
+# IDE et Système
+.idea/
+.vscdode/
+*.log
+*.xml
+# Test
+test/
