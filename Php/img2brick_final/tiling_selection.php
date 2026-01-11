@@ -214,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $previewImage = $imgFolder . $finalPngName . ".png" . '?t=' . time(); // add .png
-
+                addLog($cnx, "USER", "GENERATE", "pavage");
             } catch (PDOException $e) {
                 $errors[] = "A database error occurred. Please try again later.";
             }

@@ -14,7 +14,7 @@ $errors = [];
 
 if (isset($_GET['error'])) {
     if ($_GET['error'] === 'db_fail') {
-        $errors[] = tr('errors.cart_db_fail','A database error occurred.');
+        $errors[] = tr('errors.cart_db_fail', 'A database error occurred.');
     }
 }
 
@@ -131,6 +131,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $_SESSION['step0_image_id'] = $cnx->lastInsertId();
 
                         // Redirect to crop selection
+                        addLog($cnx, "USER", "IMPORT", "image");
                         header("Location: crop_selection.php");
                         exit;
                     } catch (PDOException $e) {

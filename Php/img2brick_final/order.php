@@ -198,6 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $cnx->commit();
 
             $_SESSION['last_order_id'] = $cartOrderId;
+            addLog($cnx, "USER", "CONFIRM", "order");
             header("Location: order_completed.php?order_id=" . $cartOrderId);
             exit;
         } catch (Exception $e) {
@@ -207,26 +208,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
- $stmt = $cnx->prepare("
+$stmt = $cnx->prepare("
         SELECT t.pavage_txt
         FROM contain c
         JOIN TILLING t ON t.pavage_id = c.pavage_id
         WHERE c.order_id = :oid
     ");
-    $stmt->execute(['oid' => $cartOrderId]);
-    $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+$stmt->execute(['oid' => $cartOrderId]);
+$rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-    $total = 0.0;
+$total = 0.0;
 
-    foreach ($rows as $txt) {
-        if (preg_match('/^\d+(\.\d+)?/', $txt, $m)) {
-            $total += (float)$m[0]/100;
-        }
+foreach ($rows as $txt) {
+    if (preg_match('/^\d+(\.\d+)?/', $txt, $m)) {
+        $total += (float)$m[0] / 100;
     }
+}
 
-    $totalPrice = $total;
-    $livraison = $total*0.10;
-    $totaux = $livraison + $totalPrice;
+$totalPrice = $total;
+$livraison = $total * 0.10;
+$totaux = $livraison + $totalPrice;
 ?>
 <!DOCTYPE html>
 <html lang="en">

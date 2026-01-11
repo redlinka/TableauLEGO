@@ -92,6 +92,7 @@ try {
     // Cleaning and Redirection
     unset($_SESSION['step0_image_id'], $_SESSION['step1_image_id'], $_SESSION['step2_image_id'], $_SESSION['step3_image_id'], $_SESSION['step4_image_id']);
 
+    addLog($cnx, "USER", "ADD", "pavage");
     header("Location: cart.php");
     exit;
 } catch (PDOException $e) {

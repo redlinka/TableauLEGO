@@ -66,7 +66,7 @@ try {
 
     // Rotate CSRF
     csrf_rotate();
-
+    addLog($cnx, "USER", "LOG", "in");
     // Redirect to intended destination
     if (isset($_SESSION['redirect_after_login'])) {
         header("Location:" . $_SESSION['redirect_after_login']);
@@ -74,9 +74,7 @@ try {
         header('Location: index.php');
     }
     exit;
-
 } catch (PDOException $e) {
     http_response_code(500);
     die(tr('verify_connexion.db_error', 'Database error. Please try again later.'));
 }
-

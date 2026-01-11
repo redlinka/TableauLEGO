@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+addLog($cnx, "USER", "LOG", "out");
 // Unset specific variable as requested
 unset($_SESSION['id_user']);
 
@@ -9,4 +10,3 @@ session_destroy();
 
 header("Location: index.php");
 exit;
-?>

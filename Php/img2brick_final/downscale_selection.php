@@ -162,6 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     csrf_rotate();
+                    addLog($cnx, "USER", "DOWNSCALE", "image");
                     header("Location: filter_selection.php");
                     exit;
                 } catch (PDOException $e) {

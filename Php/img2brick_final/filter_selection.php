@@ -80,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $_SESSION['step3_image_id'] = $cnx->lastInsertId();
                         }
                         // Redirect to tiling selection step
+                        addLog($cnx, "USER", "ADD", "filter");
                         header("Location: tiling_selection.php");
                         exit;
                     } catch (PDOException $e) {
