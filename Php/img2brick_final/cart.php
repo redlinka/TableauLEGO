@@ -12,33 +12,59 @@ if (!isset($_SESSION['userId'])) {
 $errors = [];
 $id_uti = (int)$_SESSION['userId'];
 $imgFolder = 'users/imgs/';
+$tilingFolder = 'users/tilings/';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) {
+    $pavageId = (int)$_POST['remove_pavage_id'];
+    $userId   = (int)($_SESSION['userId'] ?? 0);
 
-  $pavageId = (int)$_POST['remove_pavage_id'];
-  $userId   = (int)($_SESSION['userId'] ?? 0);
+    try {
+        $cnx->beginTransaction();
 
-  $stmt = $cnx->prepare("
-        SELECT order_id
-        FROM ORDER_BILL
-        WHERE user_id = :user_id
-          AND created_at IS NULL
-        LIMIT 1
-    ");
-  $stmt->execute(['user_id' => $userId]);
-  $cartOrderId = (int)$stmt->fetchColumn();
+        // Retrieve file name
+        $stmt = $cnx->prepare("SELECT pavage_txt, image_id FROM TILLING WHERE pavage_id = ?");
+        $stmt->execute([$pavageId]);
+        $tiling = $stmt->fetch(PDO::FETCH_ASSOC);
 
-  if ($cartOrderId > 0) {
-    $del = $cnx->prepare("
-            DELETE FROM contain
-            WHERE order_id = :order_id
-              AND pavage_id = :pavage_id
-        ");
-    $del->execute([
-      'order_id'  => $cartOrderId,
-      'pavage_id' => $pavageId
-    ]);
-  }
+        if ($tiling) {
+            // Delete from contain
+            $delContain = $cnx->prepare("DELETE FROM contain WHERE pavage_id = ?")->execute([$pavageId]);
+
+            // Delete from TILLING
+            $delTilling = $cnx->prepare("DELETE FROM TILLING WHERE pavage_id = ?")->execute([$pavageId]);
+
+            // Delete tilling from disk
+            $txtPath = __DIR__ . $tilingFolder . $tiling['pavage_txt'];
+            if (file_exists($txtPath)) {
+                unlink($txtPath);
+            }
+            $rootImageId = (int)$tiling['image_id'];
+            while (true) {
+                $stmt = $cnx->prepare("SELECT img_parent FROM IMAGE WHERE image_id = ?");
+                $stmt->execute([$rootImageId]);
+                $parentId = $stmt->fetchColumn();
+
+                if (!$parentId) {
+                    break; // root found
+                }
+                $rootImageId = (int)$parentId;
+            }
+            // Delete all images under root
+            $imgDirPath = __DIR__ . '/users/imgs';
+            $tilingDirPath = __DIR__ . '/users/tilings';
+
+            deleteDescendants($cnx, $rootImageId, $imgDirPath, $tilingDirPath, false);
+        }
+
+        $cnx->commit();
+        header("Location: cart.php");
+        exit;
+
+    } catch (PDOException $e) {
+        if ($cnx->inTransaction()) $cnx->rollBack();
+        header("Location: cart.php?error=delete_failed"); // create the error message
+        exit;
+    }
 }
 
 function money($v)
@@ -97,7 +123,6 @@ foreach ($row_pan as $row) {
 $shipping = $subtotal * 0.10;
 $total = $subtotal + $shipping;
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
