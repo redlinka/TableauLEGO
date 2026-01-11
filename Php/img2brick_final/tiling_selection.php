@@ -351,6 +351,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         </div>
                                     <?php endif; ?>
                                 </div>
+
                             </div>
 
                             <div class="col-md-6 d-flex flex-column">
@@ -396,10 +397,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <a href="filter_selection.php" class="btn btn-outline-secondary" data-i18n="tiling.back">Back</a>
 
                                             <?php if ($previewImage): ?>
-                                                <a href="add_cart.php" class="btn btn-success fw-bold" data-i18n="tiling.finalize">Finalize & Order</a>
-                                            <?php else: ?>
-                                                <button type="button" class="btn btn-secondary" data-i18n="tiling.finalize" disabled>Finalize & Order</button>
-                                            <?php endif; ?>
+                                                <a href="add_cart.php" class="btn btn-success fw-bold" data-i18n="tiling.finalize">Add to basket <?= '(' . getTilingStats($pavageFile)['price'] . ')' ?>/a>
+                                                <?php else: ?>
+                                                    <button type="button" class="btn btn-secondary" data-i18n="tiling.finalize" disabled>Add to basket</button>
+                                                <?php endif; ?>
                                         </div>
 
                                     </div>
