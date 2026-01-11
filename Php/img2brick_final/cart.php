@@ -38,6 +38,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) 
       'order_id'  => $cartOrderId,
       'pavage_id' => $pavageId
     ]);
+    $del = $cnx->prepare("
+            DELETE FROM TILLING
+            WHERE pavage_id = :pavage_id
+        ");
+    $del->execute([
+      'pavage_id' => $pavageId
+    ]);
   }
 }
 
