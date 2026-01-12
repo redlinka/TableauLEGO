@@ -45,7 +45,7 @@ $cartAddressId = !empty($cart['address_id']) ? (int)$cart['address_id'] : 0;
 
 
 $stmt = $cnx->prepare("
-    SELECT first_name, last_name, phone, default_address
+    SELECT first_name, last_name, phone
     FROM USER
     WHERE user_id = :uid
     LIMIT 1
@@ -56,11 +56,6 @@ $u = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 $fillName    = $u['first_name'] ?? '';
 $fillSurname = $u['last_name'] ?? '';
 $fillPhone   = $u['phone'] ?? '';
-$fillAddr    = $u['default_address'] ?? '';
-
-$fillCity    = '';
-$fillZip     = '';
-$fillCountry = 'France';
 
 if ($cartAddressId > 0) {
     $stmt = $cnx->prepare("
