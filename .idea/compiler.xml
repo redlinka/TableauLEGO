@@ -9,9 +9,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="TableauLEGO" />
         <module name="java2BrickFusion" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="TableauLEGO" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
