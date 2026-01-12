@@ -13,6 +13,9 @@ if (!isset($_SESSION['userId'])) {
 $userId  = $_SESSION['userId'];
 $errors  = [];
 $success = '';
+if (isset($_GET['success']) && $_GET['success'] == 1) {
+    $success = tr('account.update_success', 'Information updated successfully!');
+}
 
 // Fetch latest user data for display
 try {
@@ -173,16 +176,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $user = [
-        'username'   => $user['username'],
-        'email'      => $user['email'],
-        'name'       => $user['first_name'],
-        'surname'    => $user['last_name'],
-        'phone'      => $user['phone'],
-        'birth_year' => $user['birth_year'],
-        'street'     => $addressData['street'] ?? '',
-        'zip'        => $addressData['postal_code'] ?? '',
-        'city'       => $addressData['city'] ?? '',
-        'country'    => $addressData['country'] ?? ''
+        'username'   => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $username : $user['username'],
+        'email'      => $user['email'], // Toujours l'email de la BDD car disabled
+        'name'       => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $name : $user['first_name'],
+        'surname'    => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $surname : $user['last_name'],
+        'phone'      => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $phone : $user['phone'],
+        'birth_year' => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $birthYear : $user['birth_year'],
+        'street'     => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $street : ($addressData['street'] ?? ''),
+        'zip'        => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $zip : ($addressData['postal_code'] ?? ''),
+        'city'       => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $city : ($addressData['city'] ?? ''),
+        'country'    => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $country : ($addressData['country'] ?? '')
 ];
 ?>
 
