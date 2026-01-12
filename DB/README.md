@@ -41,9 +41,16 @@ Il n'existe pas de table `CARTS` distincte. La logique repose sur l'état de la 
 2. Consultation du panier : `SELECT` filtré sur la date nulle.
 3. Paiement : `UPDATE` attribuant la date actuelle (`NOW()`), transformant le brouillon en commande immuable.
 
+### 4. Gestion des Adresses (immuable pour les factures)
+
+Le système d'adresses sépare les coordonnées de profil des coordonnées de facturation pour garantir l'exactitude historique.
+- **Adresse par Défaut (is_default = 1) :** Chaque utilisateur possède une adresse "active" dans la table `ADDRESS`, marquée par le flag `is_default`. Cette adresse est modifiable via le profil et sert à pré-remplir les formulaires de commande.
+- **Instantané de Commande (is_default = 0) :** Lors de la validation d'une commande, le système crée une nouvelle ligne dans la table `ADDRESS` avec les informations saisies à l'instant T.
+- **Intégrité** : La table `ORDER_BILL` pointe vers cet ID unique et immuable. Ainsi, si un utilisateur modifie son adresse de profil, il modifie uniquement son addresse par default, l'adresse enregistrée sur ses factures passées reste inchangée.
 
 
-### 4. Audit et Journalisation
+
+### 5. Audit et Journalisation
 
 Toutes les actions sensibles sont enregistrées dans la table `LOGS` selon une syntaxe linguistique stricte pour faciliter l'analyse syntaxique (parsing).
 
