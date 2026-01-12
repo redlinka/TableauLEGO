@@ -356,9 +356,13 @@ $total = $subtotal + $shipping;
             <strong><?= money($total) ?></strong>
           </div>
 
-          <form method="post" action="order.php">
-            <button type="submit" class="order-btn" data-i18n="cart.order" <?= empty($items) ? "disabled" : "" ?>>Order</button>
-          </form>
+            <?php if (!empty($items)): ?>
+                <a href="order.php" class="order-btn" style="text-decoration: none; display: block; text-align: center;" data-i18n="cart.order">
+                    Order
+                </a>
+            <?php else: ?>
+                <button class="order-btn" disabled data-i18n="cart.order">Order</button>
+            <?php endif; ?>
 
           <a href="index.php" class="back-link" data-i18n="cart.back">Back to start</a>
         </div>

@@ -1,11 +1,7 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 session_start();
 global $cnx;
 include("./config/cnx.php");
-
 
 if (!isset($_SESSION['userId'])) {
     $_SESSION['redirect_after_login'] = 'order.php';
@@ -16,14 +12,11 @@ if (!isset($_SESSION['userId'])) {
 $userId = (int)$_SESSION['userId'];
 $errors = [];
 
-
 $totalPrice = isset($_SESSION['moneyea']) ? (float)$_SESSION['moneyea'] : 49.99;
-
 
 $isLocal = in_array($_SERVER['SERVER_NAME'] ?? '', ['localhost', '127.0.0.1'], true)
     || str_starts_with($_SERVER['HTTP_HOST'] ?? '', 'localhost')
     || str_starts_with($_SERVER['HTTP_HOST'] ?? '', '127.0.0.1');
-
 
 $stmt = $cnx->prepare("
     SELECT order_id, address_id
@@ -43,7 +36,6 @@ if (!$cart) {
 $cartOrderId   = (int)$cart['order_id'];
 $cartAddressId = !empty($cart['address_id']) ? (int)$cart['address_id'] : 0;
 
-
 $stmt = $cnx->prepare("
     SELECT first_name, last_name, phone
     FROM USER
@@ -57,28 +49,26 @@ $fillName    = $u['first_name'] ?? '';
 $fillSurname = $u['last_name'] ?? '';
 $fillPhone   = $u['phone'] ?? '';
 
-if ($cartAddressId > 0) {
-    $stmt = $cnx->prepare("
-        SELECT street, postal_code, city, country
-        FROM ADDRESS
-        WHERE user_id = ? and is_default = 1
-        LIMIT 1
-    ");
-    $stmt->execute([$userId]);
-    $defaultAddr = $stmt->fetch(PDO::FETCH_ASSOC);
-    $fillAddr    = $defaultAddr['street'] ?? '';
-    $fillZip     = $defaultAddr['postal_code'] ?? '';
-    $fillCity    = $defaultAddr['city'] ?? '';
-    $fillCountry = $defaultAddr['country'] ?? 'France';
-}
+$stmt = $cnx->prepare("
+    SELECT street, postal_code, city, country
+    FROM ADDRESS
+    WHERE user_id = ? and is_default = 1
+    LIMIT 1
+");
+$stmt->execute([$userId]);
+$defaultAddr = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$fillAddr    = $defaultAddr['street'] ?? '';
+$fillZip     = $defaultAddr['postal_code'] ?? '';
+$fillCity    = $defaultAddr['city'] ?? '';
+$fillCountry = $defaultAddr['country'] ?? 'France';
 
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_order'])) {
 
     if (!csrf_validate($_POST['csrf'] ?? '')) {
         $errors[] = "Invalid security token (CSRF). Please try again.";
     }
-
 
     $fName   = trim($_POST['first_name'] ?? '');
     $lName   = trim($_POST['last_name'] ?? '');
@@ -89,17 +79,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $zip     = trim($_POST['zip'] ?? '');
     $country = trim($_POST['country'] ?? '');
 
-
     $fillName    = $fName;
     $fillSurname = $lName;
     $fillPhone   = $phone;
     $fillAddr    = $street;
     $fillCity    = $city;
     $fillZip     = $zip;
-    $fillCountry = ($country !== '' ? $country : $fillCountry);
-
-
-
+    $fillCountry = $country;
 
     if (empty($errors) && !$isLocal) {
         $token = $_POST['cf-turnstile-response'] ?? '';
@@ -117,13 +103,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-
     if (empty($errors)) {
         if ($fName === '' || $lName === '' || $phone === '' || $street === '' || $city === '' || $zip === '' || $country === '') {
             $errors[] = "Please fill in all contact and shipping fields.";
         }
     }
-
 
     if (empty($errors)) {
         $cardNum = str_replace(' ', '', $_POST['card_number'] ?? '');
@@ -133,7 +117,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "Payment Declined: Invalid Test Card Credentials.";
         }
     }
-
 
     if (empty($errors)) {
         try {
@@ -145,11 +128,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $orderAddressId = (int)$cnx->lastInsertId();
 
             // Update the user's default address
-            $cnx->prepare("UPDATE ADDRESS SET is_default = 0 WHERE user_id = ?")->execute([$userId]);
+            $cnx->prepare("UPDATE ADDRESS SET is_default = 0 WHERE user_id = ? AND is_default = 1")->execute([$userId]);
             $stmt = $cnx->prepare("INSERT INTO ADDRESS (street, postal_code, city, country, user_id, is_default) VALUES (?, ?, ?, ?, ?, 1)");
             $stmt->execute([$street, $zip, $city, $country, $userId]);
 
-            // We can also update the user's infos (first name, last name, phone, etc.)
+            // Update the user's infos
+            $stmt = $cnx->prepare("UPDATE USER SET first_name = ?, last_name = ?, phone = ? WHERE user_id = ?");
+            $stmt->execute([$fName, $lName, $phone, $userId]);
 
             // Validate order
             $stmt = $cnx->prepare("UPDATE ORDER_BILL SET created_at = NOW(), address_id = ? WHERE order_id = ?");
@@ -176,6 +161,10 @@ $stmt = $cnx->prepare("
     ");
 $stmt->execute(['oid' => $cartOrderId]);
 $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+if (empty($rows)) {
+    header("Location: cart.php?error=empty_cart");
+    exit;
+}
 
 $total = 0.0;
 foreach ($rows as $txt) {
@@ -305,13 +294,32 @@ $totaux = $livraison + $totalPrice;
                         </div>
                     </div>
 
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white fw-bold">4. Order Summary</div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <span>Subtotal:</span>
+                                <span><?= number_format($totalPrice, 2) ?> EUR</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Shipping (10%):</span>
+                                <span><?= number_format($livraison, 2) ?> EUR</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold fs-5">
+                                <span>Total:</span>
+                                <span><?= number_format($totaux, 2) ?> EUR</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-4 d-flex justify-content-center">
                         <div class="cf-turnstile" data-sitekey="<?= htmlspecialchars($_ENV['CLOUDFLARE_TURNSTILE_PUBLIC'] ?? '') ?>"></div>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                         <a href="cart.php" class="btn btn-outline-secondary">← Back to Cart</a>
-                        <button class="btn btn-primary btn-lg" type="submit">
+                        <button class="btn btn-primary btn-lg" type="submit" name="confirm_order">
                             Confirm Order ($<?= number_format($totaux, 2) ?>)
                         </button>
                     </div>
