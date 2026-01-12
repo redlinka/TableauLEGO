@@ -84,9 +84,15 @@ Toutes les actions sensibles sont enregistrées dans la table `LOGS` selon une s
 
 ### Mosaïques & Commandes
 
-* **`PAVAGE`** : Représente le projet de mosaïque généré. Lie le système de fichiers à l'utilisateur.
-* **`ORDERS`** : Gère les transactions financières.
-* **`ORDER_ITEMS`** : Table de liaison Many-to-Many entre les Commandes et le Catalogue.
+* **`ADDRESS`** : Stocke les coordonnées géographiques.
+  * `is_default = 1` : Adresse liée au profil utilisateur (pré-remplissage).
+  * `is_default = 0` : Adresse "gelée" liée à une commande spécifique.
+* **`ORDER_BILL`** : Gère les transactions financières.
+  * `created_at IS NULL` : État "Panier"
+  * `address_id` : Référence l'ID de l'adresse utilisée au moment précis du paiement.
+* **`contain`** : Table de liaison Many-to-Many entre les Commandes et le Catalogue.
+* **`TILLING`** : Contient les métadonnées du pavage final (lien vers le fichier .txt et vers l'id de l'image)
+* **`IMAGE`** : Table gérant la hiérarchie des fichiers. Elle lie l'image originale aux versions croppées, pixelisées, filtrées et finalement au rendu LEGO via une relation parent-enfant (`img_parent`).
 
 ---
 
