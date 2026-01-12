@@ -66,22 +66,23 @@ if ($cartAddressId > 0) {
     $stmt = $cnx->prepare("
         SELECT street, postal_code, city, country
         FROM ADDRESS
-        WHERE address_id = :aid AND user_id = :uid
+        WHERE user_id = ? and is_default = 1
         LIMIT 1
     ");
-    $stmt->execute(['aid' => $cartAddressId, 'uid' => $userId]);
-    $a = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($a) {
-        $fillAddr    = $a['street'] ?? $fillAddr;
-        $fillZip     = $a['postal_code'] ?? '';
-        $fillCity    = $a['city'] ?? '';
-        $fillCountry = $a['country'] ?? $fillCountry;
-    }
+    $stmt->execute([$userId]);
+    $defaultAddr = $stmt->fetch(PDO::FETCH_ASSOC);
+    $fillAddr    = $defaultAddr['street'] ?? '';
+    $fillZip     = $defaultAddr['postal_code'] ?? '';
+    $fillCity    = $defaultAddr['city'] ?? '';
+    $fillCountry = $defaultAddr['country'] ?? 'France';
 }
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    if (!csrf_validate($_POST['csrf'] ?? '')) {
+        $errors[] = "Invalid security token (CSRF). Please try again.";
+    }
 
 
     $fName   = trim($_POST['first_name'] ?? '');
@@ -143,57 +144,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $cnx->beginTransaction();
 
+            // Create the fixed address for this order
+            $stmt = $cnx->prepare("INSERT INTO ADDRESS (street, postal_code, city, country, user_id, is_default) VALUES (?, ?, ?, ?, ?, 0)");
+            $stmt->execute([$street, $zip, $city, $country, $userId]);
+            $orderAddressId = (int)$cnx->lastInsertId();
 
-            $stmt = $cnx->prepare("
-                INSERT INTO ADDRESS (street, postal_code, city, country, user_id)
-                VALUES (:street, :postal, :city, :country, :uid)
-            ");
-            $stmt->execute([
-                'street'  => $street,
-                'postal'  => $zip,
-                'city'    => $city,
-                'country' => $country,
-                'uid'     => $userId
-            ]);
-            $newAddressId = (int)$cnx->lastInsertId();
+            // Update the user's default address
+            $cnx->prepare("UPDATE ADDRESS SET is_default = 0 WHERE user_id = ?")->execute([$userId]);
+            $stmt = $cnx->prepare("INSERT INTO ADDRESS (street, postal_code, city, country, user_id, is_default) VALUES (?, ?, ?, ?, ?, 1)");
+            $stmt->execute([$street, $zip, $city, $country, $userId]);
 
+            // We can also update the user's infos (first name, last name, phone, etc.)
 
-            $stmt = $cnx->prepare("
-                UPDATE USER
-                SET first_name = :fn,
-                    last_name = :ln,
-                    phone = :ph,
-                    default_address = :da
-                WHERE user_id = :uid
-            ");
-            $stmt->execute([
-                'fn'  => $fName,
-                'ln'  => $lName,
-                'ph'  => $phone,
-                'da'  => $street,
-                'uid' => $userId
-            ]);
-
-
-            $stmt = $cnx->prepare("
-                UPDATE ORDER_BILL
-                SET created_at = NOW(),
-                    address_id = :aid
-                WHERE order_id = :oid
-                  AND user_id = :uid
-                  AND created_at IS NULL
-            ");
-            $stmt->execute([
-                'aid' => $newAddressId,
-                'oid' => $cartOrderId,
-                'uid' => $userId
-            ]);
-
-            if ($stmt->rowCount() === 0) {
-                $cnx->rollBack();
-                header("Location: cart.php");
-                exit;
-            }
+            // Validate order
+            $stmt = $cnx->prepare("UPDATE ORDER_BILL SET created_at = NOW(), address_id = ? WHERE order_id = ?");
+            $stmt->execute([$orderAddressId, $cartOrderId]);
 
             $cnx->commit();
 
@@ -203,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         } catch (Exception $e) {
             $cnx->rollBack();
-            $errors[] = "System Error: " . $e->getMessage();
+            //$errors[] = "System Error: " . $e->getMessage();
         }
     }
 }
@@ -218,10 +183,10 @@ $stmt->execute(['oid' => $cartOrderId]);
 $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
 $total = 0.0;
-
 foreach ($rows as $txt) {
-    if (preg_match('/^\d+(\.\d+)?/', $txt, $m)) {
-        $total += (float)$m[0] / 100;
+    $stats = getTilingStats($txt); // Utilise la fonction définie dans cnx.php
+    if (isset($stats['price'])) {
+        $total += (float)$stats['price'] / 100;
     }
 }
 

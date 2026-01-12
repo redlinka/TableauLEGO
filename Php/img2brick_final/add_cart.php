@@ -34,14 +34,14 @@ try {
     $orderId = (int)$stmt->fetchColumn();
 
     if ($orderId <= 0) {
-        // Search for an address
-        $stmt = $cnx->prepare("SELECT address_id FROM ADDRESS WHERE user_id = ? LIMIT 1");
+        // Search for his default address
+        $stmt = $cnx->prepare("SELECT address_id FROM ADDRESS WHERE user_id = ? AND is_default = 1 LIMIT 1");
         $stmt->execute([$userId]);
         $addressId = (int)$stmt->fetchColumn();
 
-        // Create a temporary empty address
+        // Create a temporary empty address if he don't have one
         if ($addressId <= 0) {
-            $stmt = $cnx->prepare("INSERT INTO ADDRESS (user_id) VALUES (?)");
+            $stmt = $cnx->prepare("INSERT INTO ADDRESS (user_id, is_default) VALUES (?, 0)");
             $stmt->execute([$userId]);
             $addressId = (int)$cnx->lastInsertId();
         }

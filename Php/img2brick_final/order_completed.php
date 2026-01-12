@@ -22,7 +22,6 @@ if ($orderId <= 0) {
 }
 
 try {
-
     $stmt = $cnx->prepare("
         SELECT order_id, user_id, created_at, address_id
         FROM ORDER_BILL
