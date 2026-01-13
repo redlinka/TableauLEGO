@@ -200,18 +200,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $legoImageId = (int)$_SESSION['step4_image_id'];
                 $pavageFile = $finalTxtName;
+                $_SESSION['pavage_txt'] = $pavageFile;
 
-                $stmt = $cnx->prepare("SELECT pavage_id FROM TILLING WHERE image_id = ? LIMIT 1");
-                $stmt->execute([$legoImageId]);
-                $pavageId = $stmt->fetchColumn();
+                // $stmt = $cnx->prepare("SELECT pavage_id FROM TILLING WHERE image_id = ? LIMIT 1");
+                // $stmt->execute([$legoImageId]);
+                // $pavageId = $stmt->fetchColumn();
 
-                if ($pavageId) {
-                    $stmt = $cnx->prepare("UPDATE TILLING SET pavage_txt = ? WHERE image_id = ?");
-                    $stmt->execute([$pavageFile, $legoImageId]);
-                } else {
-                    $stmt = $cnx->prepare("INSERT INTO TILLING (image_id, pavage_txt) VALUES (?, ?)");
-                    $stmt->execute([$legoImageId, $pavageFile]);
-                }
+                // if ($pavageId) {
+                //     $stmt = $cnx->prepare("UPDATE TILLING SET pavage_txt = ? WHERE image_id = ?");
+                //     $stmt->execute([$pavageFile, $legoImageId]);
+                // } else {
+                //     $stmt = $cnx->prepare("INSERT INTO TILLING (image_id, pavage_txt) VALUES (?, ?)");
+                //     $stmt->execute([$legoImageId, $pavageFile]);
+                // }
 
                 $previewImage = $imgFolder . $finalPngName . ".png" . '?t=' . time(); // add .png
                 addLog($cnx, "USER", "GENERATE", "pavage");
