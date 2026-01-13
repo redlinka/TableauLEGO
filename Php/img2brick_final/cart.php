@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) 
 
       deleteDescendants($cnx, $rootImageId, $imgDirPath, $tilingDirPath, false);
     }
-    addLog($cnx, "USER", "DELETE", "pavage");
+    addLog($cnx, "USER", "`DELETE`", "pavage");
     $cnx->commit();
     header("Location: cart.php");
     exit;
