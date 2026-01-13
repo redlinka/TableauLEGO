@@ -133,18 +133,7 @@ function generateMosaicManual($filepath) {
     $pdf->SetXY(12, 12);
     $pdf->Cell(50, 10, "Date: " . date("d/m/Y"), 0, 1, 'L');
 
-    // CENTERED STYLIZED TITLE
-    $titleText = "Tiling construction guide";
-    $pdf->SetFont('Arial', 'B', 40);
-
-    $totalWidth = $pdf->GetStringWidth($titleText);
-    $startX = (297 - $totalWidth) / 2;
-    $yPos = 90;
-
-    $pdf->SetXY($startX, $yPos);
-    $pdf->SetLineWidth(0.8);
-    $pdf->SetDrawColor(0, 0, 0);
-
+    // === STYLIZED TITLES ===
     $colors = [
         [220, 0, 0],   // Red
         [0, 85, 191],  // Blue
@@ -154,20 +143,51 @@ function generateMosaicManual($filepath) {
     ];
     $cIdx = 0;
 
-    // USE HELPER FUNCTION instead of direct _out call
+    // Enable Text Outline Mode (Fill + Stroke)
     $pdf->SetTextRenderingMode(2);
+    $pdf->SetLineWidth(0.4); // Thinner line for non-bold text
+    $pdf->SetDrawColor(0, 0, 0);
 
-    for ($i = 0; $i < strlen($titleText); $i++) {
-        $char = $titleText[$i];
+    // --- Line 1: "TableauLEGO" (Smaller) ---
+    $title1 = "TableauLEGO";
+    $pdf->SetFont('Arial', '', 30); // Regular, Size 30
 
+    $w1 = $pdf->GetStringWidth($title1);
+    $x1 = (297 - $w1) / 2;
+    $y1 = 80; // Top Position
+
+    $pdf->SetXY($x1, $y1);
+
+    for ($i = 0; $i < strlen($title1); $i++) {
+        $char = $title1[$i];
         if ($char == ' ') {
             $pdf->Cell($pdf->GetStringWidth(' '), 15, ' ', 0, 0);
             continue;
         }
-
         $rgb = $colors[$cIdx % count($colors)];
         $pdf->SetFillColor($rgb[0], $rgb[1], $rgb[2]);
+        $pdf->Cell($pdf->GetStringWidth($char), 15, $char, 0, 0);
+        $cIdx++;
+    }
 
+    // --- Line 2: "Tiling construction guide" (Main) ---
+    $title2 = "Tiling construction guide";
+    $pdf->SetFont('Arial', '', 40); // Regular, Size 40
+
+    $w2 = $pdf->GetStringWidth($title2);
+    $x2 = (297 - $w2) / 2;
+    $y2 = 95; // Below first line
+
+    $pdf->SetXY($x2, $y2);
+
+    for ($i = 0; $i < strlen($title2); $i++) {
+        $char = $title2[$i];
+        if ($char == ' ') {
+            $pdf->Cell($pdf->GetStringWidth(' '), 15, ' ', 0, 0);
+            continue;
+        }
+        $rgb = $colors[$cIdx % count($colors)];
+        $pdf->SetFillColor($rgb[0], $rgb[1], $rgb[2]);
         $pdf->Cell($pdf->GetStringWidth($char), 15, $char, 0, 0);
         $cIdx++;
     }
