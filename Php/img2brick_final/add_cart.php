@@ -70,6 +70,8 @@ try {
         $tiling = $stmt->fetch(PDO::FETCH_ASSOC);
         $tilingId = (int)$tiling['pavage_id'];
 
+        echo "Tiling id " . $tilingId;
+
         // Add to cart (contain)
         $stmt = $cnx->prepare("INSERT INTO contain (order_id, pavage_id) VALUES (?, ?)");
         $stmt->execute([$orderId, $tilingId]);
