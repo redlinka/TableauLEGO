@@ -9,12 +9,12 @@ if (!file_exists('fpdf.php')) {
 }
 require('fpdf.php');
 
-// --- PDF CLASS ---
 class MosaicPDF extends FPDF {
     public $titleHeader = "";
     public $subHeader = "";
+    public $isCustomPage = false;
 
-    // Helper to allow access to protected _out method for text effects
+    // Helper for text rendering modes (outlines)
     function SetTextRenderingMode($mode) {
         $this->_out($mode . ' Tr');
     }
@@ -30,16 +30,24 @@ class MosaicPDF extends FPDF {
         $this->SetFillColor($r, $g, $b);
     }
 
-    // GLOBAL HEADER (Runs on every page)
     function Header() {
-        // 1. BLUE FRAME ON EVERY PAGE
-        $this->SetDrawColor(0, 102, 204); // Nice Lego Blue
+        // Skip standard header drawing if this is our custom sized page
+        if ($this->isCustomPage) {
+            // Minimal Header for the big plan
+            $this->SetY(5);
+            $this->SetTextColor(0);
+            $this->SetFont('Arial', 'B', 16);
+            $this->Cell(0, 10, "Mosaic Plan", 0, 1, 'C');
+            return;
+        }
+
+        // Standard Blue Frame for normal pages
+        $this->SetDrawColor(0, 102, 204);
         $this->SetLineWidth(1.5);
         $this->Rect(5, 5, 287, 200);
 
-        // Standard Header Content
         if (!empty($this->titleHeader)) {
-            $this->SetY(10); // Reset Y inside the frame
+            $this->SetY(10);
             $this->SetTextColor(0);
             $this->SetFont('Arial', 'B', 18);
             $this->Cell(0, 10, $this->titleHeader, 0, 1, 'C');
@@ -50,7 +58,6 @@ class MosaicPDF extends FPDF {
             }
             $this->Ln(2);
 
-            // Separator Line
             $this->SetDrawColor(200, 200, 200);
             $this->SetLineWidth(0.2);
             $this->Line(10, $this->GetY(), 287, $this->GetY());
@@ -71,7 +78,7 @@ function generateMosaicManual($filepath) {
         die("Error: File not found.");
     }
 
-    // 1. PARSE LOGIC
+    // --- Parse Data ---
     $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     $bricks = [];
     $maxX = 0; $maxY = 0;
@@ -120,20 +127,20 @@ function generateMosaicManual($filepath) {
     foreach ($bricks as &$b) { $b['legend_id'] = $legend[$b['type_key']]['id']; }
     unset($b);
 
-    // 2. SETUP PDF
+    // --- Setup PDF ---
     $pdf = new MosaicPDF('L', 'mm', 'A4');
     $pdf->SetMargins(10, 10, 10);
     $pdf->SetAutoPageBreak(false);
 
-    // --- COVER PAGE (Guard Page) ---
+    // --- Cover Page ---
     $pdf->AddPage();
 
-    // Date Top-Left
+    // Date
     $pdf->SetFont('Arial', '', 10);
     $pdf->SetXY(12, 12);
     $pdf->Cell(50, 10, "Date: " . date("d/m/Y"), 0, 1, 'L');
 
-    // === STYLIZED TITLES ===
+    // Stylized Titles
     $colors = [
         [220, 0, 0],   // Red
         [0, 85, 191],  // Blue
@@ -143,26 +150,22 @@ function generateMosaicManual($filepath) {
     ];
     $cIdx = 0;
 
-    // Enable Text Outline Mode (Fill + Stroke)
-    $pdf->SetTextRenderingMode(2);
-    $pdf->SetLineWidth(0.4); // Thinner line for non-bold text
+    $pdf->SetTextRenderingMode(2); // Outline mode
+    $pdf->SetLineWidth(0.4);
     $pdf->SetDrawColor(0, 0, 0);
 
-    // --- Line 1: "TableauLEGO" (Smaller) ---
+    // Title 1
     $title1 = "TableauLEGO";
-    $pdf->SetFont('Arial', '', 30); // Regular, Size 30
-
+    $pdf->SetFont('Arial', '', 30);
     $w1 = $pdf->GetStringWidth($title1);
     $x1 = (297 - $w1) / 2;
-    $y1 = 80; // Top Position
+    $y1 = 80;
 
     $pdf->SetXY($x1, $y1);
-
     for ($i = 0; $i < strlen($title1); $i++) {
         $char = $title1[$i];
         if ($char == ' ') {
-            $pdf->Cell($pdf->GetStringWidth(' '), 15, ' ', 0, 0);
-            continue;
+            $pdf->Cell($pdf->GetStringWidth(' '), 15, ' ', 0, 0); continue;
         }
         $rgb = $colors[$cIdx % count($colors)];
         $pdf->SetFillColor($rgb[0], $rgb[1], $rgb[2]);
@@ -170,32 +173,27 @@ function generateMosaicManual($filepath) {
         $cIdx++;
     }
 
-    // --- Line 2: "Tiling construction guide" (Main) ---
+    // Title 2
     $title2 = "Tiling construction guide";
-    $pdf->SetFont('Arial', '', 40); // Regular, Size 40
-
+    $pdf->SetFont('Arial', '', 40);
     $w2 = $pdf->GetStringWidth($title2);
     $x2 = (297 - $w2) / 2;
-    $y2 = 95; // Below first line
+    $y2 = 95;
 
     $pdf->SetXY($x2, $y2);
-
     for ($i = 0; $i < strlen($title2); $i++) {
         $char = $title2[$i];
         if ($char == ' ') {
-            $pdf->Cell($pdf->GetStringWidth(' '), 15, ' ', 0, 0);
-            continue;
+            $pdf->Cell($pdf->GetStringWidth(' '), 15, ' ', 0, 0); continue;
         }
         $rgb = $colors[$cIdx % count($colors)];
         $pdf->SetFillColor($rgb[0], $rgb[1], $rgb[2]);
         $pdf->Cell($pdf->GetStringWidth($char), 15, $char, 0, 0);
         $cIdx++;
     }
+    $pdf->SetTextRenderingMode(0); // Reset
 
-    // Reset Render Mode
-    $pdf->SetTextRenderingMode(0);
-
-    // --- PART LIST PAGE ---
+    // --- Part List Page ---
     $pdf->titleHeader = "Part List";
     $pdf->subHeader = "Total Size: $maxX x $maxY studs | Total Parts: " . count($bricks);
     $pdf->AddPage();
@@ -264,24 +262,62 @@ function generateMosaicManual($filepath) {
         }
     }
 
-    // --- FULL ASSEMBLY MAP ---
-    $pdf->titleHeader = "Assembly Map";
-    $pdf->subHeader = "Full View";
-    $pdf->AddPage();
+    // --- Dynamic Assembly Map ---
+    $pdf->isCustomPage = true; // Switch off blue frame for this page
 
-    $margin = 15;
-    $availH = 210 - 45 - 20;
-    $availW = 297 - (2 * $margin);
-    $drawStartY = $pdf->GetY();
+    // 1. Calculate Ideal Page Size
+    // We want stud size to be decently visible, e.g., 5mm per stud + margins
+    // Or we want it to fit on a screen nicely.
+    // Let's assume we want a fixed "unit" size per stud to ensure readability
+    // or simply fit the Aspect Ratio.
 
-    $scaleX = $availW / $maxX;
-    $scaleY = $availH / $maxY;
+    // Let's base it on A4 width (297mm) as a minimum, but extend height/width if needed.
+    // Fixed margins
+    $margin = 10;
+    $headerSpace = 20;
+    $footerSpace = 15;
+
+    // We determine the ratio.
+    // If mosaic is 100x100 studs. Ratio = 1.
+    // If mosaic is 100x20. Ratio = 5.
+
+    // Let's define a target stud size for optimal viewing (e.g., 8mm per stud is nice)
+    // But that might make massive PDFs.
+    // Let's try to fit it into a custom page that preserves aspect ratio.
+
+    // Strategy: Scale so the smallest dimension is at least standard A4 size (approx 200mm drawing area)
+    $minDim = 200;
+
+    if ($maxX > $maxY) {
+        // Landscape orientation
+        $drawW = max($minDim, $maxX * 5); // at least 5mm per stud?
+        $drawH = ($drawW / $maxX) * $maxY;
+    } else {
+        // Portrait orientation
+        $drawH = max($minDim, $maxY * 5);
+        $drawW = ($drawH / $maxY) * $maxX;
+    }
+
+    // Calculate final Page Size
+    $pageW = $drawW + ($margin * 2);
+    $pageH = $drawH + $headerSpace + $footerSpace;
+
+    $pdf->AddPage('L', [$pageW, $pageH]); // Custom size array [W, H]
+
+    // Draw Title manually since header is disabled
+    $pdf->SetY(5);
+    $pdf->SetFont('Arial', 'B', 16);
+    $pdf->Cell(0, 10, "Mosaic Plan", 0, 1, 'C');
+
+    // Draw Mosaic
+    $offsetX = $margin;
+    $offsetY = $headerSpace;
+
+    // We can use the calculated drawing dimensions directly
+    // Calculate Scale factor
+    $scaleX = $drawW / $maxX;
+    $scaleY = $drawH / $maxY;
     $scale = min($scaleX, $scaleY);
-
-    $gridDrawW = $maxX * $scale;
-    $gridDrawH = $maxY * $scale;
-    $offsetX = $margin + ($availW - $gridDrawW) / 2;
-    $offsetY = $drawStartY + ($availH - $gridDrawH) / 2;
 
     foreach ($bricks as $b) {
         $relX = $b['x'] * $scale;
@@ -297,7 +333,7 @@ function generateMosaicManual($filepath) {
         if ($w > 2 && $h > 2) {
             $pdf->SetTextColor(0);
             $fontSize = min($w, $h) * 0.6;
-            if ($fontSize > 8) $fontSize = 8;
+            if ($fontSize > 12) $fontSize = 12; // Cap max font
             if ($fontSize < 2.5) $fontSize = 2.5;
 
             $pdf->SetFont('Arial', 'B', $fontSize);
@@ -316,7 +352,7 @@ function generateMosaicManual($filepath) {
     $pdf->Output('I', 'Mosaic_Full_Manual.pdf');
 }
 
-// --- EXECUTION ---
+// --- Execution ---
 if (isset($_GET['file'])) {
     $filename = basename($_GET['file']);
     $folder = __DIR__ . '/users/tilings/';
