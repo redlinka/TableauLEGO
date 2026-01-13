@@ -14,7 +14,6 @@ class MosaicPDF extends FPDF {
     public $subHeader = "";
     public $isCustomPage = false;
 
-    // Helper for text rendering modes (outlines)
     function SetTextRenderingMode($mode) {
         $this->_out($mode . ' Tr');
     }
@@ -31,17 +30,16 @@ class MosaicPDF extends FPDF {
     }
 
     function Header() {
-        // Skip standard header drawing if this is our custom sized page
         if ($this->isCustomPage) {
             // Minimal Header for the big plan
             $this->SetY(5);
             $this->SetTextColor(0);
             $this->SetFont('Arial', 'B', 16);
+            // Center the title on the CURRENT page width
             $this->Cell(0, 10, "Mosaic Plan", 0, 1, 'C');
             return;
         }
 
-        // Standard Blue Frame for normal pages
         $this->SetDrawColor(0, 102, 204);
         $this->SetLineWidth(1.5);
         $this->Rect(5, 5, 287, 200);
@@ -66,6 +64,7 @@ class MosaicPDF extends FPDF {
     }
 
     function Footer() {
+        // Place footer 15mm from bottom of CURRENT page height
         $this->SetY(-15);
         $this->SetTextColor(0);
         $this->SetFont('Arial', 'I', 8);
@@ -134,23 +133,15 @@ function generateMosaicManual($filepath) {
 
     // --- Cover Page ---
     $pdf->AddPage();
-
-    // Date
     $pdf->SetFont('Arial', '', 10);
     $pdf->SetXY(12, 12);
     $pdf->Cell(50, 10, "Date: " . date("d/m/Y"), 0, 1, 'L');
 
     // Stylized Titles
-    $colors = [
-        [220, 0, 0],   // Red
-        [0, 85, 191],  // Blue
-        [255, 205, 3], // Yellow
-        [35, 120, 65], // Green
-        [255, 255, 255]// White
-    ];
+    $colors = [[220, 0, 0], [0, 85, 191], [255, 205, 3], [35, 120, 65], [255, 255, 255]];
     $cIdx = 0;
 
-    $pdf->SetTextRenderingMode(2); // Outline mode
+    $pdf->SetTextRenderingMode(2);
     $pdf->SetLineWidth(0.4);
     $pdf->SetDrawColor(0, 0, 0);
 
@@ -160,13 +151,10 @@ function generateMosaicManual($filepath) {
     $w1 = $pdf->GetStringWidth($title1);
     $x1 = (297 - $w1) / 2;
     $y1 = 80;
-
     $pdf->SetXY($x1, $y1);
     for ($i = 0; $i < strlen($title1); $i++) {
         $char = $title1[$i];
-        if ($char == ' ') {
-            $pdf->Cell($pdf->GetStringWidth(' '), 15, ' ', 0, 0); continue;
-        }
+        if ($char == ' ') { $pdf->Cell($pdf->GetStringWidth(' '), 15, ' ', 0, 0); continue; }
         $rgb = $colors[$cIdx % count($colors)];
         $pdf->SetFillColor($rgb[0], $rgb[1], $rgb[2]);
         $pdf->Cell($pdf->GetStringWidth($char), 15, $char, 0, 0);
@@ -179,34 +167,27 @@ function generateMosaicManual($filepath) {
     $w2 = $pdf->GetStringWidth($title2);
     $x2 = (297 - $w2) / 2;
     $y2 = 95;
-
     $pdf->SetXY($x2, $y2);
     for ($i = 0; $i < strlen($title2); $i++) {
         $char = $title2[$i];
-        if ($char == ' ') {
-            $pdf->Cell($pdf->GetStringWidth(' '), 15, ' ', 0, 0); continue;
-        }
+        if ($char == ' ') { $pdf->Cell($pdf->GetStringWidth(' '), 15, ' ', 0, 0); continue; }
         $rgb = $colors[$cIdx % count($colors)];
         $pdf->SetFillColor($rgb[0], $rgb[1], $rgb[2]);
         $pdf->Cell($pdf->GetStringWidth($char), 15, $char, 0, 0);
         $cIdx++;
     }
-    $pdf->SetTextRenderingMode(0); // Reset
+    $pdf->SetTextRenderingMode(0);
 
     // --- Part List Page ---
     $pdf->titleHeader = "Part List";
     $pdf->subHeader = "Total Size: $maxX x $maxY studs | Total Parts: " . count($bricks);
     $pdf->AddPage();
 
-    $colWidth = 65;
-    $rowHeight = 22;
-    $colsPerPage = 4;
+    $colWidth = 65; $rowHeight = 22; $colsPerPage = 4;
     $tableWidth = $colsPerPage * $colWidth;
     $startX = (297 - $tableWidth) / 2;
     $startY = $pdf->GetY();
-    $currentCol = 0;
-    $currentX = $startX;
-    $currentY = $startY;
+    $currentCol = 0; $currentX = $startX; $currentY = $startY;
 
     foreach ($legend as $type) {
         if ($currentY + $rowHeight > 180) {
@@ -225,15 +206,13 @@ function generateMosaicManual($filepath) {
         $pdf->SetXY($currentX, $currentY);
         $pdf->Cell(12, $rowHeight, "#" . $type['id'], 0, 0, 'C');
 
-        // Icon Logic
         $iconBoxW = 25; $iconBoxH = 16;
         $iconX = $currentX + 12;
         $iconY = $currentY + ($rowHeight - $iconBoxH) / 2;
 
         $scaleW = $iconBoxW / $type['w'];
         $scaleH = $iconBoxH / $type['h'];
-        $rawScale = min($scaleW, $scaleH);
-        $finalScale = min($rawScale, 3.5);
+        $finalScale = min(min($scaleW, $scaleH), 3.5);
 
         $drawW = $type['w'] * $finalScale;
         $drawH = $type['h'] * $finalScale;
@@ -255,85 +234,59 @@ function generateMosaicManual($filepath) {
         $currentCol++;
         if ($currentCol >= $colsPerPage) {
             $currentCol = 0;
-            $currentX = $startX;
-            $currentY += $rowHeight;
+            $currentX = $startX; $currentY += $rowHeight;
         } else {
             $currentX += $colWidth;
         }
     }
 
     // --- Dynamic Assembly Map ---
-    $pdf->isCustomPage = true; // Switch off blue frame for this page
+    $pdf->isCustomPage = true;
 
-    // 1. Calculate Ideal Page Size
-    // We want stud size to be decently visible, e.g., 5mm per stud + margins
-    // Or we want it to fit on a screen nicely.
-    // Let's assume we want a fixed "unit" size per stud to ensure readability
-    // or simply fit the Aspect Ratio.
+    // 1. Define Visual Scale
+    // We force a specific size per stud to ensure it looks good.
+    // 5mm per stud is usually a good balance for readability.
+    $studSize = 5;
 
-    // Let's base it on A4 width (297mm) as a minimum, but extend height/width if needed.
-    // Fixed margins
-    $margin = 10;
-    $headerSpace = 20;
-    $footerSpace = 15;
+    // 2. Calculate Content Size
+    $contentW = $maxX * $studSize;
+    $contentH = $maxY * $studSize;
 
-    // We determine the ratio.
-    // If mosaic is 100x100 studs. Ratio = 1.
-    // If mosaic is 100x20. Ratio = 5.
+    // 3. Define Margins
+    $marginLR = 10; // Left/Right margin
+    $marginTop = 20; // Space for Title
+    $marginBot = 20; // Space for Footer
 
-    // Let's define a target stud size for optimal viewing (e.g., 8mm per stud is nice)
-    // But that might make massive PDFs.
-    // Let's try to fit it into a custom page that preserves aspect ratio.
+    // 4. Calculate Final Page Dimensions
+    $finalPageW = $contentW + ($marginLR * 2);
+    $finalPageH = $contentH + $marginTop + $marginBot;
 
-    // Strategy: Scale so the smallest dimension is at least standard A4 size (approx 200mm drawing area)
-    $minDim = 200;
+    // 5. Create the Page (Orientation based on W vs H)
+    $orientation = ($finalPageW > $finalPageH) ? 'L' : 'P';
+    $pdf->AddPage($orientation, array($finalPageW, $finalPageH));
 
-    if ($maxX > $maxY) {
-        // Landscape orientation
-        $drawW = max($minDim, $maxX * 5); // at least 5mm per stud?
-        $drawH = ($drawW / $maxX) * $maxY;
-    } else {
-        // Portrait orientation
-        $drawH = max($minDim, $maxY * 5);
-        $drawW = ($drawH / $maxY) * $maxX;
-    }
-
-    // Calculate final Page Size
-    $pageW = $drawW + ($margin * 2);
-    $pageH = $drawH + $headerSpace + $footerSpace;
-
-    $pdf->AddPage('L', [$pageW, $pageH]); // Custom size array [W, H]
-
-    // Draw Title manually since header is disabled
-    $pdf->SetY(5);
-    $pdf->SetFont('Arial', 'B', 16);
-    $pdf->Cell(0, 10, "Mosaic Plan", 0, 1, 'C');
-
-    // Draw Mosaic
-    $offsetX = $margin;
-    $offsetY = $headerSpace;
-
-    // We can use the calculated drawing dimensions directly
-    // Calculate Scale factor
-    $scaleX = $drawW / $maxX;
-    $scaleY = $drawH / $maxY;
-    $scale = min($scaleX, $scaleY);
+    // 6. Draw Content
+    // We offset by the top margin and left margin.
+    // Since page size is calculated EXACTLY for this content + margins, centering happens automatically.
+    $offsetX = $marginLR;
+    $offsetY = $marginTop;
 
     foreach ($bricks as $b) {
-        $relX = $b['x'] * $scale;
-        $relY = $b['y'] * $scale;
-        $w = $b['w'] * $scale;
-        $h = $b['h'] * $scale;
+        $relX = $b['x'] * $studSize;
+        $relY = $b['y'] * $studSize;
+        $w = $b['w'] * $studSize;
+        $h = $b['h'] * $studSize;
 
         $pdf->SetFillColor(255, 255, 255);
         $pdf->SetDrawColor(0, 0, 0);
         $pdf->SetLineWidth(0.2);
         $pdf->Rect($offsetX + $relX, $offsetY + $relY, $w, $h, 'FD');
 
+        // Text Logic
         if ($w > 2 && $h > 2) {
             $pdf->SetTextColor(0);
             $fontSize = min($w, $h) * 0.6;
-            if ($fontSize > 12) $fontSize = 12; // Cap max font
+            if ($fontSize > 12) $fontSize = 12;
             if ($fontSize < 2.5) $fontSize = 2.5;
 
             $pdf->SetFont('Arial', 'B', $fontSize);
