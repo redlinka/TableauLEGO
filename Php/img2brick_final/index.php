@@ -129,6 +129,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                         // Store image ID for next step
                         $_SESSION['step0_image_id'] = $cnx->lastInsertId();
+                        $_SESSION['image_name'] = $img['name'];
 
                         // Redirect to crop selection
                         addLog($cnx, "USER", "IMPORT", "image");

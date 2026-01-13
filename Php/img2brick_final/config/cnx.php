@@ -264,6 +264,12 @@ function addLog($cnx, $agent, $logAction, $logObject)
     //ex: addLog($cnx, "Client", "Create account", "Account");
 
     if (isset($_SESSION['userId'])) {
+
+        if ($logObject === "pavage") {
+            $logObject = $_SESSION['pavage_txt'];
+        } else if ($logObject === "image") {
+            $logObject = $_SESSION["image_name"];
+        }
         try {
             $cnx->beginTransaction();
             $stmt = $cnx->prepare("INSERT INTO `LOG` (agent, log_action, log_object, log_date, user_id) VALUES (?, ?, ?, NOW(), ?)");
