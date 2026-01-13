@@ -214,16 +214,16 @@ try {
                                 <h6 class="text-muted border-bottom pb-2" data-i18n="order_completed.payment">Payment Summary</h6>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span data-i18n="order_completed.kit">Mosaic Kit</span>
-                                    <span>$<?= htmlspecialchars(number_format($totalPrice, 2)) ?></span>
+                                    <span>$<?= htmlspecialchars(number_format($totalPric / 100, 2, ".", " ")) ?></span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span data-i18n="order_completed.shipping">Shipping</span>
-                                    <span>$<?= htmlspecialchars(number_format($livraison, 2)) ?></span>
+                                    <span>$<?= htmlspecialchars(number_format($livraison / 100, 2, ".", " ")) ?></span>
                                 </div>
                                 <hr>
                                 <div class="d-flex justify-content-between fs-5 fw-bold">
                                     <span data-i18n="order_completed.total">Total</span>
-                                    <span>$<?= htmlspecialchars(number_format($totaux, 2)) ?></span>
+                                    <span>$<?= htmlspecialchars(number_format($totaux / 100, 2, ".", " ")) ?></span>
                                 </div>
 
                                 <div class="mt-3 text-muted small">
