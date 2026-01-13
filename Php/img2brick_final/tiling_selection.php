@@ -199,7 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $txtContent = file_get_contents($outputTxtPath);
 
                 $legoImageId = (int)$_SESSION['step4_image_id'];
-                $pavageFile = $finalTxtName;
+                $pavageFile = __DIR__ . "/users/tilings/" . $finalTxtName;
                 $_SESSION['pavage_txt'] = $pavageFile;
 
                 // $stmt = $cnx->prepare("SELECT pavage_id FROM TILLING WHERE image_id = ? LIMIT 1");
