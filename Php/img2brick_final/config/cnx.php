@@ -284,7 +284,7 @@ function addLog($cnx, $agent, $logAction, $logObject)
 function getTilingStats($file)
 {
     $result = [];
-    $filePath = __DIR__ . "/../users/tilings/" . $file;
+    $filePath = $file;
     if (!file_exists($filePath)) {
         echo 'No file found at this path ' . $filePath;
         exit;
