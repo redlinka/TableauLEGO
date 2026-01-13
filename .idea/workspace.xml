@@ -5,16 +5,42 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="679ae0cd-5ae4-4e60-95a7-abaac7775f0f" name="Changes" comment="cleaned up structure and added payment">
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/legofactory/FactoryLoader.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/legofactory/LegoFactory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/CliInputTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/ImageRescalerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/image_processing/ImageUtilsTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/image_processing/LegoVisualizerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/image_processing/downscalers/BicubicInterpolatorTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/image_processing/downscalers/BilinearInterpolatorTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/image_processing/downscalers/NearestNeighbourTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/mediators/InventoryManagerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/mediators/OrderManagerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/mediators/RestockManagerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/payment_methods/PoWMethodTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/payment_methods/ProofOfWorkSolverTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/security/OfflineVerifierTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/security/OnlineVerifierTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/target/java2BrickFusion-1.0-SNAPSHOT.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/target/maven-archiver/pom.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/target/original-java2BrickFusion-1.0-SNAPSHOT.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Php/img2brick_final/logout.php" beforeDir="false" afterPath="$PROJECT_DIR$/Php/img2brick_final/logout.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/java/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/Brick.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/Brick.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/LegoVisualizer.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/image_processing/LegoVisualizer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/ManualRestock.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/ManualRestock.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/ProactionRestock.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/ProactionRestock.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/ReactionRestock.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/ReactionRestock.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/Refiller.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/Refiller.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/TileAndDraw.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/TileAndDraw.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/FactoryClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/legofactory/HttpFactoryClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/InventoryManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/InventoryManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/OrderManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/OrderManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/RestockManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/RestockManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/payment_methods/PaymentMethod.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/payment_methods/PaymentMethod.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/payment_methods/PoWMethod.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/payment_methods/PoWMethod.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/payment_methods/ProofOfWorkSolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/payment_methods/ProofOfWorkSolver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/security/BrickVerifier.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/security/BrickVerifier.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/security/OfflineVerifier.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/security/OfflineVerifier.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/security/OnlineVerifier.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/security/OnlineVerifier.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,7 +51,7 @@
     <execution />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="1084" />
+    <option name="cachedIndexableFilesCount" value="145" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="FileTemplateManagerImpl">
@@ -76,81 +102,81 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.ImageRescaler.executor": "Run",
-    "Application.ImageScaler.executor": "Run",
-    "Application.LegoVisualizer.executor": "Run",
-    "Application.Main.executor": "Run",
-    "Application.ManualRestock.executor": "Run",
-    "Application.ManualRestocker (2).executor": "Run",
-    "Application.ManualRestocker.executor": "Run",
-    "Application.OrderTester.executor": "Run",
-    "Application.PaymentTester.executor": "Run",
-    "Application.Proaction.executor": "Run",
-    "Application.ProactionRestock.executor": "Run",
-    "Application.Reaction.executor": "Run",
-    "Application.ReactionResctock.executor": "Run",
-    "Application.ReactionRestock.executor": "Run",
-    "Application.Refiller.executor": "Run",
-    "Application.TileAndDraw.executor": "Run",
-    "JUnit.All in java2BrickFusion.executor": "Run",
-    "JUnit.BicubicInterpolatorTest.executor": "Run",
-    "JUnit.BilinearInterpolatorTest.executor": "Run",
-    "JUnit.CertificateVerificationTest.executor": "Run",
-    "JUnit.ImageRescalerTest.executor": "Run",
-    "JUnit.ImageUtilsTest.executor": "Run",
-    "JUnit.InventoryManagerTest.executor": "Run",
-    "JUnit.LegoVisualizerTest.executor": "Run",
-    "JUnit.NearestNeighbourTest.executor": "Run",
-    "JUnit.OrderManagerTest.executor": "Run",
-    "JUnit.PoWMethodTest.executor": "Run",
-    "JUnit.ProofOfWorkSolverTest.executor": "Run",
-    "JUnit.RestockManagerTest.executor": "Run",
-    "Maven. [org.apache.maven.plugins:maven-archetype-plugin:RELEASE:generate].executor": "Run",
-    "Maven.java2BrickFusion [clean].executor": "Run",
-    "Maven.java2BrickFusion [compile].executor": "Run",
-    "Maven.java2BrickFusion [org.apache.maven.plugins:maven-clean-plugin:3.2.0:clean].executor": "Run",
-    "Maven.java2BrickFusion [org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile].executor": "Run",
-    "Maven.java2BrickFusion [org.apache.maven.plugins:maven-compiler-plugin:3.13.0:compile].executor": "Run",
-    "Maven.java2BrickFusion [org.apache.maven.plugins:maven-compiler-plugin:3.13.0:help].executor": "Run",
-    "Maven.java2BrickFusion [org.apache.maven.plugins:maven-jar-plugin:3.3.0:help].executor": "Run",
-    "Maven.java2BrickFusion [org.apache.maven.plugins:maven-jar-plugin:3.3.0:jar].executor": "Run",
-    "Maven.java2BrickFusion [package].executor": "Run",
-    "Maven.java2BrickFusion [verify].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
-    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
-    "dart.analysis.tool.window.visible": "false",
-    "deletionFromPopupRequiresConfirmation": "false",
-    "git-widget-placeholder": "dev",
-    "ignore.virus.scanning.warn.message": "true",
-    "ignore_missing_gitignore": "true",
-    "java.suggest.annotation.dependency": "false",
-    "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "C:/Users/nachn/OneDrive/Documents/GitHub/TableauLEGO/C",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.lookFeel",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.ImageRescaler.executor&quot;: &quot;Run&quot;,
+    &quot;Application.ImageScaler.executor&quot;: &quot;Run&quot;,
+    &quot;Application.LegoVisualizer.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.ManualRestock.executor&quot;: &quot;Run&quot;,
+    &quot;Application.ManualRestocker (2).executor&quot;: &quot;Run&quot;,
+    &quot;Application.ManualRestocker.executor&quot;: &quot;Run&quot;,
+    &quot;Application.OrderTester.executor&quot;: &quot;Run&quot;,
+    &quot;Application.PaymentTester.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Proaction.executor&quot;: &quot;Run&quot;,
+    &quot;Application.ProactionRestock.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Reaction.executor&quot;: &quot;Run&quot;,
+    &quot;Application.ReactionResctock.executor&quot;: &quot;Run&quot;,
+    &quot;Application.ReactionRestock.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Refiller.executor&quot;: &quot;Run&quot;,
+    &quot;Application.TileAndDraw.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.All in java2BrickFusion.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.BicubicInterpolatorTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.BilinearInterpolatorTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.CertificateVerificationTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ImageRescalerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ImageUtilsTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.InventoryManagerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.LegoVisualizerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.NearestNeighbourTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.OrderManagerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.PoWMethodTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ProofOfWorkSolverTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RestockManagerTest.executor&quot;: &quot;Run&quot;,
+    &quot;Maven. [org.apache.maven.plugins:maven-archetype-plugin:RELEASE:generate].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.java2BrickFusion [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.java2BrickFusion [compile].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.java2BrickFusion [org.apache.maven.plugins:maven-clean-plugin:3.2.0:clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.java2BrickFusion [org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.java2BrickFusion [org.apache.maven.plugins:maven-compiler-plugin:3.13.0:compile].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.java2BrickFusion [org.apache.maven.plugins:maven-compiler-plugin:3.13.0:help].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.java2BrickFusion [org.apache.maven.plugins:maven-jar-plugin:3.3.0:help].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.java2BrickFusion [org.apache.maven.plugins:maven-jar-plugin:3.3.0:jar].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.java2BrickFusion [package].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.java2BrickFusion [verify].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary&quot;: &quot;JUnit5&quot;,
+    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5&quot;: &quot;&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;deletionFromPopupRequiresConfirmation&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;ignore_missing_gitignore&quot;: &quot;true&quot;,
+    &quot;java.suggest.annotation.dependency&quot;: &quot;false&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/nachn/OneDrive/Documents/GitHub/TableauLEGO/C&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mariadb"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mariadb&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecapUselessUpdatesCounter">
     <option name="suspendCountdown" value="0" />
   </component>
@@ -173,25 +199,38 @@
       <recent name="" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="fr.uge.univ_eiffel.mediators" />
+      <recent name="fr.uge.univ_eiffel.image_processing" />
       <recent name="fr.uge.univ_eiffel" />
       <recent name="fr.uge.univ_eiffel.payment_methods.pow" />
     </key>
     <key name="CreateTestDialog.RecentsKey">
       <recent name="fr.uge.univ_eiffel" />
-      <recent name="fr.uge.univ_eiffel.payment_methods.pow" />
-      <recent name="fr.uge.univ_eiffel.image_processing.downscalers" />
-      <recent name="fr.uge.univ_eiffel.mediators" />
       <recent name="fr.uge.univ_eiffel.image_processing" />
+      <recent name="fr.uge.univ_eiffel.mediators" />
+      <recent name="fr.uge.univ_eiffel.payment_methods" />
+      <recent name="fr.uge.univ_eiffel.security" />
     </key>
   </component>
   <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="TableauLEGO" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="TableauLEGO" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
     <configuration name="LegoVisualizer" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="fr.uge.univ_eiffel.LegoVisualizer" />
+      <option name="MAIN_CLASS_NAME" value="fr.uge.univ_eiffel.image_processing.LegoVisualizer" />
       <module name="java2BrickFusion" />
       <option name="PROGRAM_PARAMETERS" value="result.txt preview.png" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="fr.uge.univ_eiffel.*" />
+          <option name="PATTERN" value="fr.uge.univ_eiffel.image_processing.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -212,12 +251,22 @@
     <configuration name="ManualRestock" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="fr.uge.univ_eiffel.ManualRestock" />
       <module name="java2BrickFusion" />
-      <option name="PROGRAM_PARAMETERS" value="output.txt" />
+      <option name="PROGRAM_PARAMETERS" value="result.txt" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="fr.uge.univ_eiffel.ReactionRestock" />
           <option name="ENABLED" value="true" />
         </pattern>
+      </extension>
+      <extension name="net.ashald.envfile">
+        <option name="IS_ENABLED" value="false" />
+        <option name="IS_SUBST" value="false" />
+        <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+        <option name="IS_IGNORE_MISSING_FILES" value="false" />
+        <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+        <ENTRIES>
+          <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
+        </ENTRIES>
       </extension>
       <method v="2">
         <option name="Make" enabled="true" />
@@ -229,7 +278,7 @@
       <option name="PROGRAM_PARAMETERS" value="1" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="fr.uge.univ_eiffel.*" />
+          <option name="PATTERN" value="fr.uge.univ_eiffel.image_processing.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -253,7 +302,7 @@
       <option name="PROGRAM_PARAMETERS" value="input.png output result.txt C_tiler.exe 1x1 relax" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="fr.uge.univ_eiffel.*" />
+          <option name="PATTERN" value="fr.uge.univ_eiffel.image_processing.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -271,22 +320,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="TableauLEGO" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="TableauLEGO" />
-      <option name="filePath" />
-      <method v="2" />
-    </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Application.Refiller" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -331,7 +364,7 @@
       <workItem from="1768150026635" duration="192000" />
       <workItem from="1768152099902" duration="1247000" />
       <workItem from="1768153709249" duration="10957000" />
-      <workItem from="1768246024371" duration="1390000" />
+      <workItem from="1768246024371" duration="7280000" />
     </task>
     <servers />
   </component>

@@ -1,5 +1,7 @@
 <?php
 session_start();
+global $cnx;
+include("./config/cnx.php");
 
 addLog($cnx, "USER", "LOG", "out");
 // Unset specific variable as requested

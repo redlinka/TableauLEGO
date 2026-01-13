@@ -1,8 +1,9 @@
 package fr.uge.univ_eiffel;
 
-import fr.uge.univ_eiffel.mediators.FactoryClient;
-import fr.uge.univ_eiffel.payment_methods.PaymentMethod;
-import fr.uge.univ_eiffel.payment_methods.PoWMethod;
+import fr.uge.univ_eiffel.mediators.legofactory.FactoryLoader;
+import fr.uge.univ_eiffel.mediators.legofactory.LegoFactory;
+import fr.uge.univ_eiffel.mediators.payment_methods.PaymentMethod;
+import fr.uge.univ_eiffel.mediators.payment_methods.PoWMethod;
 
 public class Refiller {
     public static void main(String[] args) throws Exception {
@@ -19,12 +20,12 @@ public class Refiller {
             return;
         }
 
-        final FactoryClient client = FactoryClient.makeFromProps("config.properties");
-        final PaymentMethod method = new PoWMethod(client);
+        final LegoFactory factory = FactoryLoader.loadFromProps("config.properties");
+        final PaymentMethod method = new PoWMethod(factory);
 
         System.out.println("Refilling account...");
-        System.out.println("Current account balance: " + client.balance());
+        System.out.println("Current account balance: " + factory.balance());
         method.pay(amount);
-        System.out.println("Balance is now: " + client.balance());
+        System.out.println("Balance is now: " + factory.balance());
     }
 }
