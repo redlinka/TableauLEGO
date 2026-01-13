@@ -14,6 +14,11 @@ class MosaicPDF extends FPDF {
     public $titleHeader = "";
     public $subHeader = "";
 
+    // Helper to allow access to protected _out method for text effects
+    function SetTextRenderingMode($mode) {
+        $this->_out($mode . ' Tr');
+    }
+
     function SetFillColorHex($hex) {
         $hex = ltrim($hex, '#');
         if(strlen($hex) == 3) {
@@ -30,10 +35,9 @@ class MosaicPDF extends FPDF {
         // 1. BLUE FRAME ON EVERY PAGE
         $this->SetDrawColor(0, 102, 204); // Nice Lego Blue
         $this->SetLineWidth(1.5);
-        // Draw Rect: x=5, y=5, width=287 (297-10), height=200 (210-10)
         $this->Rect(5, 5, 287, 200);
 
-        // Standard Header Content (Skipped on Cover Page if titleHeader is empty)
+        // Standard Header Content
         if (!empty($this->titleHeader)) {
             $this->SetY(10); // Reset Y inside the frame
             $this->SetTextColor(0);
@@ -67,7 +71,7 @@ function generateMosaicManual($filepath) {
         die("Error: File not found.");
     }
 
-    // 1. PARSE LOGIC (Unchanged)
+    // 1. PARSE LOGIC
     $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     $bricks = [];
     $maxX = 0; $maxY = 0;
@@ -126,24 +130,21 @@ function generateMosaicManual($filepath) {
 
     // Date Top-Left
     $pdf->SetFont('Arial', '', 10);
-    $pdf->SetXY(12, 12); // Inside the blue frame
+    $pdf->SetXY(12, 12);
     $pdf->Cell(50, 10, "Date: " . date("d/m/Y"), 0, 1, 'L');
 
     // CENTERED STYLIZED TITLE
-    // "Tiling construction guide"
     $titleText = "Tiling construction guide";
     $pdf->SetFont('Arial', 'B', 40);
 
-    // Calculate total width to center it
     $totalWidth = $pdf->GetStringWidth($titleText);
     $startX = (297 - $totalWidth) / 2;
-    $yPos = 90; // Center vertical-ish
+    $yPos = 90;
 
     $pdf->SetXY($startX, $yPos);
-    $pdf->SetLineWidth(0.8); // Thickness of outline
-    $pdf->SetDrawColor(0, 0, 0); // Black Outline
+    $pdf->SetLineWidth(0.8);
+    $pdf->SetDrawColor(0, 0, 0);
 
-    // Lego Colors: Red, Blue, Yellow, Green, White
     $colors = [
         [220, 0, 0],   // Red
         [0, 85, 191],  // Blue
@@ -153,10 +154,9 @@ function generateMosaicManual($filepath) {
     ];
     $cIdx = 0;
 
-    // RENDER MODE 2 = Fill + Stroke (Outline)
-    $pdf->_out('2 Tr');
+    // USE HELPER FUNCTION instead of direct _out call
+    $pdf->SetTextRenderingMode(2);
 
-    // Draw letter by letter
     for ($i = 0; $i < strlen($titleText); $i++) {
         $char = $titleText[$i];
 
@@ -165,7 +165,6 @@ function generateMosaicManual($filepath) {
             continue;
         }
 
-        // Set Fill Color
         $rgb = $colors[$cIdx % count($colors)];
         $pdf->SetFillColor($rgb[0], $rgb[1], $rgb[2]);
 
@@ -173,8 +172,8 @@ function generateMosaicManual($filepath) {
         $cIdx++;
     }
 
-    // Reset Render Mode to normal (0)
-    $pdf->_out('0 Tr');
+    // Reset Render Mode
+    $pdf->SetTextRenderingMode(0);
 
     // --- PART LIST PAGE ---
     $pdf->titleHeader = "Part List";
@@ -216,7 +215,7 @@ function generateMosaicManual($filepath) {
         $scaleW = $iconBoxW / $type['w'];
         $scaleH = $iconBoxH / $type['h'];
         $rawScale = min($scaleW, $scaleH);
-        $finalScale = min($rawScale, 3.5); // Cap stud size
+        $finalScale = min($rawScale, 3.5);
 
         $drawW = $type['w'] * $finalScale;
         $drawH = $type['h'] * $finalScale;
@@ -250,9 +249,8 @@ function generateMosaicManual($filepath) {
     $pdf->subHeader = "Full View";
     $pdf->AddPage();
 
-    // Margins logic
-    $margin = 15; // Increased inner margin
-    $availH = 210 - 45 - 20; // Height - Header - Buffer
+    $margin = 15;
+    $availH = 210 - 45 - 20;
     $availW = 297 - (2 * $margin);
     $drawStartY = $pdf->GetY();
 
