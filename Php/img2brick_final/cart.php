@@ -99,7 +99,7 @@ foreach ($row_pan as $row) {
 
   $price = 0.0;
   $pavageFile = trim((string)($row['pavage_txt'] ?? ''));
-  $txtPath = $pavageFile;
+  $txtPath = __DIR__ . "/users/tilings/" . $pavageFile;
 
   if ($pavageFile !== '' && is_file($txtPath) && is_readable($txtPath)) {
     $txtContent = file_get_contents($txtPath);
