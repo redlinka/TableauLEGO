@@ -11,7 +11,7 @@ require('fpdf.php');
 
 // --- PDF CLASS ---
 class MosaicPDF extends FPDF {
-    public $titleHeader = "Mosaic Assembly Guide";
+    public $titleHeader = "";
     public $subHeader = "";
 
     function SetFillColorHex($hex) {
@@ -25,23 +25,38 @@ class MosaicPDF extends FPDF {
         $this->SetFillColor($r, $g, $b);
     }
 
+    // GLOBAL HEADER (Runs on every page)
     function Header() {
-        $this->SetFont('Arial', 'B', 18);
-        $this->Cell(0, 10, $this->titleHeader, 0, 1, 'C');
+        // 1. BLUE FRAME ON EVERY PAGE
+        $this->SetDrawColor(0, 102, 204); // Nice Lego Blue
+        $this->SetLineWidth(1.5);
+        // Draw Rect: x=5, y=5, width=287 (297-10), height=200 (210-10)
+        $this->Rect(5, 5, 287, 200);
 
-        if ($this->subHeader) {
-            $this->SetFont('Arial', 'I', 12);
-            $this->Cell(0, 6, $this->subHeader, 0, 1, 'C');
+        // Standard Header Content (Skipped on Cover Page if titleHeader is empty)
+        if (!empty($this->titleHeader)) {
+            $this->SetY(10); // Reset Y inside the frame
+            $this->SetTextColor(0);
+            $this->SetFont('Arial', 'B', 18);
+            $this->Cell(0, 10, $this->titleHeader, 0, 1, 'C');
+
+            if ($this->subHeader) {
+                $this->SetFont('Arial', 'I', 12);
+                $this->Cell(0, 6, $this->subHeader, 0, 1, 'C');
+            }
+            $this->Ln(2);
+
+            // Separator Line
+            $this->SetDrawColor(200, 200, 200);
+            $this->SetLineWidth(0.2);
+            $this->Line(10, $this->GetY(), 287, $this->GetY());
+            $this->Ln(5);
         }
-        $this->Ln(5);
-
-        $this->SetDrawColor(200, 200, 200);
-        $this->Line(10, $this->GetY(), 287, $this->GetY());
-        $this->Ln(5);
     }
 
     function Footer() {
         $this->SetY(-15);
+        $this->SetTextColor(0);
         $this->SetFont('Arial', 'I', 8);
         $this->Cell(0, 10, 'Page ' . $this->PageNo(), 0, 0, 'C');
     }
@@ -52,7 +67,7 @@ function generateMosaicManual($filepath) {
         die("Error: File not found.");
     }
 
-    // 1. PARSE
+    // 1. PARSE LOGIC (Unchanged)
     $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     $bricks = [];
     $maxX = 0; $maxY = 0;
@@ -60,10 +75,8 @@ function generateMosaicManual($filepath) {
 
     foreach ($lines as $line) {
         if (strpos($line, ',') === false) continue;
-
         $parts = explode(',', $line);
         if (count($parts) < 4) continue;
-
         $meta = explode('/', $parts[0]);
         if (count($meta) < 2) continue;
 
@@ -71,12 +84,10 @@ function generateMosaicManual($filepath) {
         $origW = (int)$dims[0];
         $origH = (int)$dims[1];
         $hex   = $meta[1];
-
         $rot = (int)$parts[1];
         $x   = (int)$parts[2];
         $y   = (int)$parts[3];
 
-        // FIX ROTATION
         $isVertical = ($rot == 90 || $rot == 270 || $rot == 1 || $rot == 3);
         $finalW = $isVertical ? $origH : $origW;
         $finalH = $isVertical ? $origW : $origH;
@@ -90,7 +101,6 @@ function generateMosaicManual($filepath) {
         if (($x + $finalW) > $maxX) $maxX = $x + $finalW;
         if (($y + $finalH) > $maxY) $maxY = $y + $finalH;
 
-        // Build Legend
         $key = $origW . '-' . $origH . '-' . $hex;
         if (!isset($legend[$key])) {
             $legend[$key] = [
@@ -101,14 +111,9 @@ function generateMosaicManual($filepath) {
         $legend[$key]['count']++;
     }
 
-    // Assign IDs
     $idCounter = 1;
-    foreach ($legend as $k => $v) {
-        $legend[$k]['id'] = $idCounter++;
-    }
-    foreach ($bricks as &$b) {
-        $b['legend_id'] = $legend[$b['type_key']]['id'];
-    }
+    foreach ($legend as $k => $v) { $legend[$k]['id'] = $idCounter++; }
+    foreach ($bricks as &$b) { $b['legend_id'] = $legend[$b['type_key']]['id']; }
     unset($b);
 
     // 2. SETUP PDF
@@ -116,82 +121,120 @@ function generateMosaicManual($filepath) {
     $pdf->SetMargins(10, 10, 10);
     $pdf->SetAutoPageBreak(false);
 
-    // --- PART 1: PART LIST (GRID LAYOUT) ---
+    // --- COVER PAGE (Guard Page) ---
+    $pdf->AddPage();
+
+    // Date Top-Left
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->SetXY(12, 12); // Inside the blue frame
+    $pdf->Cell(50, 10, "Date: " . date("d/m/Y"), 0, 1, 'L');
+
+    // CENTERED STYLIZED TITLE
+    // "Tiling construction guide"
+    $titleText = "Tiling construction guide";
+    $pdf->SetFont('Arial', 'B', 40);
+
+    // Calculate total width to center it
+    $totalWidth = $pdf->GetStringWidth($titleText);
+    $startX = (297 - $totalWidth) / 2;
+    $yPos = 90; // Center vertical-ish
+
+    $pdf->SetXY($startX, $yPos);
+    $pdf->SetLineWidth(0.8); // Thickness of outline
+    $pdf->SetDrawColor(0, 0, 0); // Black Outline
+
+    // Lego Colors: Red, Blue, Yellow, Green, White
+    $colors = [
+        [220, 0, 0],   // Red
+        [0, 85, 191],  // Blue
+        [255, 205, 3], // Yellow
+        [35, 120, 65], // Green
+        [255, 255, 255]// White
+    ];
+    $cIdx = 0;
+
+    // RENDER MODE 2 = Fill + Stroke (Outline)
+    $pdf->_out('2 Tr');
+
+    // Draw letter by letter
+    for ($i = 0; $i < strlen($titleText); $i++) {
+        $char = $titleText[$i];
+
+        if ($char == ' ') {
+            $pdf->Cell($pdf->GetStringWidth(' '), 15, ' ', 0, 0);
+            continue;
+        }
+
+        // Set Fill Color
+        $rgb = $colors[$cIdx % count($colors)];
+        $pdf->SetFillColor($rgb[0], $rgb[1], $rgb[2]);
+
+        $pdf->Cell($pdf->GetStringWidth($char), 15, $char, 0, 0);
+        $cIdx++;
+    }
+
+    // Reset Render Mode to normal (0)
+    $pdf->_out('0 Tr');
+
+    // --- PART LIST PAGE ---
+    $pdf->titleHeader = "Part List";
     $pdf->subHeader = "Total Size: $maxX x $maxY studs | Total Parts: " . count($bricks);
     $pdf->AddPage();
 
     $colWidth = 65;
-    $rowHeight = 22; // Slightly taller for better spacing
+    $rowHeight = 22;
     $colsPerPage = 4;
-
     $tableWidth = $colsPerPage * $colWidth;
-    $pageWidth = 297;
-    $startX = ($pageWidth - $tableWidth) / 2;
+    $startX = (297 - $tableWidth) / 2;
     $startY = $pdf->GetY();
-
     $currentCol = 0;
     $currentX = $startX;
     $currentY = $startY;
 
     foreach ($legend as $type) {
-        // Page Break Logic
-        if ($currentY + $rowHeight > 180) { // Leave space for footer
+        if ($currentY + $rowHeight > 180) {
             $pdf->AddPage();
             $currentY = $pdf->GetY();
             $currentX = $startX;
             $currentCol = 0;
         }
 
-        // 1. Draw Grid Border (The Box)
-        $pdf->SetDrawColor(200, 200, 200); // Light Grey Border
+        $pdf->SetDrawColor(200, 200, 200);
+        $pdf->SetLineWidth(0.2);
         $pdf->Rect($currentX, $currentY, $colWidth, $rowHeight);
 
-        // 2. ID Number
         $pdf->SetTextColor(0);
         $pdf->SetFont('Arial', 'B', 12);
-        // Center vertically in the row
         $pdf->SetXY($currentX, $currentY);
         $pdf->Cell(12, $rowHeight, "#" . $type['id'], 0, 0, 'C');
 
-        // 3. Smart Brick Icon
-        // Area reserved for the brick drawing
-        $iconBoxW = 25;
-        $iconBoxH = 16;
+        // Icon Logic
+        $iconBoxW = 25; $iconBoxH = 16;
         $iconX = $currentX + 12;
-        $iconY = $currentY + ($rowHeight - $iconBoxH) / 2; // Center Vertically
+        $iconY = $currentY + ($rowHeight - $iconBoxH) / 2;
 
-        // FORMULA: Fit to box, BUT cap the max stud size.
-        // This ensures 1x1 isn't huge.
         $scaleW = $iconBoxW / $type['w'];
         $scaleH = $iconBoxH / $type['h'];
         $rawScale = min($scaleW, $scaleH);
-
-        // CAP: Maximum 3.5mm per stud.
-        // If a 1x1 brick (1 stud) tries to be 25mm, we force it down to 3.5mm.
-        // If a 1x10 brick (10 studs) tries to be 2.5mm per stud to fit 25mm width, we accept 2.5mm.
-        $finalScale = min($rawScale, 3.5);
+        $finalScale = min($rawScale, 3.5); // Cap stud size
 
         $drawW = $type['w'] * $finalScale;
         $drawH = $type['h'] * $finalScale;
-
-        // Center drawing in the reserved Icon Box area
         $drawX = $iconX + ($iconBoxW - $drawW) / 2;
         $drawY = $iconY + ($iconBoxH - $drawH) / 2;
 
         $pdf->SetFillColorHex($type['hex']);
-        $pdf->SetDrawColor(0); // Black outline for the brick itself
+        $pdf->SetDrawColor(0);
+        $pdf->SetLineWidth(0.2);
         $pdf->Rect($drawX, $drawY, $drawW, $drawH, 'FD');
 
-        // 4. Text Details
         $pdf->SetXY($currentX + 40, $currentY);
         $pdf->SetFont('Arial', '', 10);
-        // Using MultiCell with precise Y positioning
         $pdf->SetXY($currentX + 38, $currentY + 4);
         $pdf->Cell(25, 5, "Size: {$type['w']}x{$type['h']}", 0, 1, 'L');
         $pdf->SetXY($currentX + 38, $currentY + 11);
         $pdf->Cell(25, 5, "Qty: {$type['count']}", 0, 0, 'L');
 
-        // Move Cursor
         $currentCol++;
         if ($currentCol >= $colsPerPage) {
             $currentCol = 0;
@@ -202,59 +245,46 @@ function generateMosaicManual($filepath) {
         }
     }
 
-
-    // --- PART 2: FULL ASSEMBLY MAP ---
-
-    // MARGIN CALCULATION
-    $margin = 10;
-    // Page Height (210) - Header (~40) - Footer (15) - Extra Safety (10)
-    $availH = 210 - 40 - 15 - 10;
-    $availW = 297 - (2 * $margin);
-
-    $pdf->subHeader = "Full Assembly Map";
+    // --- FULL ASSEMBLY MAP ---
+    $pdf->titleHeader = "Assembly Map";
+    $pdf->subHeader = "Full View";
     $pdf->AddPage();
 
+    // Margins logic
+    $margin = 15; // Increased inner margin
+    $availH = 210 - 45 - 20; // Height - Header - Buffer
+    $availW = 297 - (2 * $margin);
     $drawStartY = $pdf->GetY();
 
-    // Scale to fit constraints
     $scaleX = $availW / $maxX;
     $scaleY = $availH / $maxY;
     $scale = min($scaleX, $scaleY);
 
-    // Calculate final centered position
     $gridDrawW = $maxX * $scale;
     $gridDrawH = $maxY * $scale;
     $offsetX = $margin + ($availW - $gridDrawW) / 2;
     $offsetY = $drawStartY + ($availH - $gridDrawH) / 2;
 
-    // DRAW
     foreach ($bricks as $b) {
         $relX = $b['x'] * $scale;
         $relY = $b['y'] * $scale;
-
         $w = $b['w'] * $scale;
         $h = $b['h'] * $scale;
 
         $pdf->SetFillColor(255, 255, 255);
         $pdf->SetDrawColor(0, 0, 0);
         $pdf->SetLineWidth(0.2);
-
         $pdf->Rect($offsetX + $relX, $offsetY + $relY, $w, $h, 'FD');
 
-        // Text Logic
         if ($w > 2 && $h > 2) {
             $pdf->SetTextColor(0);
-
-            // Adaptive Font Size
             $fontSize = min($w, $h) * 0.6;
             if ($fontSize > 8) $fontSize = 8;
             if ($fontSize < 2.5) $fontSize = 2.5;
 
             $pdf->SetFont('Arial', 'B', $fontSize);
-
             $centerX = $offsetX + $relX + ($w / 2);
             $centerY = $offsetY + $relY + ($h / 2);
-
             $textW = $pdf->GetStringWidth($b['legend_id']);
             $textH = $fontSize / 2.5;
 
@@ -271,7 +301,6 @@ function generateMosaicManual($filepath) {
 // --- EXECUTION ---
 if (isset($_GET['file'])) {
     $filename = basename($_GET['file']);
-    // UPDATE FOLDER PATH HERE
     $folder = __DIR__ . '/users/tilings/';
     $filepath = $folder . $filename;
     generateMosaicManual($filepath);
