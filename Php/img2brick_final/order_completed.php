@@ -214,7 +214,7 @@ try {
                                 <h6 class="text-muted border-bottom pb-2" data-i18n="order_completed.payment">Payment Summary</h6>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span data-i18n="order_completed.kit">Mosaic Kit</span>
-                                    <span>$<?= htmlspecialchars(number_format($totalPric / 100, 2, ".", " ")) ?></span>
+                                    <span>$<?= htmlspecialchars(number_format($totalPrice / 100, 2, ".", " ")) ?></span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span data-i18n="order_completed.shipping">Shipping</span>
