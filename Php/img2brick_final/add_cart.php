@@ -48,7 +48,7 @@ try {
         $javaCmd = '"C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.1.8-hotspot\\bin\\java.exe"';
         $exePath      = __DIR__ . '/C_tiler';
     }
-    $tilingPath = __DIR__ . "/users/tilings/" . $_SESSION['pavage_txt'];
+    $tilingPath = $_SESSION['pavage_txt'];
 
     if (file_exists($jarPath) && file_exists($tilingPath)) {
         $cmd = sprintf(
