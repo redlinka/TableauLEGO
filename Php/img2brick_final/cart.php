@@ -104,6 +104,7 @@ foreach ($row_pan as $row) {
   if ($pavageFile !== '' && is_file($txtPath) && is_readable($txtPath)) {
     $txtContent = file_get_contents($txtPath);
     if ($txtContent !== false && preg_match('/\d+/', $txtContent, $m)) {
+      echo $pavageFile . " is file and has content";
       $price = ((float)$m[0]) / 100;
     }
   }
