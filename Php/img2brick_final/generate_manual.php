@@ -120,10 +120,8 @@ if (isset($_GET['file'])) {
     // Since your images are in 'users/imgs/', I assume text files might be in 'users/txts/'
     // If they are in the root, remove the 'users/txts/' part.
 
-    $folder = __DIR__ . '/';
-    // Uncomment the line below if files are in a subfolder:
-    // $folder = __DIR__ . '/users/txts/';
-
+    $folder = __DIR__ . '/users/tilings/';
+    
     $filepath = $folder . $filename;
 
     generateMosaicManual($filepath);
