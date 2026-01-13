@@ -60,17 +60,11 @@ try {
         );
         exec($cmd, $output, $returnCode);
 
-        foreach ($output as $o) {
-            echo $o . "\n";
-        }
-
         // Select Tiling
         $stmt = $cnx->prepare("SELECT pavage_id, pavage_txt FROM TILLING WHERE image_id = ? LIMIT 1");
         $stmt->execute([$imageId]);
         $tiling = $stmt->fetch(PDO::FETCH_ASSOC);
         $tilingId = (int)$tiling['pavage_id'];
-
-        echo "Tiling id " . $tilingId;
 
         // Add to cart (contain)
         $stmt = $cnx->prepare("INSERT INTO contain (order_id, pavage_id) VALUES (?, ?)");
@@ -87,7 +81,6 @@ try {
     header("Location: cart.php");
     exit;
 } catch (PDOException $e) {
-    echo $e;
-    //header("Location: index.php?error=db_fail");
+    header("Location: index.php?error=db_fail");
     exit;
 }
