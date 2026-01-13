@@ -60,6 +60,10 @@ try {
         );
         exec($cmd, $output, $returnCode);
 
+        foreach ($output as $o) {
+            echo $o . "\n";
+        }
+
         // Select Tiling
         $stmt = $cnx->prepare("SELECT pavage_id, pavage_txt FROM TILLING WHERE image_id = ? LIMIT 1");
         $stmt->execute([$imageId]);
@@ -69,6 +73,7 @@ try {
         // Add to cart (contain)
         $stmt = $cnx->prepare("INSERT INTO contain (order_id, pavage_id) VALUES (?, ?)");
         $stmt->execute([$orderId, $tilingId]);
+        exit;
     } else {
         header("Location: tiling_selection.php?error=missing_files");
         exit;
