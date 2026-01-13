@@ -108,11 +108,11 @@ try {
         $quality = $stats['percent'];
     }
 
-    foreach ($rows as $txt) {
-        if (preg_match('/^\d+(\.\d+)?/', $txt, $m)) {
-            $total += (float)$m[0] / 100;
-        }
-    }
+    // foreach ($rows as $txt) {
+    //     if (preg_match('/^\d+(\.\d+)?/', $txt, $m)) {
+    //         $total += (float)$m[0] / 100;
+    //     }
+    // }
 
     $totalPrice = $total;
     $livraison = $total * 0.10;
