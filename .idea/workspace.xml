@@ -5,17 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="679ae0cd-5ae4-4e60-95a7-abaac7775f0f" name="Changes" comment="cleaned up structure and added payment">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Php/img2brick_final/generate_maunal.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/dataSources/05d6830a-19aa-4634-a4e2-83b6ee5efc28.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/05d6830a-19aa-4634-a4e2-83b6ee5efc28.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/Refiller.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/Refiller.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/InventoryManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/InventoryManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/CliInputTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/CliInputTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/target/classes/config.properties" beforeDir="false" afterPath="$PROJECT_DIR$/java/target/classes/config.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/image_processing/downscalers/BilinearInterpolator.class" beforeDir="false" afterPath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/image_processing/downscalers/BilinearInterpolator.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/image_processing/downscalers/NearestNeighbour.class" beforeDir="false" afterPath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/image_processing/downscalers/NearestNeighbour.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/mediators/InventoryManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/mediators/InventoryManager.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/mediators/RestockManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/mediators/RestockManager.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Php/img2brick_final/i18n.md" beforeDir="false" afterPath="$PROJECT_DIR$/Php/img2brick_final/api/i18n.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Php/img2brick_final/my_orders.php" beforeDir="false" afterPath="$PROJECT_DIR$/Php/img2brick_final/my_orders.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,6 +30,7 @@
         <option value="JUnit5 Test Class" />
         <option value="Interface" />
         <option value="Class" />
+        <option value="PHP File" />
       </list>
     </option>
   </component>
@@ -164,11 +160,11 @@
       <recent name="C:\Users\nachn\OneDrive\Documents\GitHub\TableauLEGO" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\nachn\OneDrive\Documents\GitHub\TableauLEGO\Php\img2brick_final\api" />
       <recent name="C:\Users\nachn\OneDrive\Documents\GitHub\TableauLEGO\DB" />
       <recent name="C:\Users\nachn\OneDrive\Documents\GitHub\TableauLEGO\C" />
       <recent name="C:\Users\nachn\OneDrive\Documents\GitHub\TableauLEGO" />
       <recent name="C:\Users\nachn\OneDrive\Documents\GitHub\TableauLEGO\java" />
-      <recent name="C:\Users\nachn\OneDrive\Documents\GitHub\TableauLEGO\Php\img2brick_final" />
     </key>
     <key name="CreateTestDialog.Recents.Supers">
       <recent name="" />
@@ -339,7 +335,7 @@
       <workItem from="1768150026635" duration="192000" />
       <workItem from="1768152099902" duration="1247000" />
       <workItem from="1768153709249" duration="10957000" />
-      <workItem from="1768246024371" duration="9118000" />
+      <workItem from="1768246024371" duration="9933000" />
     </task>
     <servers />
   </component>

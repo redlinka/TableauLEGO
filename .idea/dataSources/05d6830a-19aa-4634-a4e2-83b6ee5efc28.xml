@@ -2,6 +2,7 @@
 <dataSource name="img2brick_db@92.113.26.110">
   <database-model serializer="dbm" dbms="MARIADB" family-id="MARIADB" format-version="4.54">
     <root id="1">
+      <DefaultAuthPlugin>mysql_native_password</DefaultAuthPlugin>
       <DefaultCasing>exact</DefaultCasing>
       <DefaultEngine>InnoDB</DefaultEngine>
       <Grants>img2brick_db|schema||dev||ALTER|G
@@ -1219,7 +1220,7 @@ img2brick_db|schema||dev||UPDATE|G</Grants>
       <AutoIntrospectionLevel>3</AutoIntrospectionLevel>
       <Current>1</Current>
       <LastIntrospectionLevel>3</LastIntrospectionLevel>
-      <LastIntrospectionLocalTimestamp>2026-01-12.20:52:21</LastIntrospectionLocalTimestamp>
+      <LastIntrospectionLocalTimestamp>2026-01-13.17:56:24</LastIntrospectionLocalTimestamp>
       <CollationName>utf8mb4_general_ci</CollationName>
     </schema>
     <schema id="509" parent="1" name="information_schema">
@@ -1357,7 +1358,7 @@ img2brick_db|schema||dev||UPDATE|G</Grants>
       <StoredType>int(11)|0s</StoredType>
     </argument>
     <column id="536" parent="518" name="id_token">
-      <AutoIncrement>57</AutoIncrement>
+      <AutoIncrement>61</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int(11)|0s</StoredType>
@@ -1399,7 +1400,7 @@ img2brick_db|schema||dev||UPDATE|G</Grants>
       <UnderlyingIndexName>user_id</UnderlyingIndexName>
     </key>
     <column id="545" parent="519" name="address_id">
-      <AutoIncrement>18</AutoIncrement>
+      <AutoIncrement>31</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int(11)|0s</StoredType>
@@ -1512,7 +1513,7 @@ color_hex</ColNames>
       <UnderlyingIndexName>unique_brick</UnderlyingIndexName>
     </key>
     <column id="568" parent="521" name="image_id">
-      <AutoIncrement>450</AutoIncrement>
+      <AutoIncrement>566</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int(11)|0s</StoredType>
@@ -1571,7 +1572,7 @@ color_hex</ColNames>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
     <column id="581" parent="522" name="id_inventory">
-      <AutoIncrement>3640541</AutoIncrement>
+      <AutoIncrement>3683391</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int(11)|0s</StoredType>
@@ -1619,398 +1620,403 @@ color_hex</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="591" parent="522" name="idx_inventory_status">
+    <index id="591" parent="522" name="idx_fast_availability">
+      <ColNames>pavage_id
+id_catalogue</ColNames>
+      <Type>btree</Type>
+    </index>
+    <index id="592" parent="522" name="idx_inventory_status">
       <ColNames>pavage_id</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="592" parent="522" name="pavage_id">
+    <index id="593" parent="522" name="pavage_id">
       <ColNames>pavage_id</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="593" parent="522" name="idx_fast_counting">
+    <index id="594" parent="522" name="idx_fast_counting">
       <ColNames>id_catalogue
 pavage_id</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="594" parent="522" name="id_catalogue">
+    <index id="595" parent="522" name="id_catalogue">
       <ColNames>id_catalogue</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="595" parent="522" name="idx_inventory_catalog">
+    <index id="596" parent="522" name="idx_inventory_catalog">
       <ColNames>id_catalogue</ColNames>
       <Type>btree</Type>
     </index>
-    <key id="596" parent="522" name="PRIMARY">
+    <key id="597" parent="522" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <key id="597" parent="522" name="certificate">
+    <key id="598" parent="522" name="certificate">
       <UnderlyingIndexName>certificate</UnderlyingIndexName>
     </key>
-    <key id="598" parent="522" name="serial_num">
+    <key id="599" parent="522" name="serial_num">
       <UnderlyingIndexName>serial_num</UnderlyingIndexName>
     </key>
-    <trigger id="599" parent="522" name="restrict_update_inventory_if_billed">
+    <trigger id="600" parent="522" name="restrict_update_inventory_if_billed">
       <Definer>root@localhost</Definer>
       <Events>U</Events>
       <SourceTextLength>446</SourceTextLength>
       <Turn>before-row</Turn>
     </trigger>
-    <trigger id="600" parent="522" name="restrict_delete_inventory_if_billed">
+    <trigger id="601" parent="522" name="restrict_delete_inventory_if_billed">
       <Definer>root@localhost</Definer>
       <Events>D</Events>
       <SourceTextLength>290</SourceTextLength>
       <Turn>before-row</Turn>
     </trigger>
-    <column id="601" parent="523" name="id">
-      <AutoIncrement>84</AutoIncrement>
+    <column id="602" parent="523" name="id">
+      <AutoIncrement>245</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <column id="602" parent="523" name="agent">
+    <column id="603" parent="523" name="agent">
       <Position>2</Position>
       <StoredType>varchar(50)|0s</StoredType>
     </column>
-    <column id="603" parent="523" name="log_action">
+    <column id="604" parent="523" name="log_action">
       <Position>3</Position>
       <StoredType>varchar(50)|0s</StoredType>
     </column>
-    <column id="604" parent="523" name="log_object">
+    <column id="605" parent="523" name="log_object">
       <Position>4</Position>
       <StoredType>varchar(50)|0s</StoredType>
     </column>
-    <column id="605" parent="523" name="log_date">
+    <column id="606" parent="523" name="log_date">
       <Position>5</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="606" parent="523" name="user_id">
+    <column id="607" parent="523" name="user_id">
       <NotNull>1</NotNull>
       <Position>6</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <foreign-key id="607" parent="523" name="LOG_ibfk_1">
+    <foreign-key id="608" parent="523" name="LOG_ibfk_1">
       <ColNames>user_id</ColNames>
       <RefColNames>user_id</RefColNames>
       <RefTableName>USER</RefTableName>
     </foreign-key>
-    <index id="608" parent="523" name="PRIMARY">
+    <index id="609" parent="523" name="PRIMARY">
       <ColNames>id</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="609" parent="523" name="LOG_ibfk_1">
+    <index id="610" parent="523" name="LOG_ibfk_1">
       <ColNames>user_id</ColNames>
       <Type>btree</Type>
     </index>
-    <key id="610" parent="523" name="PRIMARY">
+    <key id="611" parent="523" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <column id="611" parent="524" name="order_id">
-      <AutoIncrement>32</AutoIncrement>
+    <column id="612" parent="524" name="order_id">
+      <AutoIncrement>36</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <column id="612" parent="524" name="created_at">
+    <column id="613" parent="524" name="created_at">
       <Position>2</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="613" parent="524" name="address_id">
+    <column id="614" parent="524" name="address_id">
       <NotNull>1</NotNull>
       <Position>3</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <column id="614" parent="524" name="user_id">
+    <column id="615" parent="524" name="user_id">
       <NotNull>1</NotNull>
       <Position>4</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <foreign-key id="615" parent="524" name="ORDER_BILL_ibfk_1">
+    <foreign-key id="616" parent="524" name="ORDER_BILL_ibfk_1">
       <ColNames>address_id</ColNames>
       <RefColNames>address_id</RefColNames>
       <RefTableName>ADDRESS</RefTableName>
     </foreign-key>
-    <foreign-key id="616" parent="524" name="ORDER_BILL_ibfk_2">
+    <foreign-key id="617" parent="524" name="ORDER_BILL_ibfk_2">
       <ColNames>user_id</ColNames>
       <RefColNames>user_id</RefColNames>
       <RefTableName>USER</RefTableName>
     </foreign-key>
-    <index id="617" parent="524" name="PRIMARY">
+    <index id="618" parent="524" name="PRIMARY">
       <ColNames>order_id</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="618" parent="524" name="address_id">
+    <index id="619" parent="524" name="address_id">
       <ColNames>address_id</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="619" parent="524" name="user_id">
+    <index id="620" parent="524" name="user_id">
       <ColNames>user_id</ColNames>
       <Type>btree</Type>
     </index>
-    <key id="620" parent="524" name="PRIMARY">
+    <key id="621" parent="524" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <trigger id="621" parent="524" name="restrict_update_order_if_billed">
+    <trigger id="622" parent="524" name="restrict_update_order_if_billed">
       <Definer>root@localhost</Definer>
       <Events>U</Events>
       <SourceTextLength>266</SourceTextLength>
       <Turn>before-row</Turn>
     </trigger>
-    <trigger id="622" parent="524" name="restrict_delete_order_if_billed">
+    <trigger id="623" parent="524" name="restrict_delete_order_if_billed">
       <Definer>root@localhost</Definer>
       <Events>D</Events>
       <SourceTextLength>255</SourceTextLength>
       <Turn>before-row</Turn>
     </trigger>
-    <column id="623" parent="525" name="id_stock_entry">
-      <AutoIncrement>51</AutoIncrement>
+    <column id="624" parent="525" name="id_stock_entry">
+      <AutoIncrement>75</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <column id="624" parent="525" name="date_stock">
+    <column id="625" parent="525" name="date_stock">
       <Position>2</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <index id="625" parent="525" name="PRIMARY">
+    <index id="626" parent="525" name="PRIMARY">
       <ColNames>id_stock_entry</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <key id="626" parent="525" name="PRIMARY">
+    <key id="627" parent="525" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <column id="627" parent="526" name="pavage_id">
-      <AutoIncrement>93</AutoIncrement>
+    <column id="628" parent="526" name="pavage_id">
+      <AutoIncrement>114</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <column id="628" parent="526" name="pavage_txt">
+    <column id="629" parent="526" name="pavage_txt">
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="629" parent="526" name="image_id">
+    <column id="630" parent="526" name="image_id">
       <Position>3</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <index id="630" parent="526" name="PRIMARY">
+    <index id="631" parent="526" name="PRIMARY">
       <ColNames>pavage_id</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="631" parent="526" name="image_id">
+    <index id="632" parent="526" name="image_id">
       <ColNames>image_id</ColNames>
       <Type>btree</Type>
     </index>
-    <key id="632" parent="526" name="PRIMARY">
+    <key id="633" parent="526" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <trigger id="633" parent="526" name="restrict_update_tilling_if_billed">
+    <trigger id="634" parent="526" name="restrict_update_tilling_if_billed">
       <Definer>root@localhost</Definer>
       <Events>U</Events>
       <SourceTextLength>483</SourceTextLength>
       <Turn>before-row</Turn>
     </trigger>
-    <trigger id="634" parent="526" name="restrict_delete_tilling_if_billed">
+    <trigger id="635" parent="526" name="restrict_delete_tilling_if_billed">
       <Definer>root@localhost</Definer>
       <Events>D</Events>
       <SourceTextLength>470</SourceTextLength>
       <Turn>before-row</Turn>
     </trigger>
-    <column id="635" parent="527" name="user_id">
+    <column id="636" parent="527" name="user_id">
       <AutoIncrement>9</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <column id="636" parent="527" name="first_name">
+    <column id="637" parent="527" name="first_name">
       <Position>2</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="637" parent="527" name="last_name">
+    <column id="638" parent="527" name="last_name">
       <Position>3</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="638" parent="527" name="phone">
+    <column id="639" parent="527" name="phone">
       <Position>4</Position>
       <StoredType>varchar(20)|0s</StoredType>
     </column>
-    <column id="639" parent="527" name="email">
+    <column id="640" parent="527" name="email">
       <NotNull>1</NotNull>
       <Position>5</Position>
       <StoredType>varchar(50)|0s</StoredType>
     </column>
-    <column id="640" parent="527" name="password">
+    <column id="641" parent="527" name="password">
       <NotNull>1</NotNull>
       <Position>6</Position>
       <StoredType>varchar(100)|0s</StoredType>
     </column>
-    <column id="641" parent="527" name="is_verified">
+    <column id="642" parent="527" name="is_verified">
       <NotNull>1</NotNull>
       <Position>7</Position>
       <StoredType>tinyint(1)|0s</StoredType>
     </column>
-    <column id="642" parent="527" name="username">
+    <column id="643" parent="527" name="username">
       <Position>8</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="643" parent="527" name="birth_year">
+    <column id="644" parent="527" name="birth_year">
       <Position>9</Position>
       <StoredType>year(4)|0s</StoredType>
     </column>
-    <column id="644" parent="527" name="created_at">
+    <column id="645" parent="527" name="created_at">
       <DefaultExpression>current_timestamp()</DefaultExpression>
       <Position>10</Position>
       <StoredType>timestamp|0s</StoredType>
     </column>
-    <index id="645" parent="527" name="PRIMARY">
+    <index id="646" parent="527" name="PRIMARY">
       <ColNames>user_id</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="646" parent="527" name="phone">
+    <index id="647" parent="527" name="phone">
       <ColNames>phone</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="647" parent="527" name="email">
+    <index id="648" parent="527" name="email">
       <ColNames>email</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <key id="648" parent="527" name="PRIMARY">
+    <key id="649" parent="527" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <key id="649" parent="527" name="phone">
+    <key id="650" parent="527" name="phone">
       <UnderlyingIndexName>phone</UnderlyingIndexName>
     </key>
-    <key id="650" parent="527" name="email">
+    <key id="651" parent="527" name="email">
       <UnderlyingIndexName>email</UnderlyingIndexName>
     </key>
-    <column id="651" parent="528" name="order_id">
+    <column id="652" parent="528" name="order_id">
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <column id="652" parent="528" name="pavage_id">
+    <column id="653" parent="528" name="pavage_id">
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <foreign-key id="653" parent="528" name="contain_ibfk_1">
+    <foreign-key id="654" parent="528" name="contain_ibfk_1">
       <ColNames>order_id</ColNames>
       <RefColNames>order_id</RefColNames>
       <RefTableName>ORDER_BILL</RefTableName>
     </foreign-key>
-    <foreign-key id="654" parent="528" name="contain_ibfk_2">
+    <foreign-key id="655" parent="528" name="contain_ibfk_2">
       <ColNames>pavage_id</ColNames>
       <RefColNames>pavage_id</RefColNames>
       <RefTableName>TILLING</RefTableName>
     </foreign-key>
-    <index id="655" parent="528" name="PRIMARY">
+    <index id="656" parent="528" name="PRIMARY">
       <ColNames>order_id
 pavage_id</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="656" parent="528" name="pavage_id">
+    <index id="657" parent="528" name="pavage_id">
       <ColNames>pavage_id</ColNames>
       <Type>btree</Type>
     </index>
-    <key id="657" parent="528" name="PRIMARY">
+    <key id="658" parent="528" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <column id="658" parent="529" name="id_catalogue">
+    <column id="659" parent="529" name="id_catalogue">
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <column id="659" parent="529" name="id_stock_entry">
+    <column id="660" parent="529" name="id_stock_entry">
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <column id="660" parent="529" name="quantity">
+    <column id="661" parent="529" name="quantity">
       <Position>3</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <column id="661" parent="529" name="total_price">
+    <column id="662" parent="529" name="total_price">
       <Position>4</Position>
       <StoredType>decimal(10)|0s</StoredType>
     </column>
-    <foreign-key id="662" parent="529" name="entry_ibfk_1">
+    <foreign-key id="663" parent="529" name="entry_ibfk_1">
       <ColNames>id_catalogue</ColNames>
       <RefColNames>id_catalogue</RefColNames>
       <RefTableName>CATALOG</RefTableName>
     </foreign-key>
-    <foreign-key id="663" parent="529" name="entry_ibfk_2">
+    <foreign-key id="664" parent="529" name="entry_ibfk_2">
       <ColNames>id_stock_entry</ColNames>
       <RefColNames>id_stock_entry</RefColNames>
       <RefTableName>STOCK_ENTRY</RefTableName>
     </foreign-key>
-    <index id="664" parent="529" name="PRIMARY">
+    <index id="665" parent="529" name="PRIMARY">
       <ColNames>id_catalogue
 id_stock_entry</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="665" parent="529" name="id_stock_entry">
+    <index id="666" parent="529" name="id_stock_entry">
       <ColNames>id_stock_entry</ColNames>
       <Type>btree</Type>
     </index>
-    <key id="666" parent="529" name="PRIMARY">
+    <key id="667" parent="529" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <column id="667" parent="530" name="id_catalogue">
+    <column id="668" parent="530" name="id_catalogue">
       <Position>1</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <column id="668" parent="530" name="height">
+    <column id="669" parent="530" name="height">
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <column id="669" parent="530" name="width">
+    <column id="670" parent="530" name="width">
       <NotNull>1</NotNull>
       <Position>3</Position>
       <StoredType>int(11)|0s</StoredType>
     </column>
-    <column id="670" parent="530" name="color_hex">
+    <column id="671" parent="530" name="color_hex">
       <Position>4</Position>
       <StoredType>varchar(6)|0s</StoredType>
     </column>
-    <column id="671" parent="530" name="color_name">
+    <column id="672" parent="530" name="color_name">
       <Position>5</Position>
       <StoredType>varchar(50)|0s</StoredType>
     </column>
-    <column id="672" parent="530" name="holes">
+    <column id="673" parent="530" name="holes">
       <Position>6</Position>
       <StoredType>varchar(50)|0s</StoredType>
     </column>
-    <column id="673" parent="530" name="unit_price">
+    <column id="674" parent="530" name="unit_price">
       <Position>7</Position>
       <StoredType>double|0s</StoredType>
     </column>
-    <column id="674" parent="530" name="stock">
+    <column id="675" parent="530" name="stock">
       <NotNull>1</NotNull>
       <Position>8</Position>
       <StoredType>bigint(21)|0s</StoredType>

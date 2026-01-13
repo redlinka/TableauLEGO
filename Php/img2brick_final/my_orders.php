@@ -84,6 +84,8 @@ try {
                             <div style="flex: 1;">
                                 <strong>File : <?= htmlspecialchars($item['pavage_txt']) ?></strong><br>
                                 <small>Quality : <?= $stats['quality'] ?>%</small>
+                                <br>
+                                <a href="generate_manual.php?file=<?= urlencode($item['pavage_txt']) ?>" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Download Guide</a>
                             </div>
                             <div><?= money($price) ?></div>
                         </div>
