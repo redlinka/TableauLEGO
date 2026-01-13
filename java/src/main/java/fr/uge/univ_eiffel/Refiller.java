@@ -9,7 +9,6 @@ public class Refiller {
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
             System.err.println("Usage: java PaymentTester <amount>");
-            System.exit(1);
         }
         final int amount;
         try {

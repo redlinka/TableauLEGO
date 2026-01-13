@@ -1,0 +1,14 @@
+fr\uge\univ_eiffel\image_processing\LegoVisualizerTest.class
+fr\uge\univ_eiffel\image_processing\downscalers\NearestNeighbourTest.class
+fr\uge\univ_eiffel\security\OfflineVerifierTest.class
+fr\uge\univ_eiffel\image_processing\downscalers\BicubicInterpolatorTest.class
+fr\uge\univ_eiffel\mediators\OrderManagerTest.class
+fr\uge\univ_eiffel\mediators\RestockManagerTest.class
+fr\uge\univ_eiffel\image_processing\ImageUtilsTest.class
+fr\uge\univ_eiffel\image_processing\downscalers\BilinearInterpolatorTest.class
+fr\uge\univ_eiffel\security\OnlineVerifierTest.class
+fr\uge\univ_eiffel\ImageRescalerTest.class
+fr\uge\univ_eiffel\mediators\InventoryManagerTest.class
+fr\uge\univ_eiffel\payment_methods\PoWMethodTest.class
+fr\uge\univ_eiffel\payment_methods\ProofOfWorkSolverTest.class
+fr\uge\univ_eiffel\CliInputTest.class

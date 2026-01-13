@@ -5,42 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="679ae0cd-5ae4-4e60-95a7-abaac7775f0f" name="Changes" comment="cleaned up structure and added payment">
-      <change afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/legofactory/FactoryLoader.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/legofactory/LegoFactory.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/CliInputTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/ImageRescalerTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/image_processing/ImageUtilsTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/image_processing/LegoVisualizerTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/image_processing/downscalers/BicubicInterpolatorTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/image_processing/downscalers/BilinearInterpolatorTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/image_processing/downscalers/NearestNeighbourTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/mediators/InventoryManagerTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/mediators/OrderManagerTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/mediators/RestockManagerTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/payment_methods/PoWMethodTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/payment_methods/ProofOfWorkSolverTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/security/OfflineVerifierTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/security/OnlineVerifierTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/05d6830a-19aa-4634-a4e2-83b6ee5efc28.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/05d6830a-19aa-4634-a4e2-83b6ee5efc28.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Php/img2brick_final/logout.php" beforeDir="false" afterPath="$PROJECT_DIR$/Php/img2brick_final/logout.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/java/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/Brick.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/Brick.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/LegoVisualizer.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/image_processing/LegoVisualizer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/ManualRestock.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/ManualRestock.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/ProactionRestock.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/ProactionRestock.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/ReactionRestock.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/ReactionRestock.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/Refiller.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/Refiller.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/TileAndDraw.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/TileAndDraw.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/FactoryClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/legofactory/HttpFactoryClient.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/InventoryManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/InventoryManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/OrderManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/OrderManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/RestockManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/RestockManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/payment_methods/PaymentMethod.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/payment_methods/PaymentMethod.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/payment_methods/PoWMethod.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/payment_methods/PoWMethod.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/payment_methods/ProofOfWorkSolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/payment_methods/ProofOfWorkSolver.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/security/BrickVerifier.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/security/BrickVerifier.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/security/OfflineVerifier.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/security/OfflineVerifier.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/security/OnlineVerifier.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/main/java/fr/uge/univ_eiffel/mediators/security/OnlineVerifier.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/CliInputTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/src/test/java/fr/uge/univ_eiffel/CliInputTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/target/classes/config.properties" beforeDir="false" afterPath="$PROJECT_DIR$/java/target/classes/config.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/image_processing/downscalers/BilinearInterpolator.class" beforeDir="false" afterPath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/image_processing/downscalers/BilinearInterpolator.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/image_processing/downscalers/NearestNeighbour.class" beforeDir="false" afterPath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/image_processing/downscalers/NearestNeighbour.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/mediators/InventoryManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/mediators/InventoryManager.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/mediators/RestockManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/java/target/classes/fr/uge/univ_eiffel/mediators/RestockManager.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,7 +26,7 @@
     <execution />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="145" />
+    <option name="cachedIndexableFilesCount" value="1084" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="FileTemplateManagerImpl">
@@ -364,7 +339,7 @@
       <workItem from="1768150026635" duration="192000" />
       <workItem from="1768152099902" duration="1247000" />
       <workItem from="1768153709249" duration="10957000" />
-      <workItem from="1768246024371" duration="7280000" />
+      <workItem from="1768246024371" duration="9118000" />
     </task>
     <servers />
   </component>

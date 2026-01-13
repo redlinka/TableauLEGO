@@ -201,12 +201,12 @@ public class InventoryManager implements AutoCloseable {
     /**
      * Inserts a new confirmed tiling into the TILING table.
      *
-     * @param pavageTxt the tiling text content
+     * @param pavagePathTxt the tiling text content
      * @param imageId the associated image ID
      * @return the generated tiling ID (pavage_id)
      * @throws SQLException if a database access error occurs or the insertion fails
      */
-    public int newConfirmedTiling(String pavageTxt, Integer imageId) throws SQLException {
+    public int newConfirmedTiling(String pavagePathTxt, Integer imageId) throws SQLException {
         // Vérifier que l'image_id existe si il n'est pas null
         if (imageId != null) {
             String checkImageSql = "SELECT COUNT(*) FROM IMAGE WHERE image_id = ?";
@@ -221,9 +221,10 @@ public class InventoryManager implements AutoCloseable {
         }
 
         String insertSql = "INSERT INTO TILLING (pavage_txt, image_id) VALUES (?, ?)";
+        String pavageName = new java.io.File(pavagePathTxt).getName();
 
         try (PreparedStatement stmt = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, pavageTxt);
+            stmt.setString(1, pavageName);
             if (imageId != null) {
                 stmt.setInt(2, imageId);
             } else {
