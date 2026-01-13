@@ -85,7 +85,15 @@ try {
                                 <strong>File : <?= htmlspecialchars($item['pavage_txt']) ?></strong><br>
                                 <small>Quality : <?= $stats['quality'] ?>%</small>
                                 <br>
-                                <a href="generate_manual.php?file=<?= urlencode($item['pavage_txt']) ?>" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Download Guide</a>
+                                <a href="generate_manual.php?file=<?= urlencode($item['pavage_txt']) ?>" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                                    View Guide
+                                </a>
+                                <a href="users/imgs/<?= htmlspecialchars($item['lego_path']) ?>" download class="btn btn-sm btn-outline-secondary mt-2">
+                                    Download Image
+                                </a>
+                                <a href="users/tilings/<?= htmlspecialchars($item['pavage_txt']) ?>" download class="btn btn-sm btn-outline-secondary mt-2">
+                                    Download Tiling
+                                </a>
                             </div>
                             <div><?= money($price) ?></div>
                         </div>
