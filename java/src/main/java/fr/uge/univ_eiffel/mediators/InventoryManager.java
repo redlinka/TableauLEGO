@@ -3,7 +3,7 @@ package fr.uge.univ_eiffel.mediators;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import fr.uge.univ_eiffel.Brick;
+import fr.uge.univ_eiffel.mediators.legofactory.LegoFactory;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,9 +52,9 @@ public class InventoryManager implements AutoCloseable {
      * or will update it to its latest version, its takes a few seconds to run
      * Input: An active FactoryClient instance.
      * Output: void (updates DB). */
-    public void updateCatalog(@NotNull FactoryClient fc) throws Exception {
+    public void updateCatalog(@NotNull LegoFactory lf) throws Exception {
 
-        JsonObject cat = fc.catalog();
+        JsonObject cat = lf.catalog();
         JsonArray blocks = cat.getAsJsonArray("blocks");
         JsonArray colors = cat.getAsJsonArray("colors");
 

@@ -2,6 +2,7 @@
 package fr.uge.univ_eiffel;
 
 import fr.uge.univ_eiffel.image_processing.ImageUtils;
+import fr.uge.univ_eiffel.image_processing.LegoVisualizer;
 import fr.uge.univ_eiffel.mediators.InventoryManager;
 
 import java.awt.image.BufferedImage;
@@ -79,9 +80,7 @@ public class TileAndDraw {
             try (InventoryManager inventory = InventoryManager.makeFromProps("config.properties")) {
                 // Export catalog to temporary file (removes .txt extension first since exportCatalog adds it)
                 String catalogBasePath = tempCatalog.getAbsolutePath();
-                System.out.println("ee");
                 String actualCatalogPath = inventory.exportCatalog(catalogBasePath);
-                System.out.println("ee");
                 tempCatalog = new File(actualCatalogPath);
                 System.out.println("Catalog exported to: " + actualCatalogPath);
             }
