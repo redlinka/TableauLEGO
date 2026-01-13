@@ -73,7 +73,6 @@ try {
         // Add to cart (contain)
         $stmt = $cnx->prepare("INSERT INTO contain (order_id, pavage_id) VALUES (?, ?)");
         $stmt->execute([$orderId, $tilingId]);
-        exit;
     } else {
         header("Location: tiling_selection.php?error=missing_files");
         exit;
@@ -86,6 +85,7 @@ try {
     header("Location: cart.php");
     exit;
 } catch (PDOException $e) {
-    header("Location: index.php?error=db_fail");
+    echo $e;
+    //header("Location: index.php?error=db_fail");
     exit;
 }
