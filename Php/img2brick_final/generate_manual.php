@@ -5,11 +5,11 @@ error_reporting(E_ALL);
 
 // 2. CHECK LIBRARY
 if (!file_exists('fpdf.php')) {
-    die("Error: fpdf.php not found.");
+    die("Error: fpdf.php not found. Please download it from fpdf.org");
 }
 require('fpdf.php');
 
-// --- PDF CLASS WITH HEADERS/FOOTERS ---
+// --- PDF CLASS ---
 class MosaicPDF extends FPDF {
     public $titleHeader = "Mosaic Assembly Guide";
     public $subHeader = "";
@@ -25,7 +25,6 @@ class MosaicPDF extends FPDF {
         $this->SetFillColor($r, $g, $b);
     }
 
-    // Header appears on EVERY page
     function Header() {
         $this->SetFont('Arial', 'B', 18);
         $this->Cell(0, 10, $this->titleHeader, 0, 1, 'C');
@@ -36,7 +35,6 @@ class MosaicPDF extends FPDF {
         }
         $this->Ln(5);
 
-        // Draw a line separator
         $this->SetDrawColor(200, 200, 200);
         $this->Line(10, $this->GetY(), 287, $this->GetY());
         $this->Ln(5);
@@ -54,7 +52,7 @@ function generateMosaicManual($filepath) {
         die("Error: File not found.");
     }
 
-    // 1. PARSE & ANALYZE
+    // 1. PARSE
     $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     $bricks = [];
     $maxX = 0; $maxY = 0;
@@ -108,7 +106,6 @@ function generateMosaicManual($filepath) {
     foreach ($legend as $k => $v) {
         $legend[$k]['id'] = $idCounter++;
     }
-
     foreach ($bricks as &$b) {
         $b['legend_id'] = $legend[$b['type_key']]['id'];
     }
@@ -119,12 +116,12 @@ function generateMosaicManual($filepath) {
     $pdf->SetMargins(10, 10, 10);
     $pdf->SetAutoPageBreak(false);
 
-    // --- PART 1: PART LIST (BOM) ---
+    // --- PART 1: PART LIST (GRID LAYOUT) ---
     $pdf->subHeader = "Total Size: $maxX x $maxY studs | Total Parts: " . count($bricks);
     $pdf->AddPage();
 
-    $colWidth = 60;
-    $rowHeight = 20;
+    $colWidth = 65;
+    $rowHeight = 22; // Slightly taller for better spacing
     $colsPerPage = 4;
 
     $tableWidth = $colsPerPage * $colWidth;
@@ -137,41 +134,64 @@ function generateMosaicManual($filepath) {
     $currentY = $startY;
 
     foreach ($legend as $type) {
-        if ($currentY + $rowHeight > 180) {
+        // Page Break Logic
+        if ($currentY + $rowHeight > 180) { // Leave space for footer
             $pdf->AddPage();
             $currentY = $pdf->GetY();
             $currentX = $startX;
             $currentCol = 0;
         }
 
-        // ID
+        // 1. Draw Grid Border (The Box)
+        $pdf->SetDrawColor(200, 200, 200); // Light Grey Border
+        $pdf->Rect($currentX, $currentY, $colWidth, $rowHeight);
+
+        // 2. ID Number
+        $pdf->SetTextColor(0);
         $pdf->SetFont('Arial', 'B', 12);
+        // Center vertically in the row
         $pdf->SetXY($currentX, $currentY);
         $pdf->Cell(12, $rowHeight, "#" . $type['id'], 0, 0, 'C');
 
-        // Visual Icon
-        $iconBoxW = 25; $iconBoxH = 16;
-        $iconX = $currentX + 12; $iconY = $currentY + 2;
+        // 3. Smart Brick Icon
+        // Area reserved for the brick drawing
+        $iconBoxW = 25;
+        $iconBoxH = 16;
+        $iconX = $currentX + 12;
+        $iconY = $currentY + ($rowHeight - $iconBoxH) / 2; // Center Vertically
 
+        // FORMULA: Fit to box, BUT cap the max stud size.
+        // This ensures 1x1 isn't huge.
         $scaleW = $iconBoxW / $type['w'];
         $scaleH = $iconBoxH / $type['h'];
-        $brickScale = min($scaleW, $scaleH);
+        $rawScale = min($scaleW, $scaleH);
 
-        $drawW = $type['w'] * $brickScale;
-        $drawH = $type['h'] * $brickScale;
+        // CAP: Maximum 3.5mm per stud.
+        // If a 1x1 brick (1 stud) tries to be 25mm, we force it down to 3.5mm.
+        // If a 1x10 brick (10 studs) tries to be 2.5mm per stud to fit 25mm width, we accept 2.5mm.
+        $finalScale = min($rawScale, 3.5);
+
+        $drawW = $type['w'] * $finalScale;
+        $drawH = $type['h'] * $finalScale;
+
+        // Center drawing in the reserved Icon Box area
         $drawX = $iconX + ($iconBoxW - $drawW) / 2;
         $drawY = $iconY + ($iconBoxH - $drawH) / 2;
 
         $pdf->SetFillColorHex($type['hex']);
-        $pdf->SetDrawColor(0);
+        $pdf->SetDrawColor(0); // Black outline for the brick itself
         $pdf->Rect($drawX, $drawY, $drawW, $drawH, 'FD');
 
-        // Text
+        // 4. Text Details
         $pdf->SetXY($currentX + 40, $currentY);
         $pdf->SetFont('Arial', '', 10);
-        $pdf->Cell(20, $rowHeight/2, "Size: {$type['w']}x{$type['h']}", 0, 2, 'L');
-        $pdf->Cell(20, $rowHeight/2, "Qty: {$type['count']}", 0, 0, 'L');
+        // Using MultiCell with precise Y positioning
+        $pdf->SetXY($currentX + 38, $currentY + 4);
+        $pdf->Cell(25, 5, "Size: {$type['w']}x{$type['h']}", 0, 1, 'L');
+        $pdf->SetXY($currentX + 38, $currentY + 11);
+        $pdf->Cell(25, 5, "Qty: {$type['count']}", 0, 0, 'L');
 
+        // Move Cursor
         $currentCol++;
         if ($currentCol >= $colsPerPage) {
             $currentCol = 0;
@@ -183,68 +203,62 @@ function generateMosaicManual($filepath) {
     }
 
 
-    // --- PART 2: FULL ASSEMBLY MAP (SINGLE VIEW) ---
+    // --- PART 2: FULL ASSEMBLY MAP ---
 
-    // Available drawing area
+    // MARGIN CALCULATION
     $margin = 10;
+    // Page Height (210) - Header (~40) - Footer (15) - Extra Safety (10)
+    $availH = 210 - 40 - 15 - 10;
     $availW = 297 - (2 * $margin);
-    $availH = 210 - 45; // Height minus Header/Footer
 
-    // No loops, just one full view
     $pdf->subHeader = "Full Assembly Map";
     $pdf->AddPage();
 
-    $drawStartY = $pdf->GetY() + 2;
+    $drawStartY = $pdf->GetY();
 
-    // Calculate Scale to fit the ENTIRE mosaic ($maxX x $maxY)
+    // Scale to fit constraints
     $scaleX = $availW / $maxX;
-    $scaleY = ($availH - 5) / $maxY;
+    $scaleY = $availH / $maxY;
     $scale = min($scaleX, $scaleY);
 
-    // Center the map
+    // Calculate final centered position
     $gridDrawW = $maxX * $scale;
     $gridDrawH = $maxY * $scale;
     $offsetX = $margin + ($availW - $gridDrawW) / 2;
     $offsetY = $drawStartY + ($availH - $gridDrawH) / 2;
 
-    // DRAW BRICKS
+    // DRAW
     foreach ($bricks as $b) {
-        // No intersection check needed, we are drawing everything
-
         $relX = $b['x'] * $scale;
         $relY = $b['y'] * $scale;
 
         $w = $b['w'] * $scale;
         $h = $b['h'] * $scale;
 
-        // White fill, Black text, Black border
         $pdf->SetFillColor(255, 255, 255);
         $pdf->SetDrawColor(0, 0, 0);
         $pdf->SetLineWidth(0.2);
 
         $pdf->Rect($offsetX + $relX, $offsetY + $relY, $w, $h, 'FD');
 
-        // Draw Number if it fits (Adjusted for Full View)
-        // If the box is at least 2mm x 2mm, we try to print something
+        // Text Logic
         if ($w > 2 && $h > 2) {
             $pdf->SetTextColor(0);
 
-            // Font size logic
-            $fontSize = min($w, $h) * 0.5;
-            if ($fontSize > 10) $fontSize = 10;
-            if ($fontSize < 3) $fontSize = 3; // Smallest readable font
+            // Adaptive Font Size
+            $fontSize = min($w, $h) * 0.6;
+            if ($fontSize > 8) $fontSize = 8;
+            if ($fontSize < 2.5) $fontSize = 2.5;
 
             $pdf->SetFont('Arial', 'B', $fontSize);
 
-            // Center Text
             $centerX = $offsetX + $relX + ($w / 2);
             $centerY = $offsetY + $relY + ($h / 2);
 
             $textW = $pdf->GetStringWidth($b['legend_id']);
             $textH = $fontSize / 2.5;
 
-            // Only draw if text actually fits inside width
-            if ($textW < ($w * 0.9)) {
+            if ($textW < ($w * 0.95)) {
                 $pdf->SetXY($centerX - ($textW/2), $centerY - ($textH));
                 $pdf->Cell($textW, $textH*2, $b['legend_id'], 0, 0, 'C');
             }
@@ -257,7 +271,7 @@ function generateMosaicManual($filepath) {
 // --- EXECUTION ---
 if (isset($_GET['file'])) {
     $filename = basename($_GET['file']);
-    // UPDATE YOUR FOLDER HERE
+    // UPDATE FOLDER PATH HERE
     $folder = __DIR__ . '/users/tilings/';
     $filepath = $folder . $filename;
     generateMosaicManual($filepath);
