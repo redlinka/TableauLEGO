@@ -128,6 +128,7 @@ function generateMosaicManual($filepath) {
 
     // --- Setup PDF ---
     $pdf = new MosaicPDF('L', 'mm', 'A4');
+    $pdf->SetTitle('Lego Mosaic Guide - ' . basename($filepath), true);
     $pdf->SetMargins(10, 10, 10);
     $pdf->SetAutoPageBreak(false);
 
@@ -162,7 +163,7 @@ function generateMosaicManual($filepath) {
     }
 
     // Title 2
-    $title2 = "Tiling construction guide";
+    $title2 = "Mosaic Builder's Guide";
     $pdf->SetFont('Arial', '', 40);
     $w2 = $pdf->GetStringWidth($title2);
     $x2 = (297 - $w2) / 2;
@@ -243,29 +244,28 @@ function generateMosaicManual($filepath) {
     // --- Dynamic Assembly Map ---
     $pdf->isCustomPage = true;
 
-    // 1. Define Visual Scale
     // We force a specific size per stud to ensure it looks good.
     // 5mm per stud is usually a good balance for readability.
     $studSize = 5;
 
-    // 2. Calculate Content Size
+    //Calculate Content Size
     $contentW = $maxX * $studSize;
     $contentH = $maxY * $studSize;
 
-    // 3. Define Margins
-    $marginLR = 10; // Left/Right margin
-    $marginTop = 20; // Space for Title
-    $marginBot = 20; // Space for Footer
+    //Define Margins
+    $marginLR = 10;
+    $marginTop = 20;
+    $marginBot = 20;
 
-    // 4. Calculate Final Page Dimensions
+    //Calculate Final Page Dimensions
     $finalPageW = $contentW + ($marginLR * 2);
     $finalPageH = $contentH + $marginTop + $marginBot;
 
-    // 5. Create the Page (Orientation based on W vs H)
+    //Create the Page (Orientation based on W vs H)
     $orientation = ($finalPageW > $finalPageH) ? 'L' : 'P';
     $pdf->AddPage($orientation, array($finalPageW, $finalPageH));
 
-    // 6. Draw Content
+    // Draw Content
     // We offset by the top margin and left margin.
     // Since page size is calculated EXACTLY for this content + margins, centering happens automatically.
     $offsetX = $marginLR;
