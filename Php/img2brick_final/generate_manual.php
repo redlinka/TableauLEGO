@@ -163,3 +163,12 @@ function generateMosaicManual($filepath) {
     // Output PDF (D = Download, F = Save to file, I = Inline view)
     $pdf->Output('I', 'Lego_Instructions.pdf');
 }
+
+// --- HOW TO USE IT ---
+// Call the function with your text file path
+if (isset($_GET['file'])) {
+    generateMosaicManual('result.txt');
+} else {
+    echo "No file specified.";
+}
+?>

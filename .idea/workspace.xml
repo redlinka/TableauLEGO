@@ -4,14 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="679ae0cd-5ae4-4e60-95a7-abaac7775f0f" name="Changes" comment="cleaned up structure and added payment">
-      <change afterPath="$PROJECT_DIR$/Php/img2brick_final/generate_maunal.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/05d6830a-19aa-4634-a4e2-83b6ee5efc28.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/05d6830a-19aa-4634-a4e2-83b6ee5efc28.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Php/img2brick_final/i18n.md" beforeDir="false" afterPath="$PROJECT_DIR$/Php/img2brick_final/api/i18n.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Php/img2brick_final/my_orders.php" beforeDir="false" afterPath="$PROJECT_DIR$/Php/img2brick_final/my_orders.php" afterDir="false" />
-    </list>
+    <list default="true" id="679ae0cd-5ae4-4e60-95a7-abaac7775f0f" name="Changes" comment="cleaned up structure and added payment" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -30,7 +23,6 @@
         <option value="JUnit5 Test Class" />
         <option value="Interface" />
         <option value="Class" />
-        <option value="PHP File" />
       </list>
     </option>
   </component>
@@ -160,11 +152,11 @@
       <recent name="C:\Users\nachn\OneDrive\Documents\GitHub\TableauLEGO" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\nachn\OneDrive\Documents\GitHub\TableauLEGO\Php\img2brick_final\api" />
       <recent name="C:\Users\nachn\OneDrive\Documents\GitHub\TableauLEGO\DB" />
       <recent name="C:\Users\nachn\OneDrive\Documents\GitHub\TableauLEGO\C" />
       <recent name="C:\Users\nachn\OneDrive\Documents\GitHub\TableauLEGO" />
       <recent name="C:\Users\nachn\OneDrive\Documents\GitHub\TableauLEGO\java" />
+      <recent name="C:\Users\nachn\OneDrive\Documents\GitHub\TableauLEGO\Php\img2brick_final" />
     </key>
     <key name="CreateTestDialog.Recents.Supers">
       <recent name="" />
@@ -335,7 +327,7 @@
       <workItem from="1768150026635" duration="192000" />
       <workItem from="1768152099902" duration="1247000" />
       <workItem from="1768153709249" duration="10957000" />
-      <workItem from="1768246024371" duration="9933000" />
+      <workItem from="1768246024371" duration="10770000" />
     </task>
     <servers />
   </component>
