@@ -1,15 +1,19 @@
 <?php
+// 1. ENABLE ERROR REPORTING
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+// 2. CHECK LIBRARY
 if (!file_exists('fpdf.php')) {
     die("Error: fpdf.php not found.");
 }
 require('fpdf.php');
 
-// --- HELPER CLASSES ---
-
+// --- PDF CLASS WITH HEADERS/FOOTERS ---
 class MosaicPDF extends FPDF {
+    public $titleHeader = "Mosaic Assembly Guide";
+    public $subHeader = "";
+
     function SetFillColorHex($hex) {
         $hex = ltrim($hex, '#');
         if(strlen($hex) == 3) {
@@ -21,16 +25,28 @@ class MosaicPDF extends FPDF {
         $this->SetFillColor($r, $g, $b);
     }
 
-    // Check if text color needs to be black or white based on background
-    function SetTextColorForBackground($hex) {
-        $hex = ltrim($hex, '#');
-        $r = hexdec(substr($hex, 0, 2));
-        $g = hexdec(substr($hex, 2, 2));
-        $b = hexdec(substr($hex, 4, 2));
-        // Luminance formula
-        $luma = 0.2126 * $r + 0.7152 * $g + 0.0722 * $b;
-        if ($luma < 128) $this->SetTextColor(255, 255, 255);
-        else $this->SetTextColor(0, 0, 0);
+    // Header appears on EVERY page
+    function Header() {
+        $this->SetFont('Arial', 'B', 18);
+        $this->Cell(0, 10, $this->titleHeader, 0, 1, 'C');
+
+        if ($this->subHeader) {
+            $this->SetFont('Arial', 'I', 12);
+            $this->Cell(0, 6, $this->subHeader, 0, 1, 'C');
+        }
+        $this->Ln(5); // Space after header
+
+        // Draw a line separator
+        $this->SetDrawColor(200, 200, 200);
+        $this->Line(10, $this->GetY(), 287, $this->GetY());
+        $this->Ln(5); // Margin before content starts
+    }
+
+    // Footer with Page Number
+    function Footer() {
+        $this->SetY(-15);
+        $this->SetFont('Arial', 'I', 8);
+        $this->Cell(0, 10, 'Page ' . $this->PageNo(), 0, 0, 'C');
     }
 }
 
@@ -43,19 +59,15 @@ function generateMosaicManual($filepath) {
     $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     $bricks = [];
     $maxX = 0; $maxY = 0;
-
-    // To track unique types for the Legend (Shape + Color)
-    // Key format: "W-H-HEX"
     $legend = [];
 
     foreach ($lines as $line) {
         if (strpos($line, ',') === false) continue;
 
-        // Format: w-h/hexval,rotation,x,y
         $parts = explode(',', $line);
         if (count($parts) < 4) continue;
 
-        $meta = explode('/', $parts[0]); // ["1-1", "354e5a"]
+        $meta = explode('/', $parts[0]);
         if (count($meta) < 2) continue;
 
         $dims = explode('-', $meta[0]);
@@ -67,30 +79,21 @@ function generateMosaicManual($filepath) {
         $x   = (int)$parts[2];
         $y   = (int)$parts[3];
 
-        // --- FIX ROTATION ---
-        // If rotated 90 or 270 degrees, swap W and H
-        // Assuming rotation is in degrees (0, 90, 180...) or steps.
-        // If your file uses 0,1,2,3 for 0,90,180,270:
+        // FIX ROTATION
         $isVertical = ($rot == 90 || $rot == 270 || $rot == 1 || $rot == 3);
-
         $finalW = $isVertical ? $origH : $origW;
         $finalH = $isVertical ? $origW : $origH;
 
-        // Store Brick
         $bricks[] = [
-            'w' => $finalW,
-            'h' => $finalH,
-            'hex' => $hex,
-            'x' => $x,
-            'y' => $y,
-            'type_key' => $origW . '-' . $origH . '-' . $hex // Use original shape for grouping logic
+            'w' => $finalW, 'h' => $finalH,
+            'hex' => $hex, 'x' => $x, 'y' => $y,
+            'type_key' => $origW . '-' . $origH . '-' . $hex
         ];
 
-        // Update Bounds
         if (($x + $finalW) > $maxX) $maxX = $x + $finalW;
         if (($y + $finalH) > $maxY) $maxY = $y + $finalH;
 
-        // Update Legend Counts
+        // Build Legend
         $key = $origW . '-' . $origH . '-' . $hex;
         if (!isset($legend[$key])) {
             $legend[$key] = [
@@ -101,181 +104,194 @@ function generateMosaicManual($filepath) {
         $legend[$key]['count']++;
     }
 
-    // Assign IDs to Legend Items (1, 2, 3...)
+    // Assign IDs
     $idCounter = 1;
     foreach ($legend as $k => $v) {
         $legend[$k]['id'] = $idCounter++;
     }
 
-    // Map IDs back to individual bricks for easy lookup
+    // Map IDs to bricks
     foreach ($bricks as &$b) {
         $b['legend_id'] = $legend[$b['type_key']]['id'];
     }
-    unset($b); // Break reference
+    unset($b);
 
     // 2. SETUP PDF
-    $pdf = new MosaicPDF('L', 'mm', 'A4'); // Landscape
-    $pdf->SetAutoPageBreak(false);
-    $pdf->SetTitle('Lego Mosaic Instructions');
+    $pdf = new MosaicPDF('L', 'mm', 'A4');
+    $pdf->SetMargins(10, 10, 10);
+    $pdf->SetAutoPageBreak(false); // We handle breaks manually to avoid breaking drawings
 
-    // --- PART 1: LEGEND / BOM ---
+    // --- PART 1: PART LIST (BOM) ---
+    // Update Header for this section
+    $pdf->subHeader = "Total Size: $maxX x $maxY studs | Total Parts: " . count($bricks);
     $pdf->AddPage();
-    $pdf->SetFont('Arial', 'B', 20);
-    $pdf->Cell(0, 15, "Part List & Key", 0, 1, 'C');
 
-    $pdf->SetFont('Arial', '', 12);
-    $pdf->Cell(0, 10, "Total Size: $maxX x $maxY studs | Total Parts: " . count($bricks), 0, 1, 'C');
-    $pdf->Ln(5);
+    // BOM Layout Settings
+    $colWidth = 60; // Wider columns for better spacing
+    $rowHeight = 20;
+    $colsPerPage = 4;
 
-    // Draw Table of Parts
-    $colWidth = 45;
-    $rowHeight = 15;
-    $startX = 10;
-    $yPos = $pdf->GetY();
+    // Calculate centering: Total table width vs Page Width
+    $tableWidth = $colsPerPage * $colWidth;
+    $pageWidth = 297; // A4 Landscape
+    $startX = ($pageWidth - $tableWidth) / 2;
+    $startY = $pdf->GetY();
+
+    $currentCol = 0;
+    $currentX = $startX;
+    $currentY = $startY;
 
     foreach ($legend as $type) {
-        // Check page break
-        if ($yPos > 180) {
+        // Check if we need a new page
+        if ($currentY + $rowHeight > 180) {
             $pdf->AddPage();
-            $yPos = 20;
-            $pdf->SetFont('Arial', 'B', 20);
-            $pdf->Cell(0, 15, "Part List (Cont.)", 0, 1, 'C');
-            $pdf->Ln(5);
+            $currentY = $pdf->GetY();
+            $currentX = $startX;
+            $currentCol = 0;
         }
 
-        // Draw ID Number
-        $pdf->SetFont('Arial', 'B', 14);
-        $pdf->SetXY($startX, $yPos);
-        $pdf->Cell(15, $rowHeight, "#" . $type['id'], 1, 0, 'C');
+        // 1. Draw The "Invisible Box" Content
+        // ID
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->SetXY($currentX, $currentY);
+        $pdf->Cell(12, $rowHeight, "#" . $type['id'], 0, 0, 'C'); // No border
 
-        // Draw Visual Brick Representation
-        $pdf->SetXY($startX + 15, $yPos);
-        // We draw a small rectangle representing the color
+        // 2. Draw The Scaled Brick "Icon"
+        // We define a drawing area of 25mm x 16mm inside the cell
+        $iconBoxW = 25;
+        $iconBoxH = 16;
+        $iconX = $currentX + 12;
+        $iconY = $currentY + 2; // slight padding top
+
+        // Calculate Scale to fit brick inside icon box
+        $scaleW = $iconBoxW / $type['w'];
+        $scaleH = $iconBoxH / $type['h'];
+        $brickScale = min($scaleW, $scaleH);
+
+        // Center the brick in the icon box
+        $drawW = $type['w'] * $brickScale;
+        $drawH = $type['h'] * $brickScale;
+        $drawX = $iconX + ($iconBoxW - $drawW) / 2;
+        $drawY = $iconY + ($iconBoxH - $drawH) / 2;
+
         $pdf->SetFillColorHex($type['hex']);
-        $pdf->Rect($startX + 17, $yPos + 3, 15, $rowHeight - 6, 'FD');
-        $pdf->Cell(20, $rowHeight, "", 1, 0); // Placeholder box
+        $pdf->SetDrawColor(0); // Black outline
+        $pdf->Rect($drawX, $drawY, $drawW, $drawH, 'FD');
 
-        // Text Description
-        $pdf->SetXY($startX + 35, $yPos);
+        // 3. Text Details
+        $pdf->SetXY($currentX + 40, $currentY);
         $pdf->SetFont('Arial', '', 10);
-        $text = "{$type['w']}x{$type['h']} - Qty: {$type['count']}";
-        $pdf->Cell(40, $rowHeight, $text, 1, 0, 'L');
+        // MultiCell allows text to wrap if needed, but here we just center vertically manually
+        $pdf->Cell(20, $rowHeight/2, "Size: {$type['w']}x{$type['h']}", 0, 2, 'L');
+        $pdf->Cell(20, $rowHeight/2, "Qty: {$type['count']}", 0, 0, 'L');
 
-        // Move to next column or row
-        $startX += 80; // Column shift
-        if ($startX > 200) { // If too far right, new row
-            $startX = 10;
-            $yPos += $rowHeight;
+        // Move cursor for next item
+        $currentCol++;
+        if ($currentCol >= $colsPerPage) {
+            $currentCol = 0;
+            $currentX = $startX;
+            $currentY += $rowHeight;
+        } else {
+            $currentX += $colWidth;
         }
     }
 
-    // --- PART 2: THE ASSEMBLY MAP ---
-    // We need to ensure the cells are big enough to read the numbers.
-    // Minimum cell size in mm to be readable:
-    $minCellSize = 7;
 
-    // Page dimensions available
-    $pageW = 297;
-    $pageH = 210;
+    // --- PART 2: ASSEMBLY MAPS ---
+    $minCellSize = 6; // Minimum mm per stud to be readable
+
+    // Available drawing area
     $margin = 10;
-    $drawAreaW = $pageW - (2 * $margin);
-    $drawAreaH = $pageH - (2 * $margin);
+    $availW = 297 - (2 * $margin);
+    $availH = 210 - 45; // Height minus Header (approx 35mm) and Footer (10mm)
 
-    // Calculate how many studs fit on one page
-    $studsPerPageX = floor($drawAreaW / $minCellSize);
-    $studsPerPageY = floor($drawAreaH / $minCellSize);
+    $studsPerPageX = floor($availW / $minCellSize);
+    $studsPerPageY = floor($availH / $minCellSize);
 
-    // Loop through "Chunks" (Quadrants/Sections)
     for ($yStart = 0; $yStart < $maxY; $yStart += $studsPerPageY) {
         for ($xStart = 0; $xStart < $maxX; $xStart += $studsPerPageX) {
 
-            $pdf->AddPage();
-
-            // Calculate end points for this page
+            // Calculate actual range for this page
             $yEnd = min($yStart + $studsPerPageY, $maxY);
             $xEnd = min($xStart + $studsPerPageX, $maxX);
 
-            // Header
-            $pdf->SetFont('Arial', '', 10);
-            $pdf->SetXY(5, 5);
-            $pdf->Cell(0, 10, "Section: X ($xStart - $xEnd) | Y ($yStart - $yEnd)", 0, 0, 'L');
+            // Set Dynamic Header for this Page
+            $pdf->subHeader = "Section: Cols $xStart-$xEnd | Rows $yStart-$yEnd";
+            $pdf->AddPage();
 
-            // Calculate exact Scale to maximize this specific page usage
+            // Get Start Y (automatically below the header we just added)
+            $drawStartY = $pdf->GetY() + 2;
+
+            // Calculate Scale for this specific view
             $sectionW = $xEnd - $xStart;
             $sectionH = $yEnd - $yStart;
 
-            $scaleX = $drawAreaW / $sectionW;
-            $scaleY = $drawAreaH / $sectionH;
-            $scale = min($scaleX, $scaleY); // Fit to page
+            $scaleX = $availW / $sectionW;
+            $scaleY = ($availH - 5) / $sectionH; // -5 safety buffer
+            $scale = min($scaleX, $scaleY);
 
-            // Center content
-            $drawX = $margin + ($drawAreaW - ($sectionW * $scale)) / 2;
-            $drawY = $margin + ($drawAreaH - ($sectionH * $scale)) / 2;
+            // Center the grid
+            $gridDrawW = $sectionW * $scale;
+            $gridDrawH = $sectionH * $scale;
+            $offsetX = $margin + ($availW - $gridDrawW) / 2;
+            $offsetY = $drawStartY + ($availH - $gridDrawH) / 2;
 
-            // Draw Bricks
+            // DRAW BRICKS
             foreach ($bricks as $b) {
-                // Logic: Does this brick overlap with the current view window?
-                // Simple check: is the top-left corner inside?
-                // Better check: intersection.
+                // View bounds intersection check
+                $b_x1 = $b['x']; $b_x2 = $b['x'] + $b['w'];
+                $b_y1 = $b['y']; $b_y2 = $b['y'] + $b['h'];
 
-                // Brick bounds
-                $b_x1 = $b['x'];
-                $b_x2 = $b['x'] + $b['w'];
-                $b_y1 = $b['y'];
-                $b_y2 = $b['y'] + $b['h'];
+                // If brick touches the view window
+                if ($b_x1 < $xEnd && $b_x2 > $xStart && $b_y1 < $yEnd && $b_y2 > $yStart) {
 
-                // View bounds
-                $v_x1 = $xStart; $v_x2 = $xEnd;
-                $v_y1 = $yStart; $v_y2 = $yEnd;
-
-                // Check intersection
-                if ($b_x1 < $v_x2 && $b_x2 > $v_x1 && $b_y1 < $v_y2 && $b_y2 > $v_y1) {
-
-                    // It is visible (at least partially)
-                    // Calculate relative coords
+                    // Relative coordinates
                     $relX = ($b['x'] - $xStart) * $scale;
                     $relY = ($b['y'] - $yStart) * $scale;
 
                     $w = $b['w'] * $scale;
                     $h = $b['h'] * $scale;
 
-                    // Draw White Box with Outline
+                    // Style: White fill, Black text, Black border
                     $pdf->SetFillColor(255, 255, 255);
                     $pdf->SetDrawColor(0, 0, 0);
                     $pdf->SetLineWidth(0.2);
 
-                    // We use a clipping trick or simple math to ensure we don't draw outside bounds?
-                    // FPDF doesn't support clipping natively easily.
-                    // For this manual, usually bricks are perfectly aligned to the grid split,
-                    // or we accept partial bricks on edges.
+                    $pdf->Rect($offsetX + $relX, $offsetY + $relY, $w, $h, 'FD');
 
-                    $pdf->Rect($drawX + $relX, $drawY + $relY, $w, $h, 'FD');
-
-                    // Draw ID Number
-                    // Only draw text if the box is big enough
+                    // Draw Number if it fits
                     if ($w > 4 && $h > 4) {
-                        $pdf->SetTextColor(0, 0, 0);
-                        // Font size depends on box size
-                        $fontSize = min($w, $h) * 0.6;
-                        if ($fontSize > 12) $fontSize = 12;
+                        $pdf->SetTextColor(0);
+                        // Dynamic Font Size
+                        $fontSize = min($w, $h) * 0.5;
+                        if ($fontSize > 10) $fontSize = 10;
+                        if ($fontSize < 4) $fontSize = 4; // min readable
+
                         $pdf->SetFont('Arial', 'B', $fontSize);
 
-                        // Center text
-                        $pdf->SetXY($drawX + $relX, $drawY + $relY + ($h/2) - ($fontSize/2.5)); // Approx v-center
-                        $pdf->Cell($w, $fontSize/2, $b['legend_id'], 0, 0, 'C');
+                        // Center Text
+                        $centerX = $offsetX + $relX + ($w / 2);
+                        $centerY = $offsetY + $relY + ($h / 2);
+
+                        // FPDF places text by bottom-left, need to adjust
+                        $textW = $pdf->GetStringWidth($b['legend_id']);
+                        $textH = $fontSize / 2.5;
+
+                        $pdf->SetXY($centerX - ($textW/2), $centerY - ($textH));
+                        $pdf->Cell($textW, $textH*2, $b['legend_id'], 0, 0, 'C');
                     }
                 }
             }
         }
     }
 
-    $pdf->Output('I', 'Assembly_Manual.pdf');
+    $pdf->Output('I', 'Mosaic_Manual.pdf');
 }
 
 // --- EXECUTION ---
 if (isset($_GET['file'])) {
     $filename = basename($_GET['file']);
-    // UPDATE YOUR FOLDER HERE
+    // CHANGE THIS PATH TO YOUR FOLDER
     $folder = __DIR__ . '/users/tilings/';
     $filepath = $folder . $filename;
     generateMosaicManual($filepath);
