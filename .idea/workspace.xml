@@ -904,7 +904,7 @@
       <recent name="fr.uge.univ_eiffel.image_processing" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.ManualRestock">
+  <component name="RunManager">
     <configuration name="LegoVisualizer" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="fr.uge.univ_eiffel.LegoVisualizer" />
       <module name="java2BrickFusion" />
@@ -991,19 +991,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <list>
-      <item itemvalue="Application.ManualRestock" />
-      <item itemvalue="Application.LegoVisualizer" />
-      <item itemvalue="Application.TileAndDraw" />
-      <item itemvalue="Application.Refiller" />
-    </list>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Application.TileAndDraw" />
-        <item itemvalue="Application.Refiller" />
-        <item itemvalue="Application.LegoVisualizer" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
