@@ -384,7 +384,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             let val = parseInt(e.target.value) || 16;
             val = Math.round(val / 16) * 16;
             if (val < 16) val = 16;
-            if (val > 1024) val = 1024;
+            if (val > 512) val = 512;
             e.target.value = val;
             calculateDimensions();
         }
