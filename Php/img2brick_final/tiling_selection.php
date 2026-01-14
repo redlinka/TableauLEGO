@@ -221,12 +221,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($existingFile) {
             $previewImage = $imgFolder . $existingFile . '?t=' . time();
         }
-        $stmt = $cnx->prepare("SELECT pavage_txt FROM TILLING WHERE image_id = ?");
-        $stmt->execute([$_SESSION['step4_image_id']]);
-        $existingPavage = $stmt->fetchColumn();
-        if ($existingPavage) {
-            $finalTxtName = $existingPavage;
-        }
+
+        $finalTxtName = $_SESSION['pavage_txt'];
     }
 }
 ?>
