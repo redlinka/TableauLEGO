@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $emailBody = "
                     <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; max-width: 600px;'>
-                        <h2 style='color: #0d6efd;'>Activate Your Account 🧱</h2>
+                        <h2 style='color: #0d6efd;'>Activate Your Account</h2>
                         <p>It looks like your account isn't active yet. Click below to verify your email:</p>
                         <p style='text-align: center;'>
                             <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Verify My Account</a>

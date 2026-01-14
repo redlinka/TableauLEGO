@@ -5,7 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="679ae0cd-5ae4-4e60-95a7-abaac7775f0f" name="Changes" comment="cleaned up structure and added payment">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Php/img2brick_final/admin_panel.php" beforeDir="false" afterPath="$PROJECT_DIR$/Php/img2brick_final/admin_panel.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Php/img2brick_final/connexion.php" beforeDir="false" afterPath="$PROJECT_DIR$/Php/img2brick_final/connexion.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -330,7 +332,7 @@
       <workItem from="1768152099902" duration="1247000" />
       <workItem from="1768153709249" duration="10957000" />
       <workItem from="1768246024371" duration="12577000" />
-      <workItem from="1768401591509" duration="4411000" />
+      <workItem from="1768401591509" duration="5008000" />
     </task>
     <servers />
   </component>
