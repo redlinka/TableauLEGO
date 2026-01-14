@@ -113,14 +113,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 $stmtUsers = $cnx->query("SELECT user_id, email, first_name, last_name FROM USER ORDER BY user_id DESC");
 $users = $stmtUsers->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch All Orders + Client Info
+// Orders
 $sqlOrders = "
-    SELECT o.order_id, o.created_at, o.user_id, u.first_name, u.last_name, u.email 
-    FROM ORDER_BILL o 
-    JOIN USER u ON o.user_id = u.user_id 
-    WHERE o.created_at IS NOT NULL 
-    ORDER BY o.created_at DESC
-";
+        SELECT o.order_id, o.created_at, o.user_id, u.first_name, u.last_name, u.email 
+        FROM ORDER_BILL o 
+        JOIN USER u ON o.user_id = u.user_id 
+        WHERE o.created_at IS NOT NULL 
+        ORDER BY o.created_at DESC
+    ";
 $stmtOrders = $cnx->query($sqlOrders);
 $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
 
@@ -147,58 +147,6 @@ foreach ($catalog as $item) {
         .color-box { display: inline-block; width: 20px; height: 20px; border: 1px solid #ccc; vertical-align: middle; margin-right: 5px; }
         .nav-tabs .nav-link.active { font-weight: bold; border-bottom: 3px solid #0d6efd; }
         .table-container { background: white; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #dee2e6; border-top: none; }
-
-        /* My Orders Page Styles */
-        .order-card {
-            background: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            overflow: hidden; /* Keeps children inside rounded corners */
-        }
-
-        /* Header strip for the order (Admin View) */
-        .order-header {
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* The row for each item (Tiling) */
-        .order-item-row {
-            display: flex;
-            align-items: center;
-            padding: 15px 20px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .order-item-row:last-child {
-            border-bottom: none;
-        }
-
-        .thumb-img {
-            width: 70px;
-            height: 70px;
-            object-fit: cover;
-            border-radius: 6px;
-            margin-right: 20px;
-            border: 1px solid #dee2e6;
-        }
-
-        /* Badges */
-        .badge-paid { background-color: #d1e7dd; color: #0f5132; padding: 5px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
-        .badge-pending { background-color: #fff3cd; color: #664d03; padding: 5px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
-
-        /* Footer for totals */
-        .order-footer {
-            background-color: #fff;
-            padding: 15px 20px;
-            text-align: right;
-            border-top: 1px solid #e0e0e0;
-        }
     </style>
 </head>
 <body>
@@ -256,89 +204,29 @@ foreach ($catalog as $item) {
         </div>
 
         <div class="tab-pane fade" id="orders" role="tabpanel">
-            <div class="container-fluid p-0 pt-3">
-
-                <?php if (empty($orders)): ?>
-                    <div class="alert alert-info">No orders found in the database.</div>
-                <?php else: ?>
-
-                    <?php foreach ($orders as $order):
-                        // FETCH ITEMS (Standard Logic)
-                        $sqlItems = "
-                    SELECT P.pavage_txt, I.path 
-                    FROM contain C
-                    JOIN TILLING P ON C.pavage_id = P.pavage_id
-                    JOIN IMAGE I ON P.image_id = I.image_id
-                    WHERE C.order_id = ?
-                ";
-                        $stmtItems = $cnx->prepare($sqlItems);
-                        $stmtItems->execute([$order['order_id']]);
-                        $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
-
-                        // Calculations
-                        $orderTotal = 0;
-                        $dateFormatted = date('d/m/Y H:i', strtotime($order['created_at']));
-                        $badgeClass = ($order['payment_status'] === 'Paid') ? 'badge-paid' : 'badge-pending';
-                        ?>
-
-                        <div class="order-card">
-
-                            <div class="order-header">
-                                <div>
-                                    <strong>Order #<?= $order['order_id'] ?></strong>
-                                    <span class="text-muted mx-2">|</span>
-                                    <span class="text-primary"><?= htmlspecialchars($order['first_name'] . ' ' . $order['last_name']) ?></span>
-                                    <span class="text-muted small">(<?= htmlspecialchars($order['email']) ?>)</span>
-                                </div>
-                                <div>
-                                    <span class="me-3"><?= $dateFormatted ?></span>
-                                    <span class="<?= $badgeClass ?>"><?= $order['payment_status'] ?></span>
-                                </div>
-                            </div>
-
-                            <div class="order-body">
-                                <?php foreach ($items as $item):
-                                    // Stats Logic
-                                    $stats = getTilingStats($item['pavage_txt']);
-                                    $price = isset($stats['price']) ? $stats['price'] / 100 : 0;
-                                    $orderTotal += $price;
-                                    $imgPath = "users/imgs/" . $item['lego_path'];
-                                    ?>
-                                    <div class="order-item-row">
-                                        <img src="<?= $imgPath ?>" alt="Tiling" class="thumb-img">
-
-                                        <div style="flex: 1;">
-                                            <strong><?= htmlspecialchars($item['pavage_txt']) ?></strong>
-                                            <div class="text-muted small">Quality: <?= $stats['quality'] ?? 95 ?>%</div>
-                                            <div class="mt-1">
-                                                <a href="generate_manual.php?file=<?= urlencode($item['pavage_txt']) ?>" target="_blank" class="text-decoration-none small">
-                                                    📄 Guide
-                                                </a>
-                                                <span class="mx-1">|</span>
-                                                <a href="users/tilings/<?= htmlspecialchars($item['pavage_txt']) ?>" download class="text-decoration-none small">
-                                                    ⬇ Tiling File
-                                                </a>
-                                            </div>
-                                        </div>
-
-                                        <div class="fw-bold">
-                                            <?= number_format($price, 2) ?> €
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-
-                            <div class="order-footer">
-                                <div class="small text-muted">Subtotal: <?= number_format($orderTotal, 2) ?> €</div>
-                                <div class="small text-muted">Shipping (10%): <?= number_format($orderTotal * 0.10, 2) ?> €</div>
-                                <div class="fs-5 fw-bold text-dark mt-1">Total: <?= number_format($orderTotal * 1.10, 2) ?> €</div>
-                            </div>
-
-                        </div>
+            <div class="table-container">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Date</th>
+                        <th>User ID</th>
+                        <th>Details</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($orders as $o): ?>
+                        <tr>
+                            <td><?= $o['order_id'] ?></td>
+                            <td><?= $o['created_at'] ?></td>
+                            <td><?= $o['user_id'] ?></td>
+                            <td>
+                                <button class="btn btn-sm btn-info text-white">View Details</button>
+                            </td>
+                        </tr>
                     <?php endforeach; ?>
-
-                <?php endif; ?>
-
+                    </tbody>
+                </table>
             </div>
         </div>
 
