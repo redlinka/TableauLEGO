@@ -152,47 +152,6 @@ foreach ($catalog as $item) {
         .nav-tabs .nav-link.active { font-weight: bold; border-bottom: 3px solid #0d6efd; }
         .table-container { background: white; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #dee2e6; border-top: none; }
 
-        .order-card {
-            border: 1px solid #ddd;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .order-header {
-            background: #f8f9fa;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .order-body {
-            padding: 15px;
-        }
-
-        .item-row {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .item-row img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 4px;
-        }
-
-        .status-badge {
-            background: #28a745;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.8em;
-        }
     </style>
 </head>
 <body>
