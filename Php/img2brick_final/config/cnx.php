@@ -329,7 +329,7 @@ function getOriginalImage($cnx, $imageId)
 
         // Si pas de parent → image originale
         if ($image['img_parent'] === null) {
-            return $image["filename"];
+            return $image;
         }
 
         // Sinon on remonte récursivement
