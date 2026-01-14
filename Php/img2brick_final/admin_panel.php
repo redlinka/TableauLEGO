@@ -121,13 +121,28 @@ $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
 $sqlCatalog = "SELECT * FROM catalog_with_price_and_stock ORDER BY stock ASC";
 $stmtCatalog = $cnx->query($sqlCatalog);
 $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
-if (empty($message)) {
-    foreach ($catalog as $item) {
-        if ($item['stock'] < 10) {
-            $message = "<strong>Alert:</strong> Some bricks in the catalog have critically low stock (less than 10).";
-            $messageType = "danger";
-            break; // Stop checking, we just need one general message
+$hasLowStock = false;
+foreach ($catalog as $item) {
+    if ($item['stock'] < 10) {
+        $hasLowStock = true;
+        break; // We found one, no need to check the rest
+    }
+}
+
+if ($hasLowStock) {
+    $warningText = "⚠️ <strong>Alert:</strong> Some items have critically low stock (< 10).";
+
+    if (!empty($message)) {
+        // If a message already exists (like "Success"), ADD this one to it
+        $message .= "<br><hr>" . $warningText;
+        // Optional: Force the color to yellow/orange so the warning isn't missed inside a green box
+        if ($messageType == 'success') {
+            $messageType = "warning";
         }
+    } else {
+        // If no message exists, just show this one
+        $message = $warningText;
+        $messageType = "danger";
     }
 }
 ?>
