@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="679ae0cd-5ae4-4e60-95a7-abaac7775f0f" name="Changes" comment="cleaned up structure and added payment">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Php/img2brick_final/admin_panel.php" beforeDir="false" afterPath="$PROJECT_DIR$/Php/img2brick_final/admin_panel.php" afterDir="false" />
-    </list>
+    <list default="true" id="679ae0cd-5ae4-4e60-95a7-abaac7775f0f" name="Changes" comment="cleaned up structure and added payment" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -178,18 +175,7 @@
       <recent name="fr.uge.univ_eiffel.security" />
     </key>
   </component>
-  <component name="RunManager">
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="TableauLEGO" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="TableauLEGO" />
-      <option name="filePath" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Application.LegoVisualizer">
     <configuration name="LegoVisualizer" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="fr.uge.univ_eiffel.image_processing.LegoVisualizer" />
       <module name="java2BrickFusion" />
@@ -286,6 +272,23 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="TableauLEGO" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="TableauLEGO" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Application.LegoVisualizer" />
+      <item itemvalue="Application.ManualRestock" />
+      <item itemvalue="Application.Refiller" />
+      <item itemvalue="Application.TileAndDraw" />
+    </list>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -331,7 +334,7 @@
       <workItem from="1768152099902" duration="1247000" />
       <workItem from="1768153709249" duration="10957000" />
       <workItem from="1768246024371" duration="12577000" />
-      <workItem from="1768401591509" duration="3815000" />
+      <workItem from="1768401591509" duration="4411000" />
     </task>
     <servers />
   </component>

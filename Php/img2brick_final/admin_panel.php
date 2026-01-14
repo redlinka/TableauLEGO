@@ -242,8 +242,8 @@ $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
                                 $price = isset($stats['price']) ? $stats['price'] / 100 : 0;
                                 $orderTotal += $price;
 
-                                // Path fix: my_orders says 'users/imgs/' + lego_path
-                                $imgPath = "users/imgs/" . $item['lego_path'];
+                                // Path fix: my_orders says 'users/imgs/' + path
+                                $imgPath = "users/imgs/" . $item['path'];
                                 ?>
                                 <div class="item-row item-row-grouped">
                                     <img src="<?= $imgPath ?>" alt="Overview" class="thumb-img">
