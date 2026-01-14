@@ -121,7 +121,7 @@ try {
                             <div class="item-row">
                                 <img src="users/imgs/<?= htmlspecialchars($item['lego_path']) ?>" alt="Overview">
                                 <div style="flex: 1;">
-                                    <strong>File : <?= htmlspecialchars($item['pavage_txt']) ?></strong><br>
+                                    <strong>File : <?= htmlspecialchars($filename) ?></strong><br>
                                     <small>Quality : <?= $stats['quality'] ?>%</small>
                                     <br>
                                     <a href="generate_manual.php?file=<?= urlencode($item['pavage_txt']) ?>" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
