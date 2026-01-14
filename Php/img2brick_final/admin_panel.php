@@ -2,7 +2,6 @@
     session_start();
     global $cnx;
     include("./config/cnx.php");
-    require_once __DIR__ . '/includes/i18n.php';
 
     if (!isset($_SESSION['userId']) || !isset($_SESSION['username'])) {
         header("Location: connexion.php");
