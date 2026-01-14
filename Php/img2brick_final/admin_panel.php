@@ -268,6 +268,19 @@ foreach ($catalog as $item) {
                             </div>
 
                             <div class="order-body">
+                                <?php
+                                // Retrieve tiling for this order to display it
+                                $stmtItems = $cnx->prepare("SELECT t.pavage_txt, i.path as lego_path, t.pavage_id, i.image_id FROM contain c
+                                                        JOIN TILLING t ON c.pavage_id = t.pavage_id
+                                                        JOIN IMAGE i ON t.image_id = i.image_id
+                                                        WHERE c.order_id = ?");
+                                $stmtItems->execute([$order['order_id']]);
+                                $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
+
+                                $orderTotal = 0;
+                                foreach ($items as $item) {
+                                    
+                                ?>
                                     <div class="item-row">
                                         <img src="users/imgs/<?= htmlspecialchars($item['lego_path']) ?>" alt="Overview">
                                         <div style="flex: 1;">
@@ -286,6 +299,7 @@ foreach ($catalog as $item) {
                                         </div>
                                         <div><?= money($price) ?></div>
                                     </div>
+                                <?php } ?>
 
                                 <div style="text-align: right; margin-top: 15px;">
                                     <strong>Subtotal : <?= money($orderTotal) ?></strong><br>
