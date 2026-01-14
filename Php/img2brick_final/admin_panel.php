@@ -121,14 +121,7 @@ $stmtUsers = $cnx->query("SELECT user_id, email, first_name, last_name FROM USER
 $users = $stmtUsers->fetchAll(PDO::FETCH_ASSOC);
 
 // Orders
-$sqlOrders = "
-    SELECT o.order_id, o.created_at, o.user_id, u.first_name, u.last_name, u.email 
-    FROM ORDER_BILL o 
-    JOIN USER u ON o.user_id = u.user_id 
-    WHERE o.created_at IS NOT NULL 
-    ORDER BY o.created_at DESC
-";
-$stmtOrders = $cnx->query($sqlOrders);
+$stmtOrders = $cnx->query("SELECT * FROM ORDER_BILL ORDER BY created_at DESC LIMIT 50");
 $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
 
 $sqlCatalog = "SELECT * FROM catalog_with_price_and_stock ORDER BY stock ASC";
@@ -167,10 +160,10 @@ $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
             <button class="nav-link active" id="clients-tab" data-bs-toggle="tab" data-bs-target="#clients" type="button" role="tab">👥 Clients</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab">📦 Orders</button>
+            <button class="nav-link" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab">Orders</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="restock-tab" data-bs-toggle="tab" data-bs-target="#restock" type="button" role="tab">🏗️ Restock Form</button>
+            <button class="nav-link" id="restock-tab" data-bs-toggle="tab" data-bs-target="#restock" type="button" role="tab">Restock Form</button>
         </li>
     </ul>
 
@@ -200,81 +193,29 @@ $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <div class="tab-pane fade" id="orders" role="tabpanel">
-            <div class="table-container" style="background: transparent; border: none; padding: 0; padding-top: 20px;">
-
-                <?php if (count($orders) === 0): ?>
-                    <div class="alert alert-info">No orders found.</div>
-                <?php else: ?>
-
-                    <?php foreach ($orders as $order):
-                        // 1. REUSE LOGIC FROM MY_ORDERS.PHP
-                        // We fetch items via the CONTAIN table (Order -> Contain -> Pavage -> Image)
-                        $sqlItems = "
-                                SELECT P.pavage_txt, I.path
-                                FROM contain C
-                                JOIN TILLING P ON C.pavage_id = P.pavage_id
-                                JOIN IMAGE I ON P.image_id = I.image_id
-                                WHERE C.order_id = ?
-                            ";
-                        $stmtItems = $cnx->prepare($sqlItems);
-                        $stmtItems->execute([$order['order_id']]);
-                        $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
-
-                        // Calculate Totals on the fly (since they aren't in the DB)
-                        $orderTotal = 0;
-                        $dateFormatted = date('d M Y, H:i', strtotime($order['created_at']));
-                        ?>
-
-                        <div class="admin-order-group">
-                            <div class="admin-order-header">
-                                <div>
-                                    <span>Order #<?= $order['order_id'] ?></span>
-                                    <span class="text-muted fw-normal mx-2">by</span>
-                                    <span class="text-primary"><?= htmlspecialchars($order['first_name'] . ' ' . $order['last_name']) ?></span>
-                                    <small class="text-muted">(<?= htmlspecialchars($order['email']) ?>)</small>
-                                </div>
-                                <div><?= $dateFormatted ?></div>
-                            </div>
-
-                            <?php foreach ($items as $item):
-                                $stats = getTilingStats($item['pavage_txt']);
-                                // Price logic from my_orders.php
-                                $price = isset($stats['price']) ? $stats['price'] / 100 : 0;
-                                $orderTotal += $price;
-
-                                // Path fix: my_orders says 'users/imgs/' + path
-                                $imgPath = "users/imgs/" . $item['path'];
-                                ?>
-                                <div class="item-row item-row-grouped">
-                                    <img src="<?= $imgPath ?>" alt="Overview" class="thumb-img">
-
-                                    <div style="flex: 1;">
-                                        <strong>File : <?= htmlspecialchars($item['pavage_txt']) ?></strong><br>
-                                        <small>Quality : <?= $stats['quality'] ?? 0 ?>%</small>
-                                        <br>
-                                        <a href="generate_manual.php?file=<?= urlencode($item['pavage_txt']) ?>" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
-                                            View Guide
-                                        </a>
-                                        <a href="users/tilings/<?= htmlspecialchars($item['pavage_txt']) ?>" download class="btn btn-sm btn-outline-secondary mt-2">
-                                            Download Tiling
-                                        </a>
-                                    </div>
-
-                                    <div class="fw-bold"><?= number_format($price, 2) ?> EUR</div>
-                                </div>
-                            <?php endforeach; ?>
-
-                            <div class="bg-white p-3 border border-top-0 rounded-bottom text-end">
-                                <strong>Subtotal : <?= number_format($orderTotal, 2) ?> EUR</strong><br>
-                                <small>Shipping costs (10%): <?= number_format($orderTotal * 0.1, 2) ?> EUR</small><br>
-                                <strong class="fs-5">Total : <?= number_format($orderTotal * 1.1, 2) ?> EUR</strong>
-                            </div>
-
-                        </div>
+            <div class="table-container">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Date</th>
+                        <th>User ID</th>
+                        <th>Details</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($orders as $o): ?>
+                        <tr>
+                            <td><?= $o['order_id'] ?></td>
+                            <td><?= $o['created_at'] ?></td>
+                            <td><?= $o['user_id'] ?></td>
+                            <td>
+                                <button class="btn btn-sm btn-info text-white">View Details</button>
+                            </td>
+                        </tr>
                     <?php endforeach; ?>
-
-                <?php endif; ?>
-
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -285,18 +226,18 @@ $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
 
                     <div class="d-flex justify-content-between mb-3">
                         <h4>Catalog & Restock</h4>
-                        <button type="submit" class="btn btn-primary btn-lg">🚀 Order Selected Bricks</button>
+                        <button type="submit" class="btn btn-primary btn-lg">Order Selected Bricks</button>
                     </div>
 
                     <div class="catalog-table-wrapper">
                         <table class="table table-sm align-middle catalog-table">
-                            <thead class="table-dark">
+                            <thead class="table-dark sticky-top">
                             <tr>
                                 <th>Ref</th>
                                 <th>Color</th>
-                                <th>Size</th>
+                                <th>Dimensions</th>
                                 <th>Current Stock</th>
-                                <th>Price</th>
+                                <th>Unit Price</th>
                                 <th style="width: 150px;">Order Qty</th>
                             </tr>
                             </thead>
@@ -333,10 +274,6 @@ $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
                             <?php endforeach; ?>
                             </tbody>
                         </table>
-                    </div>
-
-                    <div class="mt-3 text-end">
-                        <button type="submit" class="btn btn-primary btn-lg">🚀 Order Selected Bricks</button>
                     </div>
                 </form>
             </div>
