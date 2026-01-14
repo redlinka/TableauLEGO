@@ -69,7 +69,6 @@ if($isLoggedIn){
 
             <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 mt-3 mt-lg-0">
                 <?php if ($isLoggedIn): ?>
-                    <?php if ($navUsername != '4DM1N1STRAT0R_4ND_4LM16HTY'): ?>
                         <div class="cart-profil">
                             <a href="cart.php" class="cart-wrapper" aria-label="Open orders">
                                 <img src="users\imgs_site\cart.png" alt="Panier" class="cart-icon">
@@ -81,10 +80,14 @@ if($isLoggedIn){
                         <a href="my_orders.php" class="btn btn-outline-secondary <?= ($currentPage == 'my_orders.php') ? 'active' : '' ?>" data-i18n="nav.my_orders">
                             My Orders
                         </a>
+                    <?php if ($navUsername != '4DM1N1STRAT0R_4ND_4LM16HTY'): ?>
                         <a href="my_account.php" class="btn btn-outline-secondary <?= ($currentPage == 'my_account.php') ? 'active' : '' ?>">
                             <?= htmlspecialchars($navUsername) ?>
                         </a>
+                    <?php else: ?>
+                        <span class="btn-outline-secondary"><?= htmlspecialchars($navUsername) ?></span>
                     <?php endif; ?>
+
                     <a href="logout.php" class="btn btn-outline-danger" data-i18n="nav.logout">Log Out</a>
 
                 <?php else: ?>
