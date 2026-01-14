@@ -215,12 +215,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
     // Check for existing result on page load
     if (isset($_SESSION['step4_image_id'])) {
-        $stmt = $cnx->prepare("SELECT i.path, t.pavage_txt FROM IMAGE i JOIN TILLING t ON i.image_id = t.image_id WHERE i.image_id = ?");
+        $stmt = $cnx->prepare("SELECT path FROM IMAGE WHERE image_id = ?");
         $stmt->execute([$_SESSION['step4_image_id']]);
-        $existingFile = $stmt->fetch();
+        $existingFile = $stmt->fetchColumn();
         if ($existingFile) {
-            $previewImage = $imgFolder . $existingFile['path'] . '?t=' . time();
-            $finalTxtName = $existingFile['pavage_txt'];
+            $previewImage = $imgFolder . $existingFile . '?t=' . time();
         }
     }
 }
