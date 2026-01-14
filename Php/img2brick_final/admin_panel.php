@@ -256,7 +256,20 @@ foreach ($catalog as $item) {
                 <?php else: ?>
                     <?php foreach ($orders as $order): ?>
                         <div class="order-card">
-                            
+                            <div class="order-header">
+                                <div>
+                                    <strong>Order #<?= $order['order_id'] ?></strong><br>
+                                    <small>Placed on : <?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></small><br>
+                                    <small>User: <?= htmlspecialchars($order['first_name'] . ' ' . $order['last_name']) ?> (<?= htmlspecialchars($order['email']) ?>)</small>
+                                </div>
+                                <div>
+                                    <span class="status-badge">Paid</span>
+                                </div>
+                            </div>
+
+                            <div class="order-body">
+                                
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
