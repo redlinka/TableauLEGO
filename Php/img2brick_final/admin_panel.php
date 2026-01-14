@@ -341,6 +341,8 @@ foreach ($catalog as $item) {
             </div>
         </div>
 
+        </div>
+
         <div class="tab-pane fade" id="restock" role="tabpanel">
             <div class="table-container">
                 <form method="POST" action="admin_panel.php">
