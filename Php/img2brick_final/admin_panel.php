@@ -280,7 +280,7 @@ foreach ($catalog as $item) {
                                 $orderTotal = 0;
                                 foreach ($items as $item) {
                                     $filename = "";
-                                    $stats = [10,10];
+                                    $stats = getTilingStats($item['pavage_txt']);
                                     $price = $stats['price'] / 100;
                                     $orderTotal += $price;
                                 ?>
