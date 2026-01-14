@@ -121,28 +121,11 @@ $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
 $sqlCatalog = "SELECT * FROM catalog_with_price_and_stock ORDER BY stock ASC";
 $stmtCatalog = $cnx->query($sqlCatalog);
 $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
-$hasLowStock = false;
+$lowStockWarning = false;
 foreach ($catalog as $item) {
     if ($item['stock'] < 10) {
-        $hasLowStock = true;
-        break; // We found one, no need to check the rest
-    }
-}
-
-if ($hasLowStock) {
-    $warningText = "⚠️ <strong>Alert:</strong> Some items have critically low stock (< 10).";
-
-    if (!empty($message)) {
-        // If a message already exists (like "Success"), ADD this one to it
-        $message .= "<br><hr>" . $warningText;
-        // Optional: Force the color to yellow/orange so the warning isn't missed inside a green box
-        if ($messageType == 'success') {
-            $messageType = "warning";
-        }
-    } else {
-        // If no message exists, just show this one
-        $message = $warningText;
-        $messageType = "danger";
+        $lowStockWarning = true;
+        break;
     }
 }
 ?>
@@ -164,9 +147,15 @@ if ($hasLowStock) {
 
 <div class="container-fluid px-5">
 
+    <?php if ($lowStockWarning): ?>
+        <div class="alert alert-danger" role="alert">
+            <h4 class="alert-heading">Stock Alert</h4>
+            <p class="mb-0">Some items in the catalog have critically low stock (less than 10 units). Please check the Restock tab.</p>
+        </div>
+    <?php endif; ?>
     <?php if ($message): ?>
         <div class="alert alert-<?= $messageType ?> alert-dismissible fade show" role="alert">
-            <?= htmlspecialchars($message) ?>
+            <?= $message ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
