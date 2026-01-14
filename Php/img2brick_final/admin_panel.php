@@ -114,7 +114,14 @@ $stmtUsers = $cnx->query("SELECT user_id, email, first_name, last_name FROM USER
 $users = $stmtUsers->fetchAll(PDO::FETCH_ASSOC);
 
 // Orders
-$stmtOrders = $cnx->query("SELECT * FROM ORDER_BILL ORDER BY created_at DESC LIMIT 50");
+$sqlOrders = "
+        SELECT o.order_id, o.created_at, o.user_id, u.first_name, u.last_name, u.email 
+        FROM ORDER_BILL o 
+        JOIN USER u ON o.user_id = u.user_id 
+        WHERE o.created_at IS NOT NULL 
+        ORDER BY o.created_at DESC
+    ";
+$stmtOrders = $cnx->query($sqlOrders);
 $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
 
 // Restock and brick list
@@ -140,6 +147,23 @@ foreach ($catalog as $item) {
         .color-box { display: inline-block; width: 20px; height: 20px; border: 1px solid #ccc; vertical-align: middle; margin-right: 5px; }
         .nav-tabs .nav-link.active { font-weight: bold; border-bottom: 3px solid #0d6efd; }
         .table-container { background: white; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #dee2e6; border-top: none; }
+
+        /* ORDERS STYLES (COPIED FROM MY_ORDERS.PHP) */
+        .item-row { display: flex; align-items: center; background: #fff; border: 1px solid #e0e0e0; padding: 15px; border-bottom: none; }
+        .item-row:first-child { border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .item-row:last-child { border-bottom: 1px solid #e0e0e0; }
+        .thumb-img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; margin-right: 20px; }
+        .status-badge { font-size: 0.85em; padding: 5px 10px; border-radius: 20px; text-transform: uppercase; font-weight: bold; }
+        .status-paid { background-color: #d1e7dd; color: #0f5132; }
+        .status-pending { background-color: #fff3cd; color: #664d03; }
+
+        /* Admin specific header to group orders */
+        .admin-order-group { margin-bottom: 30px; }
+        .admin-order-header {
+            background-color: #e9ecef; padding: 10px 15px;
+            border-radius: 8px 8px 0 0; border: 1px solid #e0e0e0; border-bottom: none;
+            font-weight: bold; display: flex; justify-content: space-between; align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -149,7 +173,6 @@ foreach ($catalog as $item) {
 
     <?php if ($lowStockWarning): ?>
         <div class="alert alert-danger" role="alert">
-            <h4 class="alert-heading">Stock Alert</h4>
             <p class="mb-0">Some items in the catalog have critically low stock (less than 10 units). Please check the Restock tab.</p>
         </div>
     <?php endif; ?>
@@ -198,29 +221,80 @@ foreach ($catalog as $item) {
         </div>
 
         <div class="tab-pane fade" id="orders" role="tabpanel">
-            <div class="table-container">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>Order #</th>
-                        <th>Date</th>
-                        <th>User ID</th>
-                        <th>Details</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($orders as $o): ?>
-                        <tr>
-                            <td><?= $o['order_id'] ?></td>
-                            <td><?= $o['created_at'] ?></td>
-                            <td><?= $o['user_id'] ?></td>
-                            <td>
-                                <button class="btn btn-sm btn-info text-white">View Details</button>
-                            </td>
-                        </tr>
+            <div class="table-container" style="background: transparent; border: none; padding: 0; padding-top: 20px;">
+
+                <?php if (count($orders) === 0): ?>
+                    <div class="alert alert-info">No orders found.</div>
+                <?php else: ?>
+
+                    <?php foreach ($orders as $order):
+                        // 1. REUSE EXACT INNER QUERY FROM MY_ORDERS.PHP
+                        $sqlItems = "
+                                SELECT P.pavage_txt, I.path 
+                                FROM contain C
+                                JOIN TILLING P ON C.pavage_id = P.pavage_id
+                                JOIN IMAGE I ON P.image_id = I.image_id
+                                WHERE C.order_id = ?
+                            ";
+                        $stmtItems = $cnx->prepare($sqlItems);
+                        $stmtItems->execute([$order['order_id']]);
+                        $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
+
+                        // Calculate totals (Logic from my_orders.php)
+                        $orderTotal = 0;
+                        $statusClass = ($order['payment_status'] === 'Paid') ? 'status-paid' : 'status-pending';
+                        $dateFormatted = date('d M Y, H:i', strtotime($order['created_at']));
+                        ?>
+
+                        <div class="admin-order-group">
+                            <div class="admin-order-header">
+                                <div>
+                                    <span>Order #<?= $order['order_id'] ?></span>
+                                    <span class="mx-2 text-muted">|</span>
+                                    <span class="text-primary"><?= htmlspecialchars($order['first_name'] . ' ' . $order['last_name']) ?></span>
+                                    <small class="text-muted">(<?= htmlspecialchars($order['email']) ?>)</small>
+                                </div>
+                                <div>
+                                    <span class="me-3"><?= $dateFormatted ?></span>
+                                    <span class="status-badge <?= $statusClass ?>"><?= $order['payment_status'] ?></span>
+                                </div>
+                            </div>
+
+                            <?php foreach ($items as $item):
+                                $stats = getTilingStats($item['pavage_txt']);
+                                $price = isset($stats['price']) ? $stats['price'] / 100 : 0;
+                                $orderTotal += $price;
+                                $imgPath = "users/imgs/" . $item['path'];
+                                ?>
+                                <div class="item-row">
+                                    <img src="<?= $imgPath ?>" alt="Overview" class="thumb-img">
+                                    <div style="flex: 1;">
+                                        <strong>File : <?= htmlspecialchars($item['pavage_txt']) ?></strong><br>
+                                        <small>Quality : <?= $stats['quality'] ?? 0 ?>%</small><br>
+
+                                        <div class="mt-2">
+                                            <a href="generate_manual.php?file=<?= urlencode($item['pavage_txt']) ?>" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                📄 View Guide
+                                            </a>
+                                            <a href="users/tilings/<?= htmlspecialchars($item['pavage_txt']) ?>" download class="btn btn-sm btn-outline-secondary">
+                                                ⬇ Download Tiling
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="fw-bold fs-5"><?= number_format($price, 2) ?> EUR</div>
+                                </div>
+                            <?php endforeach; ?>
+
+                            <div class="bg-white p-3 border border-top-0 rounded-bottom text-end">
+                                <strong>Subtotal : <?= number_format($orderTotal, 2) ?> EUR</strong><br>
+                                <small class="text-muted">Shipping costs (10%): <?= number_format($orderTotal * 0.1, 2) ?> EUR</small><br>
+                                <strong class="fs-5 text-dark">Total : <?= number_format($orderTotal * 1.1, 2) ?> EUR</strong>
+                            </div>
+
+                        </div>
                     <?php endforeach; ?>
-                    </tbody>
-                </table>
+
+                <?php endif; ?>
             </div>
         </div>
 
