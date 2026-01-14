@@ -286,8 +286,7 @@ function getTilingStats($file)
     $result = [];
     $filePath = __DIR__ . "/../users/tilings/" . $file;
     if (!file_exists($filePath)) {
-        echo 'No file found at this path ' . $filePath;
-        exit;
+        return ['price' => 0, 'quality' => 0, 'error' => true];
     }
 
     $ligne = fgets(fopen($filePath, 'r'));

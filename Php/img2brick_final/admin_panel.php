@@ -280,8 +280,7 @@ foreach ($catalog as $item) {
                                 $orderTotal = 0;
                                 foreach ($items as $item) {
                                     $filename = getOriginalImage($cnx, $item['image_id'])["filename"];
-                                    // $stats = getTilingStats($item['pavage_txt']);
-                                    $stats = ['quality' => 100, 'price' => 5000, 'bricks' => 42]; // Static Debug Value (50.00 €)
+                                    $stats = getTilingStats($item['pavage_txt']);
                                     $price = $stats['price'] / 100;
                                     $orderTotal += $price;
                                 ?>
