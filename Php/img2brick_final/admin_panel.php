@@ -221,80 +221,29 @@ foreach ($catalog as $item) {
         </div>
 
         <div class="tab-pane fade" id="orders" role="tabpanel">
-            <div class="table-container" style="background: transparent; border: none; padding: 0; padding-top: 20px;">
-
-                <?php if (count($orders) === 0): ?>
-                    <div class="alert alert-info">No orders found.</div>
-                <?php else: ?>
-
-                    <?php foreach ($orders as $order):
-                        // 1. REUSE EXACT INNER QUERY FROM MY_ORDERS.PHP
-                        $sqlItems = "
-                                SELECT P.pavage_txt, I.path 
-                                FROM contain C
-                                JOIN TILLING P ON C.pavage_id = P.pavage_id
-                                JOIN IMAGE I ON P.image_id = I.image_id
-                                WHERE C.order_id = ?
-                            ";
-                        $stmtItems = $cnx->prepare($sqlItems);
-                        $stmtItems->execute([$order['order_id']]);
-                        $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
-
-                        // Calculate totals (Logic from my_orders.php)
-                        $orderTotal = 0;
-                        $statusClass = ($order['payment_status'] === 'Paid') ? 'status-paid' : 'status-pending';
-                        $dateFormatted = date('d M Y, H:i', strtotime($order['created_at']));
-                        ?>
-
-                        <div class="admin-order-group">
-                            <div class="admin-order-header">
-                                <div>
-                                    <span>Order #<?= $order['order_id'] ?></span>
-                                    <span class="mx-2 text-muted">|</span>
-                                    <span class="text-primary"><?= htmlspecialchars($order['first_name'] . ' ' . $order['last_name']) ?></span>
-                                    <small class="text-muted">(<?= htmlspecialchars($order['email']) ?>)</small>
-                                </div>
-                                <div>
-                                    <span class="me-3"><?= $dateFormatted ?></span>
-                                    <span class="status-badge <?= $statusClass ?>"><?= $order['payment_status'] ?></span>
-                                </div>
-                            </div>
-
-                            <?php foreach ($items as $item):
-                                $stats = getTilingStats($item['pavage_txt']);
-                                $price = isset($stats['price']) ? $stats['price'] / 100 : 0;
-                                $orderTotal += $price;
-                                $imgPath = "users/imgs/" . $item['path'];
-                                ?>
-                                <div class="item-row">
-                                    <img src="<?= $imgPath ?>" alt="Overview" class="thumb-img">
-                                    <div style="flex: 1;">
-                                        <strong>File : <?= htmlspecialchars($item['pavage_txt']) ?></strong><br>
-                                        <small>Quality : <?= $stats['quality'] ?? 0 ?>%</small><br>
-
-                                        <div class="mt-2">
-                                            <a href="generate_manual.php?file=<?= urlencode($item['pavage_txt']) ?>" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                📄 View Guide
-                                            </a>
-                                            <a href="users/tilings/<?= htmlspecialchars($item['pavage_txt']) ?>" download class="btn btn-sm btn-outline-secondary">
-                                                ⬇ Download Tiling
-                                            </a>
-                                        </div>
-                                    </div>
-                                    <div class="fw-bold fs-5"><?= number_format($price, 2) ?> EUR</div>
-                                </div>
-                            <?php endforeach; ?>
-
-                            <div class="bg-white p-3 border border-top-0 rounded-bottom text-end">
-                                <strong>Subtotal : <?= number_format($orderTotal, 2) ?> EUR</strong><br>
-                                <small class="text-muted">Shipping costs (10%): <?= number_format($orderTotal * 0.1, 2) ?> EUR</small><br>
-                                <strong class="fs-5 text-dark">Total : <?= number_format($orderTotal * 1.1, 2) ?> EUR</strong>
-                            </div>
-
-                        </div>
+            <div class="table-container">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Date</th>
+                        <th>User ID</th>
+                        <th>Details</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($orders as $o): ?>
+                        <tr>
+                            <td><?= $o['order_id'] ?></td>
+                            <td><?= $o['created_at'] ?></td>
+                            <td><?= $o['user_id'] ?></td>
+                            <td>
+                                <button class="btn btn-sm btn-info text-white">View Details</button>
+                            </td>
+                        </tr>
                     <?php endforeach; ?>
-
-                <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
 
