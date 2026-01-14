@@ -258,12 +258,12 @@ foreach ($catalog as $item) {
         <div class="tab-pane fade" id="orders" role="tabpanel">
             <div class="container-fluid p-0 pt-3">
 
-                <?php if (count($orders) === 0): ?>
+                <?php if (empty($orders)): ?>
                     <div class="alert alert-info">No orders found in the database.</div>
                 <?php else: ?>
 
                     <?php foreach ($orders as $order):
-                        // Fetch items for this order
+                        // FETCH ITEMS (Standard Logic)
                         $sqlItems = "
                     SELECT P.pavage_txt, I.path 
                     FROM contain C
@@ -277,7 +277,7 @@ foreach ($catalog as $item) {
 
                         // Calculations
                         $orderTotal = 0;
-                        $dateFormatted = date('d M Y, H:i', strtotime($order['created_at']));
+                        $dateFormatted = date('d/m/Y H:i', strtotime($order['created_at']));
                         $badgeClass = ($order['payment_status'] === 'Paid') ? 'badge-paid' : 'badge-pending';
                         ?>
 
@@ -291,14 +291,14 @@ foreach ($catalog as $item) {
                                     <span class="text-muted small">(<?= htmlspecialchars($order['email']) ?>)</span>
                                 </div>
                                 <div>
-                                    <span class="me-3 text-muted"><?= $dateFormatted ?></span>
+                                    <span class="me-3"><?= $dateFormatted ?></span>
                                     <span class="<?= $badgeClass ?>"><?= $order['payment_status'] ?></span>
                                 </div>
                             </div>
 
                             <div class="order-body">
                                 <?php foreach ($items as $item):
-                                    // Reuse your stats logic
+                                    // Stats Logic
                                     $stats = getTilingStats($item['pavage_txt']);
                                     $price = isset($stats['price']) ? $stats['price'] / 100 : 0;
                                     $orderTotal += $price;
@@ -307,15 +307,16 @@ foreach ($catalog as $item) {
                                     <div class="order-item-row">
                                         <img src="<?= $imgPath ?>" alt="Tiling" class="thumb-img">
 
-                                        <div class="flex-grow-1">
-                                            <h6 class="mb-1">Mosaic: <?= htmlspecialchars($item['pavage_txt']) ?></h6>
-                                            <small class="text-muted">Quality: <?= $stats['quality'] ?? 95 ?>%</small>
-                                            <div class="mt-2">
-                                                <a href="generate_manual.php?file=<?= urlencode($item['pavage_txt']) ?>" target="_blank" class="btn btn-sm btn-outline-primary" style="font-size: 0.75rem;">
+                                        <div style="flex: 1;">
+                                            <strong><?= htmlspecialchars($item['pavage_txt']) ?></strong>
+                                            <div class="text-muted small">Quality: <?= $stats['quality'] ?? 95 ?>%</div>
+                                            <div class="mt-1">
+                                                <a href="generate_manual.php?file=<?= urlencode($item['pavage_txt']) ?>" target="_blank" class="text-decoration-none small">
                                                     📄 Guide
                                                 </a>
-                                                <a href="users/tilings/<?= htmlspecialchars($item['pavage_txt']) ?>" download class="btn btn-sm btn-outline-secondary" style="font-size: 0.75rem;">
-                                                    ⬇ Tiling
+                                                <span class="mx-1">|</span>
+                                                <a href="users/tilings/<?= htmlspecialchars($item['pavage_txt']) ?>" download class="text-decoration-none small">
+                                                    ⬇ Tiling File
                                                 </a>
                                             </div>
                                         </div>
@@ -328,8 +329,8 @@ foreach ($catalog as $item) {
                             </div>
 
                             <div class="order-footer">
-                                <div><small class="text-muted">Subtotal: <?= number_format($orderTotal, 2) ?> €</small></div>
-                                <div><small class="text-muted">Shipping (10%): <?= number_format($orderTotal * 0.10, 2) ?> €</small></div>
+                                <div class="small text-muted">Subtotal: <?= number_format($orderTotal, 2) ?> €</div>
+                                <div class="small text-muted">Shipping (10%): <?= number_format($orderTotal * 0.10, 2) ?> €</div>
                                 <div class="fs-5 fw-bold text-dark mt-1">Total: <?= number_format($orderTotal * 1.10, 2) ?> €</div>
                             </div>
 
@@ -339,8 +340,6 @@ foreach ($catalog as $item) {
                 <?php endif; ?>
 
             </div>
-        </div>
-
         </div>
 
         <div class="tab-pane fade" id="restock" role="tabpanel">
