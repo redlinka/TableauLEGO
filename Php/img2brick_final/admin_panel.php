@@ -231,13 +231,13 @@ $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
 
                     <div class="catalog-table-wrapper">
                         <table class="table table-sm align-middle catalog-table">
-                            <thead class="table-dark">
+                            <thead class="table-dark sticky-top">
                             <tr>
                                 <th>Ref</th>
                                 <th>Color</th>
-                                <th>Size</th>
+                                <th>Dimensions</th>
                                 <th>Current Stock</th>
-                                <th>Price</th>
+                                <th>Unit Price</th>
                                 <th style="width: 150px;">Order Qty</th>
                             </tr>
                             </thead>
@@ -274,10 +274,6 @@ $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
                             <?php endforeach; ?>
                             </tbody>
                         </table>
-                    </div>
-
-                    <div class="mt-3 text-end">
-                        <button type="submit" class="btn btn-primary btn-lg">Order Selected Bricks</button>
                     </div>
                 </form>
             </div>
