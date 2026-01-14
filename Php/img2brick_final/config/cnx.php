@@ -306,3 +306,35 @@ function getTilingStats($file)
 
     return $result;
 }
+
+function getOriginalImage($cnx, $imageId)
+{
+    if (!$imageId) {
+        return null;
+    }
+
+    try {
+        $stmt = $cnx->prepare("
+            SELECT image_id, filename, img_parent
+            FROM IMAGE
+            WHERE image_id = ?
+        ");
+        $stmt->execute([$imageId]);
+
+        $image = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$image) {
+            return null;
+        }
+
+        // Si pas de parent → image originale
+        if ($image['img_parent'] === null) {
+            return $image["filename"];
+        }
+
+        // Sinon on remonte récursivement
+        return getOriginalImage($cnx, $image['img_parent']);
+    } catch (PDOException $e) {
+        return null;
+    }
+}
