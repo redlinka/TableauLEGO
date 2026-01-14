@@ -85,7 +85,9 @@ if($isLoggedIn){
                             <?= htmlspecialchars($navUsername) ?>
                         </a>
                     <?php else: ?>
-                        <span class="btn-outline-secondary"><?= htmlspecialchars($navUsername) ?></span>
+                        <a href="admin_panel.php" class="btn btn-outline-secondary <?= ($currentPage == 'admin_panel.php') ? 'active' : '' ?>">
+                            Admin Panel
+                        </a>
                     <?php endif; ?>
 
                     <a href="logout.php" class="btn btn-outline-danger" data-i18n="nav.logout">Log Out</a>
