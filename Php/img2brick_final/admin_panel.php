@@ -223,14 +223,13 @@ $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
             <div class="table-container">
                 <form method="POST" action="admin_panel.php">
                     <input type="hidden" name="action" value="restock">
-
                     <div class="d-flex justify-content-between mb-3">
                         <h4>Catalog & Restock</h4>
-                        <button type="submit" class="btn btn-primary btn-lg">Order Selected Bricks</button>
+                        <button type="submit" class="btn btn-primary btn-lg">🚀 Order Selected Bricks</button>
                     </div>
-
                     <div class="catalog-table-wrapper">
                         <table class="table table-sm align-middle catalog-table">
+
                             <thead class="table-dark sticky-top">
                             <tr>
                                 <th>Ref</th>
@@ -243,32 +242,19 @@ $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
                             </thead>
                             <tbody>
                             <?php foreach ($catalog as $item):
-                                // Create Key: width-height/hex (e.g., 1-1/354e5a)
                                 $fileKey = $item['width'] . '-' . $item['height'] . '/' . $item['color_hex'];
                                 ?>
                                 <tr>
                                     <td>#<?= $item['id_catalogue'] ?></td>
-
                                     <td>
                                         <span class="color-box" style="background-color: #<?= $item['color_hex'] ?>;"></span>
                                         <?= htmlspecialchars($item['color_name']) ?>
-                                        <small class="text-muted">(#<?= $item['color_hex'] ?>)</small>
                                     </td>
-
                                     <td><?= $item['width'] ?> x <?= $item['height'] ?></td>
-
-                                    <td class="<?= $item['stock'] < 10 ? 'text-danger fw-bold' : '' ?>">
-                                        <?= $item['stock'] ?>
-                                    </td>
-
+                                    <td class="<?= $item['stock'] < 10 ? 'text-danger fw-bold' : '' ?>"><?= $item['stock'] ?></td>
                                     <td><?= number_format($item['unit_price'], 2) ?> €</td>
-
                                     <td>
-                                        <input type="number"
-                                               name="quantity[<?= $fileKey ?>]"
-                                               class="form-control form-control-sm"
-                                               min="0"
-                                               placeholder="0">
+                                        <input type="number" name="quantity[<?= $fileKey ?>]" class="form-control form-control-sm" min="0" placeholder="0">
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -278,7 +264,6 @@ $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
                 </form>
             </div>
         </div>
-
     </div>
 </div>
 
