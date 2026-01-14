@@ -1,11 +1,11 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
     session_start();
     global $cnx;
     include("./config/cnx.php");
-    require_once __DIR__ . '/i18n.php';
+    require_once __DIR__ . '/includes/i18n.php';
 
     if (!isset($_SESSION['userId']) || !isset($_SESSION['username'])) {
         header("Location: connexion.php");
