@@ -279,8 +279,8 @@ foreach ($catalog as $item) {
 
                                 $orderTotal = 0;
                                 foreach ($items as $item) {
-                                    $filename = "";
-                                    $stats = getTilingStats($item['pavage_txt']);
+                                    $filename = getOriginalImage($cnx, $item['image_id'])["filename"];
+                                    $stats = [10,10];
                                     $price = $stats['price'] / 100;
                                     $orderTotal += $price;
                                 ?>
