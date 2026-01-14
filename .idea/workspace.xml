@@ -786,7 +786,7 @@
     <commands />
     <urls />
   </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="$PROJECT_DIR$/../../../../../../xampp/php/php.exe" />
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="$PROJECT_DIR$/../../../../php/php.exe" />
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3
 }</component>
@@ -904,7 +904,7 @@
       <recent name="fr.uge.univ_eiffel.image_processing" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.ManualRestock">
     <configuration name="LegoVisualizer" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="fr.uge.univ_eiffel.LegoVisualizer" />
       <module name="java2BrickFusion" />
@@ -992,6 +992,7 @@
       </method>
     </configuration>
     <list>
+      <item itemvalue="Application.ManualRestock" />
       <item itemvalue="Application.LegoVisualizer" />
       <item itemvalue="Application.TileAndDraw" />
       <item itemvalue="Application.Refiller" />
@@ -1047,6 +1048,7 @@
       <workItem from="1768150026635" duration="192000" />
       <workItem from="1768152099902" duration="1247000" />
       <workItem from="1768153709249" duration="10309000" />
+      <workItem from="1768400997012" duration="14000" />
     </task>
     <servers />
   </component>
