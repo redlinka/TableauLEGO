@@ -59,11 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         if ($totalItems > 0) {
             // 3. EXECUTE JAVA COMMAND
-            // Using the exact classpath from add_cart.php
-            // Assuming mysql-connector is in the same dir as this script
-            $command = "java -cp .:./mysql-connector-j-9.1.0.jar ManualRestock " . escapeshellarg($tempFileName);
+            // TWEAK 1: Add "2>&1" at the end. This forces Java errors to be captured in $output
+            $command = "java -cp .:./mysql-connector-j-9.1.0.jar ManualRestock " . escapeshellarg($tempFileName) . " 2>&1";
 
-            // Execute
+            // Debug: Uncomment this line to see the exact command being run if needed
+            // echo "Executing: $command"; exit;
+
             $output = [];
             $returnVar = 0;
             exec($command, $output, $returnVar);
@@ -72,7 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $message = "Success! Ordered $totalItems items. Stock updated.";
                 $messageType = "success";
             } else {
-                $message = "Error executing Java command. Return code: $returnVar";
+                // TWEAK 2: Print the captured output so you can read the Java Exception
+                $javaError = implode("\n", $output);
+                $message = "Error executing Java command. Return code: $returnVar. <br><strong>Java Error:</strong> <pre>$javaError</pre>";
                 $messageType = "danger";
             }
         } else {
@@ -122,10 +125,7 @@ $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
 <div class="container-fluid px-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>🧱 Admin Dashboard</h1>
-        <a href="index.php" class="btn btn-outline-secondary">Back to Site</a>
-    </div>
+    <?php include("./includes/navbar.php"); ?>
 
     <?php if ($message): ?>
         <div class="alert alert-<?= $messageType ?> alert-dismissible fade show" role="alert">
