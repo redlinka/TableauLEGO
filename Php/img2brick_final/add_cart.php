@@ -60,11 +60,6 @@ try {
         );
         exec($cmd, $output, $returnCode);
 
-        foreach ($output as $o) {
-            echo $o;
-        }
-        exit;
-
         // Select Tiling
         $stmt = $cnx->prepare("SELECT pavage_id, pavage_txt FROM TILLING WHERE image_id = ? LIMIT 1");
         $stmt->execute([$imageId]);
