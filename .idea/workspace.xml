@@ -5,6 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="679ae0cd-5ae4-4e60-95a7-abaac7775f0f" name="Changes" comment="cleaned up structure and added payment">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/05d6830a-19aa-4634-a4e2-83b6ee5efc28.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -38,12 +40,12 @@
     &quot;assignee&quot;: &quot;redlinka&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/redlinka/TableauLEGO.git&quot;,
-    &quot;accountId&quot;: &quot;de3e4e86-bf29-4bf7-b35f-fb624d3f5304&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/redlinka/TableauLEGO.git",
+    "accountId": "63a58656-fc24-43cb-9bfc-8e5c995e4780"
   }
-}</component>
+}]]></component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/C/explications.md" root0="FORCE_HIGHLIGHTING" root1="FORCE_HIGHLIGHTING" />
   </component>
@@ -67,81 +69,82 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.ImageRescaler.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ImageScaler.executor&quot;: &quot;Run&quot;,
-    &quot;Application.LegoVisualizer.executor&quot;: &quot;Run&quot;,
-    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ManualRestock.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ManualRestocker (2).executor&quot;: &quot;Run&quot;,
-    &quot;Application.ManualRestocker.executor&quot;: &quot;Run&quot;,
-    &quot;Application.OrderTester.executor&quot;: &quot;Run&quot;,
-    &quot;Application.PaymentTester.executor&quot;: &quot;Run&quot;,
-    &quot;Application.Proaction.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ProactionRestock.executor&quot;: &quot;Run&quot;,
-    &quot;Application.Reaction.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ReactionResctock.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ReactionRestock.executor&quot;: &quot;Run&quot;,
-    &quot;Application.Refiller.executor&quot;: &quot;Run&quot;,
-    &quot;Application.TileAndDraw.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.All in java2BrickFusion.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.BicubicInterpolatorTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.BilinearInterpolatorTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.CertificateVerificationTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ImageRescalerTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ImageUtilsTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.InventoryManagerTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.LegoVisualizerTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.NearestNeighbourTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.OrderManagerTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.PoWMethodTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ProofOfWorkSolverTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.RestockManagerTest.executor&quot;: &quot;Run&quot;,
-    &quot;Maven. [org.apache.maven.plugins:maven-archetype-plugin:RELEASE:generate].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.java2BrickFusion [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.java2BrickFusion [compile].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.java2BrickFusion [org.apache.maven.plugins:maven-clean-plugin:3.2.0:clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.java2BrickFusion [org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.java2BrickFusion [org.apache.maven.plugins:maven-compiler-plugin:3.13.0:compile].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.java2BrickFusion [org.apache.maven.plugins:maven-compiler-plugin:3.13.0:help].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.java2BrickFusion [org.apache.maven.plugins:maven-jar-plugin:3.3.0:help].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.java2BrickFusion [org.apache.maven.plugins:maven-jar-plugin:3.3.0:jar].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.java2BrickFusion [package].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.java2BrickFusion [verify].executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary&quot;: &quot;JUnit5&quot;,
-    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5&quot;: &quot;&quot;,
-    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
-    &quot;deletionFromPopupRequiresConfirmation&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;ignore_missing_gitignore&quot;: &quot;true&quot;,
-    &quot;java.suggest.annotation.dependency&quot;: &quot;false&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/nachn/OneDrive/Documents/GitHub/TableauLEGO/C&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.ImageRescaler.executor": "Run",
+    "Application.ImageScaler.executor": "Run",
+    "Application.LegoVisualizer.executor": "Run",
+    "Application.Main.executor": "Run",
+    "Application.ManualRestock.executor": "Run",
+    "Application.ManualRestocker (2).executor": "Run",
+    "Application.ManualRestocker.executor": "Run",
+    "Application.OrderTester.executor": "Run",
+    "Application.PaymentTester.executor": "Run",
+    "Application.Proaction.executor": "Run",
+    "Application.ProactionRestock.executor": "Run",
+    "Application.Reaction.executor": "Run",
+    "Application.ReactionResctock.executor": "Run",
+    "Application.ReactionRestock.executor": "Run",
+    "Application.Refiller.executor": "Run",
+    "Application.TileAndDraw.executor": "Run",
+    "JUnit.All in java2BrickFusion.executor": "Run",
+    "JUnit.BicubicInterpolatorTest.executor": "Run",
+    "JUnit.BilinearInterpolatorTest.executor": "Run",
+    "JUnit.CertificateVerificationTest.executor": "Run",
+    "JUnit.ImageRescalerTest.executor": "Run",
+    "JUnit.ImageUtilsTest.executor": "Run",
+    "JUnit.InventoryManagerTest.executor": "Run",
+    "JUnit.LegoVisualizerTest.executor": "Run",
+    "JUnit.NearestNeighbourTest.executor": "Run",
+    "JUnit.OrderManagerTest.executor": "Run",
+    "JUnit.PoWMethodTest.executor": "Run",
+    "JUnit.ProofOfWorkSolverTest.executor": "Run",
+    "JUnit.RestockManagerTest.executor": "Run",
+    "Maven. [org.apache.maven.plugins:maven-archetype-plugin:RELEASE:generate].executor": "Run",
+    "Maven.java2BrickFusion [clean].executor": "Run",
+    "Maven.java2BrickFusion [compile].executor": "Run",
+    "Maven.java2BrickFusion [org.apache.maven.plugins:maven-clean-plugin:3.2.0:clean].executor": "Run",
+    "Maven.java2BrickFusion [org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile].executor": "Run",
+    "Maven.java2BrickFusion [org.apache.maven.plugins:maven-compiler-plugin:3.13.0:compile].executor": "Run",
+    "Maven.java2BrickFusion [org.apache.maven.plugins:maven-compiler-plugin:3.13.0:help].executor": "Run",
+    "Maven.java2BrickFusion [org.apache.maven.plugins:maven-jar-plugin:3.3.0:help].executor": "Run",
+    "Maven.java2BrickFusion [org.apache.maven.plugins:maven-jar-plugin:3.3.0:jar].executor": "Run",
+    "Maven.java2BrickFusion [package].executor": "Run",
+    "Maven.java2BrickFusion [verify].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
+    "dart.analysis.tool.window.visible": "false",
+    "deletionFromPopupRequiresConfirmation": "false",
+    "git-widget-placeholder": "dev",
+    "ignore.virus.scanning.warn.message": "true",
+    "ignore_missing_gitignore": "true",
+    "java.suggest.annotation.dependency": "false",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "C:/Users/nachn/OneDrive/Documents/GitHub/TableauLEGO/C",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;mariadb&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "mariadb"
     ]
   }
-}</component>
+}]]></component>
   <component name="RecapUselessUpdatesCounter">
     <option name="suspendCountdown" value="0" />
   </component>
@@ -289,8 +292,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.25410.129" />
-        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-IU-251.25410.129" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PS-253.29346.151" />
+        <option value="bundled-php-predefined-a98d8de5180a-0e0d91225499-com.jetbrains.php.sharedIndexes-PS-253.29346.151" />
       </set>
     </attachedChunks>
   </component>
@@ -329,7 +332,9 @@
       <workItem from="1768150026635" duration="192000" />
       <workItem from="1768152099902" duration="1247000" />
       <workItem from="1768153709249" duration="10957000" />
-      <workItem from="1768246024371" duration="11973000" />
+      <workItem from="1768246024371" duration="12577000" />
+      <workItem from="1768401591509" duration="343000" />
+      <workItem from="1768405378155" duration="5000" />
     </task>
     <servers />
   </component>
