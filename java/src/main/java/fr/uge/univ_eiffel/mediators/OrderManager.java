@@ -2,7 +2,7 @@ package fr.uge.univ_eiffel.mediators;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import fr.uge.univ_eiffel.Brick;
+import fr.uge.univ_eiffel.mediators.legofactory.LegoFactory;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -10,18 +10,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class OrderManager {
-    private final FactoryClient client;
+    private final LegoFactory factory;
     private final InventoryManager inventory;
     private final Gson gson = new Gson();
 
     public record Quote (String id, double price, long delay) {}
     public record Delivery (boolean completed, List<Brick> bricks, HashMap<String, Integer> pendingBricks) {}
 
-    public OrderManager(FactoryClient client, InventoryManager inventory) {
-        this.client = client;
+    public OrderManager(LegoFactory factory, InventoryManager inventory) {
+        this.factory = factory;
         this.inventory = inventory;
     }
 
@@ -68,7 +67,7 @@ public class OrderManager {
         for (HashMap.Entry<String, Integer> entry : bricks.entrySet()) {
             req.addProperty(entry.getKey(), entry.getValue());
         }
-        JsonObject res = client.requestQuote(req);
+        JsonObject res = factory.requestQuote(req);
 
         return new Quote(
                 res.get("id").getAsString(),
@@ -78,12 +77,12 @@ public class OrderManager {
     }
 
     public void confirmOrder(String id) throws IOException {
-        client.confirmOrder(id);
+        factory.confirmOrder(id);
     }
 
     public Delivery deliveryStatus(String id) throws IOException {
 
-        JsonObject res = client.deliver(id);
+        JsonObject res = factory.deliver(id);
         boolean completed = res.getAsJsonObject("pending_blocks").size() == 0;
 
         List<Brick> built = new ArrayList<>();

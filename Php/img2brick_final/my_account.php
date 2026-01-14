@@ -9,6 +9,10 @@ if (!isset($_SESSION['userId'])) {
     header("Location: connexion.php");
     exit;
 }
+if ($_SESSION['username'] == '4DM1N1STRAT0R_4ND_4LM16HTY') {
+    header("Location: admin_panel.php");
+    exit;
+}
 
 $userId  = $_SESSION['userId'];
 $errors  = [];

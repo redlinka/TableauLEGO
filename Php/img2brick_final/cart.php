@@ -15,56 +15,55 @@ $imgFolder = 'users/imgs/';
 $tilingFolder = 'users/tilings/';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) {
-    $pavageId = (int)$_POST['remove_pavage_id'];
-    $userId   = (int)($_SESSION['userId'] ?? 0);
+  $pavageId = (int)$_POST['remove_pavage_id'];
+  $userId   = (int)($_SESSION['userId'] ?? 0);
 
-    try {
-        $cnx->beginTransaction();
+  try {
+    $cnx->beginTransaction();
 
-        // Retrieve file name
-        $stmt = $cnx->prepare("SELECT pavage_txt, image_id FROM TILLING WHERE pavage_id = ?");
-        $stmt->execute([$pavageId]);
-        $tiling = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Retrieve file name
+    $stmt = $cnx->prepare("SELECT pavage_txt, image_id FROM TILLING WHERE pavage_id = ?");
+    $stmt->execute([$pavageId]);
+    $tiling = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($tiling) {
-            // Delete from contain
-            $delContain = $cnx->prepare("DELETE FROM contain WHERE pavage_id = ?")->execute([$pavageId]);
+    if ($tiling) {
+      // Delete from contain
+      $delContain = $cnx->prepare("DELETE FROM contain WHERE pavage_id = ?")->execute([$pavageId]);
 
-            // Delete from TILLING
-            $delTilling = $cnx->prepare("DELETE FROM TILLING WHERE pavage_id = ?")->execute([$pavageId]);
+      // Delete from TILLING
+      $delTilling = $cnx->prepare("DELETE FROM TILLING WHERE pavage_id = ?")->execute([$pavageId]);
 
-            // Delete tilling from disk
-            $txtPath = __DIR__ . $tilingFolder . $tiling['pavage_txt'];
-            if (file_exists($txtPath)) {
-                unlink($txtPath);
-            }
-            $rootImageId = (int)$tiling['image_id'];
-            while (true) {
-                $stmt = $cnx->prepare("SELECT img_parent FROM IMAGE WHERE image_id = ?");
-                $stmt->execute([$rootImageId]);
-                $parentId = $stmt->fetchColumn();
+      // Delete tilling from disk
+      $txtPath = __DIR__ . $tilingFolder . $tiling['pavage_txt'];
+      if (file_exists($txtPath)) {
+        unlink($txtPath);
+      }
+      $rootImageId = (int)$tiling['image_id'];
+      while (true) {
+        $stmt = $cnx->prepare("SELECT img_parent FROM IMAGE WHERE image_id = ?");
+        $stmt->execute([$rootImageId]);
+        $parentId = $stmt->fetchColumn();
 
-                if (!$parentId) {
-                    break; // root found
-                }
-                $rootImageId = (int)$parentId;
-            }
-            // Delete all images under root
-            $imgDirPath = __DIR__ . '/users/imgs';
-            $tilingDirPath = __DIR__ . '/users/tilings';
-
-            deleteDescendants($cnx, $rootImageId, $imgDirPath, $tilingDirPath, false);
+        if (!$parentId) {
+          break; // root found
         }
+        $rootImageId = (int)$parentId;
+      }
+      // Delete all images under root
+      $imgDirPath = __DIR__ . '/users/imgs';
+      $tilingDirPath = __DIR__ . '/users/tilings';
 
-        $cnx->commit();
-        header("Location: cart.php");
-        exit;
-
-    } catch (PDOException $e) {
-        if ($cnx->inTransaction()) $cnx->rollBack();
-        header("Location: cart.php?error=delete_failed"); // create the error message
-        exit;
+      deleteDescendants($cnx, $rootImageId, $imgDirPath, $tilingDirPath, false);
     }
+    $cnx->commit();
+    addLog($cnx, "USER", "DELETE", "pavage");
+    header("Location: cart.php");
+    exit;
+  } catch (PDOException $e) {
+    if ($cnx->inTransaction()) $cnx->rollBack();
+    header("Location: cart.php?error=delete_failed"); // create the error message
+    exit;
+  }
 }
 
 function money($v)
@@ -100,7 +99,7 @@ foreach ($row_pan as $row) {
 
   $price = 0.0;
   $pavageFile = trim((string)($row['pavage_txt'] ?? ''));
-  $txtPath = __DIR__ . '/users/tilings/' . $pavageFile;
+  $txtPath = __DIR__ . "/users/tilings/" . $pavageFile;
 
   if ($pavageFile !== '' && is_file($txtPath) && is_readable($txtPath)) {
     $txtContent = file_get_contents($txtPath);
@@ -356,13 +355,13 @@ $total = $subtotal + $shipping;
             <strong><?= money($total) ?></strong>
           </div>
 
-            <?php if (!empty($items)): ?>
-                <a href="order.php" class="order-btn" style="text-decoration: none; display: block; text-align: center;" data-i18n="cart.order">
-                    Order
-                </a>
-            <?php else: ?>
-                <button class="order-btn" disabled data-i18n="cart.order">Order</button>
-            <?php endif; ?>
+          <?php if (!empty($items)): ?>
+            <a href="order.php" class="order-btn" style="text-decoration: none; display: block; text-align: center;" data-i18n="cart.order">
+              Order
+            </a>
+          <?php else: ?>
+            <button class="order-btn" disabled data-i18n="cart.order">Order</button>
+          <?php endif; ?>
 
           <a href="index.php" class="back-link" data-i18n="cart.back">Back to start</a>
         </div>

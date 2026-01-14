@@ -199,19 +199,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $txtContent = file_get_contents($outputTxtPath);
 
                 $legoImageId = (int)$_SESSION['step4_image_id'];
-                $pavageFile = $finalTxtName;
-
-                $stmt = $cnx->prepare("SELECT pavage_id FROM TILLING WHERE image_id = ? LIMIT 1");
-                $stmt->execute([$legoImageId]);
-                $pavageId = $stmt->fetchColumn();
-
-                if ($pavageId) {
-                    $stmt = $cnx->prepare("UPDATE TILLING SET pavage_txt = ? WHERE image_id = ?");
-                    $stmt->execute([$pavageFile, $legoImageId]);
-                } else {
-                    $stmt = $cnx->prepare("INSERT INTO TILLING (image_id, pavage_txt) VALUES (?, ?)");
-                    $stmt->execute([$legoImageId, $pavageFile]);
-                }
+                $pavageFile = __DIR__ . "/users/tilings/" . $finalTxtName;
+                $_SESSION['pavage_txt_name'] = $finalTxtName;
+                $_SESSION['pavage_txt'] = $pavageFile;
 
                 $previewImage = $imgFolder . $finalPngName . ".png" . '?t=' . time(); // add .png
                 addLog($cnx, "USER", "GENERATE", "pavage");
@@ -232,6 +222,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($existingFile) {
             $previewImage = $imgFolder . $existingFile . '?t=' . time();
         }
+
+        $finalTxtName = $_SESSION['pavage_txt_name'];
     }
 }
 ?>
@@ -389,7 +381,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <div class="mt-4 pt-3 border-top">
 
                                         <?php if ($previewImage): ?>
-                                            <p class="fw-bold mb-3"> <?= number_format(getTilingStats($pavageFile)['price'] / 100, 2, ".", " ") . '€' ?> </br> <?= getTilingStats($pavageFile)['quality'] . '%' ?></p>
+                                            <p class="fw-bold mb-3"> <?= number_format(getTilingStats($finalTxtName)['price'] / 100, 2, ".", " ") . '€' ?> </br> <?= getTilingStats($finalTxtName)['quality'] . '%' ?></p>
                                             <button type="submit" class="btn btn-primary w-100 btn-lg mb-3" data-i18n="tiling.regenerate">Regenerate Preview</button>
                                         <?php else: ?>
                                             <button type="submit" class="btn btn-primary w-100 btn-lg mb-3" data-i18n="tiling.generate">Generate Preview</button>

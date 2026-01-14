@@ -17,16 +17,6 @@ $userId  = (int)$_SESSION['userId'];
 $imageId = (int)$_SESSION['step4_image_id'];
 
 try {
-    // Tiling verification
-    $stmt = $cnx->prepare("SELECT pavage_id, pavage_txt FROM TILLING WHERE image_id = ? LIMIT 1");
-    $stmt->execute([$imageId]);
-    $tiling = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$tiling) {
-        header("Location: tiling_selection.php");
-        exit;
-    }
-    $tilingId = (int)$tiling['pavage_id'];
 
     // ORDER_BILL
     $stmt = $cnx->prepare("SELECT order_id FROM ORDER_BILL WHERE user_id = ? AND created_at IS NULL LIMIT 1"); // An order without a date is a "pending shopping cart"
@@ -51,15 +41,6 @@ try {
         $orderId = (int)$cnx->lastInsertId();
     }
 
-    // Add to cart (contain)
-    $stmt = $cnx->prepare("SELECT 1 FROM contain WHERE order_id = ? AND pavage_id = ? LIMIT 1");
-    $stmt->execute([$orderId, $tilingId]);
-
-    if (!$stmt->fetchColumn()) {
-        $stmt = $cnx->prepare("INSERT INTO contain (order_id, pavage_id) VALUES (?, ?)");
-        $stmt->execute([$orderId, $tilingId]);
-    }
-
     // Java processing execution (Stock/Reaction)
     $jarPath = __DIR__ . '/brain.jar';
     $javaCmd = 'java';
@@ -67,7 +48,7 @@ try {
         $javaCmd = '"C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.1.8-hotspot\\bin\\java.exe"';
         $exePath      = __DIR__ . '/C_tiler';
     }
-    $tilingPath = __DIR__ . "/users/tilings/" . $tiling['pavage_txt'];
+    $tilingPath = $_SESSION['pavage_txt'];
 
     if (file_exists($jarPath) && file_exists($tilingPath)) {
         $cmd = sprintf(
@@ -78,11 +59,16 @@ try {
             escapeshellarg($imageId)
         );
         exec($cmd, $output, $returnCode);
-        // echo "Ordering pieces\n";
-        // foreach ($output as $o) {
-        //     echo $o . "\n";
-        // }
-        // exit;
+
+        // Select Tiling
+        $stmt = $cnx->prepare("SELECT pavage_id, pavage_txt FROM TILLING WHERE image_id = ? LIMIT 1");
+        $stmt->execute([$imageId]);
+        $tiling = $stmt->fetch(PDO::FETCH_ASSOC);
+        $tilingId = (int)$tiling['pavage_id'];
+
+        // Add to cart (contain)
+        $stmt = $cnx->prepare("INSERT INTO contain (order_id, pavage_id) VALUES (?, ?)");
+        $stmt->execute([$orderId, $tilingId]);
     } else {
         header("Location: tiling_selection.php?error=missing_files");
         exit;

@@ -1,26 +1,25 @@
 package fr.uge.univ_eiffel;
 
-import fr.uge.univ_eiffel.mediators.FactoryClient;
-import fr.uge.univ_eiffel.mediators.InventoryManager;
-import fr.uge.univ_eiffel.mediators.OrderManager;
-import fr.uge.univ_eiffel.mediators.RestockManager;
-import fr.uge.univ_eiffel.payment_methods.PaymentMethod;
-import fr.uge.univ_eiffel.payment_methods.PoWMethod;
-import fr.uge.univ_eiffel.security.BrickVerifier;
-import fr.uge.univ_eiffel.security.OfflineVerifier;
+import fr.uge.univ_eiffel.mediators.*;
+import fr.uge.univ_eiffel.mediators.legofactory.FactoryLoader;
+import fr.uge.univ_eiffel.mediators.legofactory.LegoFactory;
+import fr.uge.univ_eiffel.mediators.payment_methods.PaymentMethod;
+import fr.uge.univ_eiffel.mediators.payment_methods.PoWMethod;
+import fr.uge.univ_eiffel.mediators.security.BrickVerifier;
+import fr.uge.univ_eiffel.mediators.security.OfflineVerifier;
 
 /**
  * CLI utility to create a tiling entry and trigger a reactive restock.
  * 1. Uses the provided path directly as the name in the database.
  * 2. Creates a TILLING entry.
  * 3. Uses the file at that path to calculate stock differences and order.
- * Usage: java ReactiveRestocker <path/to/hashed_file.txt> <image_id>
+ * Usage: java ReactiveRestocker <hashed_file.txt> <image_id>
  */
 public class ReactionRestock {
     public static void main(String[] args) {
 
         if (args.length < 2) {
-            System.err.println("Usage: java ReactiveRestocker <path/to/solution.txt> <image_id>");
+            System.err.println("Usage: java ReactiveRestocker <hashed_file> <image_id>");
             return;
         }
 
@@ -37,12 +36,12 @@ public class ReactionRestock {
         try {
             // Setup dependencies
             final InventoryManager inventory = InventoryManager.makeFromProps("config.properties");
-            final FactoryClient client = FactoryClient.makeFromProps("config.properties");
-            final OrderManager orderer = new OrderManager(client, inventory);
-            final PaymentMethod payer = new PoWMethod(client);
-            String publicKey = client.signaturePublicKey();
+            final LegoFactory factory = FactoryLoader.loadFromProps("config.properties");
+            final OrderManager orderer = new OrderManager(factory, inventory);
+            final PaymentMethod payer = new PoWMethod(factory);
+            String publicKey = factory.signaturePublicKey();
             final BrickVerifier verifier = new OfflineVerifier(publicKey);
-            final RestockManager restorer = new RestockManager(inventory, client, orderer, payer, verifier);
+            final RestockManager restorer = new RestockManager(inventory, factory, orderer, payer, verifier);
 
             // 1. Use the raw path string as the DB entry
             System.out.println("Processing file: " + solutionPath);

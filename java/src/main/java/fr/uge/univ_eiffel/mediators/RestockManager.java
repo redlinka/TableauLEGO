@@ -1,10 +1,8 @@
 package fr.uge.univ_eiffel.mediators;
 
-import fr.uge.univ_eiffel.Brick;
-import fr.uge.univ_eiffel.payment_methods.PaymentMethod;
-import fr.uge.univ_eiffel.security.BrickVerifier;
-import fr.uge.univ_eiffel.security.OfflineVerifier;
-import fr.uge.univ_eiffel.security.OnlineVerifier;
+import fr.uge.univ_eiffel.mediators.legofactory.LegoFactory;
+import fr.uge.univ_eiffel.mediators.payment_methods.PaymentMethod;
+import fr.uge.univ_eiffel.mediators.security.BrickVerifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
@@ -12,7 +10,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Thread.sleep;
-import static java.sql.Types.NULL;
 
 public class RestockManager {
 
@@ -21,16 +18,16 @@ public class RestockManager {
     private static int RANGE = 7;
 
     private final InventoryManager inventory;
-    private final FactoryClient client;
+    private final LegoFactory factory;
     private final OrderManager orderer;
     private final PaymentMethod paymentMethod;
     private final BrickVerifier verifier;
 
     static int MIN_STOCK = 10;
 
-    public RestockManager(InventoryManager inventory, FactoryClient client, OrderManager orderer, PaymentMethod paymentMethod, BrickVerifier verifier) {
+    public RestockManager(InventoryManager inventory, LegoFactory factory, OrderManager orderer, PaymentMethod paymentMethod, BrickVerifier verifier) {
         this.inventory = inventory;
-        this.client = client;
+        this.factory = factory;
         this.orderer = orderer;
         this.paymentMethod = paymentMethod;
         this.verifier = verifier;
@@ -153,19 +150,19 @@ public class RestockManager {
         var quote = orderer.requestQuote((HashMap<String, Integer>) quoteRequest);
 
         System.out.println("currently asking confirmation of quote: " + quote);
-        System.out.println("balance: " + client.balance());
-        if (quote.price() > client.balance()) {
-            System.err.println("Insufficient balance to place the order. Required: " + quote.price() + ", Available: " + client.balance());
+        System.out.println("balance: " + factory.balance());
+        if (quote.price() > factory.balance()) {
+            System.err.println("Insufficient balance to place the order. Required: " + quote.price() + ", Available: " + factory.balance());
             System.out.println("Trying to pay...");
             paymentMethod.pay(quote.price());
-            System.out.println("New balance: " + client.balance());
+            System.out.println("New balance: " + factory.balance());
         }
 
         orderer.confirmOrder(quote.id());
 
         OrderManager.Delivery status;
 
-        var publicKey = client.signaturePublicKey();
+        var publicKey = factory.signaturePublicKey();
 
         do {
             sleep(5000); // wait 5 seconds before polling again
