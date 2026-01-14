@@ -200,6 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $legoImageId = (int)$_SESSION['step4_image_id'];
                 $pavageFile = __DIR__ . "/users/tilings/" . $finalTxtName;
+                $_SESSION['pavage_txt_name'] = $finalTxtName;
                 $_SESSION['pavage_txt'] = $pavageFile;
 
                 $previewImage = $imgFolder . $finalPngName . ".png" . '?t=' . time(); // add .png
@@ -221,6 +222,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($existingFile) {
             $previewImage = $imgFolder . $existingFile . '?t=' . time();
         }
+
+        $finalTxtName = $_SESSION['pavage_txt_name'];
     }
 }
 ?>
