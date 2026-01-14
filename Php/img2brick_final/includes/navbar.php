@@ -1,4 +1,5 @@
 <?php
+global $cnx;
 require_once __DIR__ . '/i18n.php';
 $isLoggedIn = isset($_SESSION['userId']);
 $navUsername = $_SESSION['username'] ?? tr('nav.account_guest', 'Account');
@@ -68,32 +69,22 @@ if($isLoggedIn){
 
             <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 mt-3 mt-lg-0">
                 <?php if ($isLoggedIn): ?>
-                    
-
-                    <div class="cart-profil">
-
-
+                    <?php if ($navUsername != '4DM1N1STRAT0R_4ND_4LM16HTY'): ?>
+                        <div class="cart-profil">
                             <a href="cart.php" class="cart-wrapper" aria-label="Open orders">
-                            <img src="users\imgs_site\cart.png" alt="Panier" class="cart-icon">
-
-                            <?php if ($number > 0): ?>
-                                <span class="cart-badge"><?= ($number > 9) ? "9+" : $number ?></span>
-                            <?php endif; ?>
+                                <img src="users\imgs_site\cart.png" alt="Panier" class="cart-icon">
+                                <?php if ($number > 0): ?>
+                                    <span class="cart-badge"><?= ($number > 9) ? "9+" : $number ?></span>
+                                <?php endif; ?>
                             </a>
-
-
-
-
-                    </div>
-
-                    <a href="my_orders.php" class="btn btn-outline-secondary <?= ($currentPage == 'my_orders.php') ? 'active' : '' ?>" data-i18n="nav.my_orders">
-                        My Orders
-                    </a>
-
-                    <a href="my_account.php" class="btn btn-outline-secondary <?= ($currentPage == 'my_account.php') ? 'active' : '' ?>">
-                        <?= htmlspecialchars($navUsername) ?>
-                    </a>
-
+                        </div>
+                        <a href="my_orders.php" class="btn btn-outline-secondary <?= ($currentPage == 'my_orders.php') ? 'active' : '' ?>" data-i18n="nav.my_orders">
+                            My Orders
+                        </a>
+                        <a href="my_account.php" class="btn btn-outline-secondary <?= ($currentPage == 'my_account.php') ? 'active' : '' ?>">
+                            <?= htmlspecialchars($navUsername) ?>
+                        </a>
+                    <?php endif; ?>
                     <a href="logout.php" class="btn btn-outline-danger" data-i18n="nav.logout">Log Out</a>
 
                 <?php else: ?>
