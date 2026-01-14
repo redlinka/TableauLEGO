@@ -152,6 +152,47 @@ foreach ($catalog as $item) {
         .nav-tabs .nav-link.active { font-weight: bold; border-bottom: 3px solid #0d6efd; }
         .table-container { background: white; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #dee2e6; border-top: none; }
 
+        .order-card {
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .order-header {
+            background: #f8f9fa;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .order-body {
+            padding: 15px;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .item-row img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .status-badge {
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
     </style>
 </head>
 <body>
@@ -207,73 +248,7 @@ foreach ($catalog as $item) {
                 </table>
             </div>
         </div>
-
-        <div class="tab-pane fade" id="orders" role="tabpanel">
-            <div class="table-container">
-                <?php if (empty($orders)): ?>
-                    <p>No orders have been placed yet.</p>
-                <?php else: ?>
-                    <?php foreach ($orders as $order): ?>
-                        <div class="order-card">
-                            <div class="order-header">
-                                <div>
-                                    <strong>Order #<?= $order['order_id'] ?></strong><br>
-                                    <small>Placed on : <?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></small><br>
-                                    <small>User: <?= htmlspecialchars($order['first_name'] . ' ' . $order['last_name']) ?> (<?= htmlspecialchars($order['email']) ?>)</small>
-                                </div>
-                                <div>
-                                    <span class="status-badge">Paid</span>
-                                </div>
-                            </div>
-
-                            <div class="order-body">
-                                <?php
-                                // Retrieve tiling for this order to display it
-                                $stmtItems = $cnx->prepare("SELECT t.pavage_txt, i.path as lego_path, t.pavage_id, i.image_id FROM contain c
-                                                        JOIN TILLING t ON c.pavage_id = t.pavage_id
-                                                        JOIN IMAGE i ON t.image_id = i.image_id
-                                                        WHERE c.order_id = ?");
-                                $stmtItems->execute([$order['order_id']]);
-                                $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
-
-                                $orderTotal = 0;
-                                foreach ($items as $item):
-                                    $filename = getOriginalImage($cnx, $item['image_id'])["filename"];
-                                    $stats = getTilingStats($item['pavage_txt']);
-                                    $price = $stats['price'] / 100;
-                                    $orderTotal += $price;
-                                ?>
-                                    <div class="item-row">
-                                        <img src="users/imgs/<?= htmlspecialchars($item['lego_path']) ?>" alt="Overview">
-                                        <div style="flex: 1;">
-                                            <strong>File : <?= htmlspecialchars($filename) ?></strong><br>
-                                            <small>Quality : <?= $stats['quality'] ?>%</small>
-                                            <br>
-                                            <a href="generate_manual.php?file=<?= urlencode($item['pavage_txt']) ?>" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
-                                                View Guide
-                                            </a>
-                                            <a href="users/imgs/<?= htmlspecialchars($item['lego_path']) ?>" download class="btn btn-sm btn-outline-secondary mt-2">
-                                                Download Image
-                                            </a>
-                                            <a href="users/tilings/<?= htmlspecialchars($item['pavage_txt']) ?>" download class="btn btn-sm btn-outline-secondary mt-2">
-                                                Download Tiling
-                                            </a>
-                                        </div>
-                                        <div><?= money($price) ?></div>
-                                    </div>
-                                <?php endforeach; ?>
-
-                                <div style="text-align: right; margin-top: 15px;">
-                                    <strong>Subtotal : <?= money($orderTotal) ?></strong><br>
-                                    <small>Shipping costs (10%): <?= money($orderTotal * 0.1) ?></small><br>
-                                    <strong>Total : <?= money($orderTotal * 1.1) ?></strong>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
-        </div>
+        
 
         <div class="tab-pane fade" id="restock" role="tabpanel">
             <div class="table-container">
