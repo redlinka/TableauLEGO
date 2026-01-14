@@ -279,7 +279,10 @@ foreach ($catalog as $item) {
 
                                 $orderTotal = 0;
                                 foreach ($items as $item) {
-                                    
+                                    $filename = "";
+                                    $stats = [10,10];
+                                    $price = $stats['price'] / 100;
+                                    $orderTotal += $price;
                                 ?>
                                     <div class="item-row">
                                         <img src="users/imgs/<?= htmlspecialchars($item['lego_path']) ?>" alt="Overview">
