@@ -327,12 +327,10 @@ function getOriginalImage($cnx, $imageId)
             return null;
         }
 
-        // Si pas de parent → image originale
         if ($image['img_parent'] === null) {
             return $image;
         }
 
-        // Sinon on remonte récursivement
         return getOriginalImage($cnx, $image['img_parent']);
     } catch (PDOException $e) {
         return null;
