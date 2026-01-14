@@ -121,6 +121,15 @@ $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
 $sqlCatalog = "SELECT * FROM catalog_with_price_and_stock ORDER BY stock ASC";
 $stmtCatalog = $cnx->query($sqlCatalog);
 $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
+if (empty($message)) {
+    foreach ($catalog as $item) {
+        if ($item['stock'] < 10) {
+            $message = "<strong>Alert:</strong> Some bricks in the catalog have critically low stock (less than 10).";
+            $messageType = "danger";
+            break; // Stop checking, we just need one general message
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -136,8 +145,9 @@ $catalog = $stmtCatalog->fetchAll(PDO::FETCH_ASSOC);
     </style>
 </head>
 <body>
+<?php include("./includes/navbar.php"); ?>
+
 <div class="container-fluid px-5">
-    <?php include("./includes/navbar.php"); ?>
 
     <?php if ($message): ?>
         <div class="alert alert-<?= $messageType ?> alert-dismissible fade show" role="alert">
