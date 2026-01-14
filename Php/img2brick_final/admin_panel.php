@@ -58,24 +58,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         fclose($fileHandle);
 
         if ($totalItems > 0) {
-            // 3. EXECUTE JAVA COMMAND
-            // TWEAK 1: Add "2>&1" at the end. This forces Java errors to be captured in $output
-            $command = "java -cp .:./mysql-connector-j-9.1.0.jar ManualRestock " . escapeshellarg($tempFileName) . " 2>&1";
+            // 3. EXECUTE JAVA COMMAND (Using brain.jar logic)
 
-            // Debug: Uncomment this line to see the exact command being run if needed
-            // echo "Executing: $command"; exit;
+            // Define paths exactly like in add_cart.php
+            $jarPath = __DIR__ . '/brain.jar';
+            $javaCmd = 'java';
 
-            $output = [];
-            $returnVar = 0;
-            exec($command, $output, $returnVar);
+            // Windows-specific configuration
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                $javaCmd = '"C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.1.8-hotspot\\bin\\java.exe"';
+            }
 
-            if ($returnVar === 0) {
-                $message = "Success! Ordered $totalItems items. Stock updated.";
-                $messageType = "success";
+            // Execute only if JAR and Temp File exist
+            if (file_exists($jarPath) && file_exists($tempFilePath)) {
+                // Command structure: java -cp brain.jar ManualRestock [tempFile]
+                // We assume ManualRestock is compiled INSIDE brain.jar or available in its context
+                $cmd = sprintf(
+                    '%s -cp %s fr.uge.univ_eiffel.ManualRestock %s 2>&1',
+                    $javaCmd,
+                    escapeshellarg($jarPath),
+                    escapeshellarg($tempFilePath)
+                );
+
+                // Debug: Uncomment to see the generated command
+                // echo $cmd; exit;
+
+                $output = [];
+                $returnVar = 0;
+                exec($cmd, $output, $returnVar);
+
+                if ($returnVar === 0) {
+                    $message = "Success! Ordered $totalItems items. Stock updated.";
+                    $messageType = "success";
+                } else {
+                    $javaError = implode("\n", $output);
+                    $message = "Error executing Java command. Return code: $returnVar. <br><strong>Java Error:</strong> <pre>$javaError</pre>";
+                    $messageType = "danger";
+                }
             } else {
-                // TWEAK 2: Print the captured output so you can read the Java Exception
-                $javaError = implode("\n", $output);
-                $message = "Error executing Java command. Return code: $returnVar. <br><strong>Java Error:</strong> <pre>$javaError</pre>";
+                $message = "Error: brain.jar not found at $jarPath";
                 $messageType = "danger";
             }
         } else {
