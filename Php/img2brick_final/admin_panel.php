@@ -278,13 +278,31 @@ foreach ($catalog as $item) {
                                 $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
 
                                 $orderTotal = 0;
-                                foreach ($items as $item):
+                                foreach ($items as $item) {
                                     $filename = getOriginalImage($cnx, $item['image_id'])["filename"];
                                     $stats = getTilingStats($item['pavage_txt']);
                                     $price = $stats['price'] / 100;
                                     $orderTotal += $price;
                                 ?>
-                                <?php endforeach; ?>
+                                    <div class="item-row">
+                                        <img src="users/imgs/<?= htmlspecialchars($item['lego_path']) ?>" alt="Overview">
+                                        <div style="flex: 1;">
+                                            <strong>File : <?= htmlspecialchars($filename) ?></strong><br>
+                                            <small>Quality : <?= $stats['quality'] ?>%</small>
+                                            <br>
+                                            <a href="generate_manual.php?file=<?= urlencode($item['pavage_txt']) ?>" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                                                View Guide
+                                            </a>
+                                            <a href="users/imgs/<?= htmlspecialchars($item['lego_path']) ?>" download class="btn btn-sm btn-outline-secondary mt-2">
+                                                Download Image
+                                            </a>
+                                            <a href="users/tilings/<?= htmlspecialchars($item['pavage_txt']) ?>" download class="btn btn-sm btn-outline-secondary mt-2">
+                                                Download Tiling
+                                            </a>
+                                        </div>
+                                        <div><?= money($price) ?></div>
+                                    </div>
+                                <?php } ?>
 
                                 <div style="text-align: right; margin-top: 15px;">
                                     <strong>Subtotal : <?= money($orderTotal) ?></strong><br>
