@@ -349,7 +349,7 @@ foreach ($catalog as $item) {
                                     </td>
                                     <td><?= $item['width'] ?> x <?= $item['height'] ?></td>
                                     <td class="<?= $item['stock'] < 10 ? 'text-danger fw-bold' : '' ?>"><?= $item['stock'] ?></td>
-                                    <td><?= number_format($item['unit_price'], 2) ?> €</td>
+                                    <td><?= number_format($item['unit_price'], 5) ?> €</td>
                                     <td>
                                         <input type="number" name="quantity[<?= $fileKey ?>]" class="form-control form-control-sm" min="0" placeholder="0">
                                     </td>
