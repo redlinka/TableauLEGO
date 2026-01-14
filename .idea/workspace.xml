@@ -175,7 +175,18 @@
       <recent name="fr.uge.univ_eiffel.security" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.LegoVisualizer">
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="TableauLEGO" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="TableauLEGO" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
     <configuration name="LegoVisualizer" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="fr.uge.univ_eiffel.image_processing.LegoVisualizer" />
       <module name="java2BrickFusion" />
@@ -272,23 +283,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="TableauLEGO" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="TableauLEGO" />
-      <option name="filePath" />
-      <method v="2" />
-    </configuration>
-    <list>
-      <item itemvalue="Application.LegoVisualizer" />
-      <item itemvalue="Application.ManualRestock" />
-      <item itemvalue="Application.Refiller" />
-      <item itemvalue="Application.TileAndDraw" />
-    </list>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
