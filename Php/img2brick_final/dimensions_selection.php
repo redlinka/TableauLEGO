@@ -52,8 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($width % 16 !== 0 || $height % 16 !== 0) {
             $errors[] = "Dimensions must be multiples of 16.";
         }
-        if ($width > 1024 || $height > 1024) {
-            $errors[] = "Maximum dimension is 1024 studs.";
+        if ($width > 512 || $height > 512) {
+            $errors[] = "Maximum dimension is 512 studs.";
         }
 
         if (empty($errors)) {
@@ -218,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                         <button type="button" class="btn btn-outline-secondary preset-btn" id="btnCustom" onclick="setMode('custom')">
                                             <strong data-i18n="dims.mode_custom">Custom</strong>
-                                            <small data-i18n="dims.mode_custom_hint">Manual entry (Max 1024)</small>
+                                            <small data-i18n="dims.mode_custom_hint">Manual entry (Max 512)</small>
                                         </button>
                                     </div>
 
@@ -235,14 +235,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <div class="row g-2">
                                             <div class="col">
                                                 <label class="small fw-bold" data-i18n="dims.width">Width</label>
-                                                <input type="number" id="customW" class="form-control" placeholder="64" min="16" max="1024" step="16">
+                                                <input type="number" id="customW" class="form-control" placeholder="64" min="16" max="512" step="16">
                                             </div>
                                             <div class="col">
                                                 <label class="small fw-bold" data-i18n="dims.height">Height</label>
-                                                <input type="number" id="customH" class="form-control" placeholder="64" min="16" max="1024" step="16">
+                                                <input type="number" id="customH" class="form-control" placeholder="64" min="16" max="512" step="16">
                                             </div>
                                         </div>
-                                        <div class="form-text small mt-1" data-i18n="dims.custom_hint">Must be multiples of 16. Max 1024.</div>
+                                        <div class="form-text small mt-1" data-i18n="dims.custom_hint">Must be multiples of 16. Max 512.</div>
                                     </div>
 
                                     <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
