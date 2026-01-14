@@ -310,7 +310,7 @@ function getTilingStats($file)
 function getOriginalImage($cnx, $imageId)
 {
     if (!$imageId) {
-        return null;
+        return "Pas d'id";
     }
 
     try {
@@ -324,7 +324,7 @@ function getOriginalImage($cnx, $imageId)
         $image = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$image) {
-            return null;
+            return "Pas d'image";
         }
 
         // Si pas de parent → image originale
@@ -335,6 +335,6 @@ function getOriginalImage($cnx, $imageId)
         // Sinon on remonte récursivement
         return getOriginalImage($cnx, $image['img_parent']);
     } catch (PDOException $e) {
-        return null;
+        return "Erreur sql";
     }
 }

@@ -113,7 +113,7 @@ try {
 
                         $orderTotal = 0;
                         foreach ($items as $item):
-                            $filename = getOriginalImage($cnx, $items['image_id'])["filename"] ?? "Test";
+                            $filename = getOriginalImage($cnx, $items['image_id'])["filename"];
                             $stats = getTilingStats($item['pavage_txt']);
                             $price = $stats['price'] / 100;
                             $orderTotal += $price;
