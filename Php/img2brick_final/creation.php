@@ -128,7 +128,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 if ($cnx->inTransaction()) {
                     $cnx->rollBack();
                 }
-                $errors[] = 'Database error. Please try again later.';
+                $errors[] = 'Database error. Please try again later.'.$e;
             }
         }
     }
