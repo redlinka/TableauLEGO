@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "gridWidth": 10,
+  "gridHeight": 10,
+  "images": [
+    {
+      "id": "brazil_flag",
+      "name": "Brazil Flag",
+      "json": "brazil_flag_10x10.json",
+      "previewImage": "brazil_flag_preview.png",
+      "difficulty": "hard"
+    },
+    {
+      "id": "finland_flag",
+      "name": "Finland Flag",
+      "json": "finland_flag_10x10.json",
+      "previewImage": "finland_flag_preview.png",
+      "difficulty": "medium"
+    },
+    {
+      "id": "letter_a",
+      "name": "Letter A",
+      "json": "letter_a_10x10.json",
+      "previewImage": "letter_a_preview.png",
+      "difficulty": "medium"
+    },
+    {
+      "id": "letter_k",
+      "name": "Letter K",
+      "json": "letter_k_10x10.json",
+      "previewImage": "letter_k_preview.png",
+      "difficulty": "medium"
+    },
+    {
+      "id": "letter_r",
+      "name": "Letter R",
+      "json": "letter_r_10x10.json",
+      "previewImage": "letter_r_preview.png",
+      "difficulty": "medium"
+    },
+    {
+      "id": "us_flag",
+      "name": "Us Flag",
+      "json": "us_flag_10x10.json",
+      "previewImage": "us_flag_preview.png",
+      "difficulty": "hard"
+    }
+  ]
+}

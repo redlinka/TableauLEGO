@@ -1,0 +1,17 @@
+{
+  "name": "image-puzzle-maker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Batch pipeline that transforms source images into 10x10 puzzle assets.",
+  "type": "module",
+  "scripts": {
+    "build-targets": "node ./scripts/build-targets.mjs"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "sharp": "^0.34.4"
+  }
+}
+

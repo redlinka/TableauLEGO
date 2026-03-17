@@ -1,0 +1,17 @@
+{
+  "name": "games-platform-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @games-platform/game-contracts && npm run build -w @games-platform/game-server && npm run build -w @games-platform/game-web",
+    "dev:server": "npm run dev -w @games-platform/game-server",
+    "dev:web": "npm run dev -w @games-platform/game-web",
+    "test": "npm run test -w @games-platform/game-server",
+    "mongo:up": "docker compose -f docker-compose.mongo.yml up -d",
+    "mongo:down": "docker compose -f docker-compose.mongo.yml down"
+  }
+}

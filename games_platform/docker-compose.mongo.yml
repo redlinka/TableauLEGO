@@ -1,0 +1,14 @@
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: tableaulego-games-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: tableaulego_games
+    volumes:
+      - tableaulego_games_mongo_data:/data/db
+
+volumes:
+  tableaulego_games_mongo_data:
