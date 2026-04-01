@@ -14,7 +14,10 @@ const envSchema = z.object({
   MONGODB_URI: z.string().default("mongodb://127.0.0.1:27017/tableaulego_games"),
   MONGODB_DB_NAME: z.string().default("tableaulego_games"),
   GAME_TOKEN_SECRET: z.string().min(8).default("change-me-for-development"),
-  PHP_GAME_TOKEN_SECRET: z.string().default(""),
+  PHP_GAME_TOKEN_SECRET: z.string().refine(
+    (val) => val === "" || val.length >= 32,
+    { message: "PHP_GAME_TOKEN_SECRET must be empty (disabled) or at least 32 characters." }
+  ).default(""),
   TOKEN_ISSUER: z.string().default("tableaulego-game-server"),
   TOKEN_AUDIENCE: z.string().default("tableaulego-games"),
   PHP_TOKEN_ISSUER: z.string().default("tableaulego-php"),

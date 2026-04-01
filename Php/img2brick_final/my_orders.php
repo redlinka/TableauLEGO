@@ -1,135 +1,155 @@
 <?php
-session_start();
-// Include cnx.php so we can use the getTilingStats function
-require_once 'cnx.php';
+require_once __DIR__ . '/config/session.php';
+global $cnx;
+include("./config/cnx.php");
+require_once __DIR__ . '/includes/i18n.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+$_SESSION['redirect_after_login'] = 'my_orders.php';
+if (!isset($_SESSION['userId'])) {
+    header("Location: connexion.php");
     exit();
 }
 
-$conn = new mysqli("localhost", "root", "", "img2brick_db");
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+$userId = (int)$_SESSION['userId'];
+
+function money($v)
+{
+    return number_format((float)$v, 2, ',', ' ') . ' EUR';
 }
 
-$user_id = $_SESSION['user_id'];
-
-// 1. Get the orders for this user
-$sql = "SELECT order_id, created_at FROM ORDER_BILL WHERE user_id = ? ORDER BY created_at DESC";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
+try {
+    // Retrieves validated ORDER only (where created_at is not null because if it's null, it's a pending order (cart)
+    $stmt = $cnx->prepare("SELECT order_id, created_at, address_id FROM ORDER_BILL WHERE user_id = ? AND created_at IS NOT NULL ORDER BY created_at DESC");
+    $stmt->execute([$userId]);
+    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("my_orders DB error: " . $e->getMessage());
+    die("A database error occurred. Please try again later.");
+}
 ?>
 
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>My Orders</title>
-        <link rel="stylesheet" href="style.css">
-        <style>
-            /* Minimal inline styles to keep layout if style.css is missing */
-            .order-box { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
-            .order-header { display: flex; justify-content: space-between; background: #f4f4f4; padding: 10px; border-bottom: 1px solid #ddd; }
-            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: left; }
-        </style>
-    </head>
-    <body>
+<!DOCTYPE html>
+<html lang="en">
 
-    <div class="container">
-        <h1>My Orders</h1>
+<head>
+    <meta charset="UTF-8">
+    <title>My orders - Img2Brick</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .order-card {
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
 
-        <?php if ($result->num_rows > 0): ?>
-            <?php while($order = $result->fetch_assoc()): ?>
-                <?php
-                // 2. Fetch the tilings for this specific order
-                // We join 'contain' with 'TILLING' to get the filename
-                $order_id = $order['order_id'];
-                $sql_items = "SELECT t.pavage_txt 
-                              FROM contain c 
-                              JOIN TILLING t ON c.pavage_id = t.pavage_id 
-                              WHERE c.order_id = ?";
+        .order-header {
+            background: #f8f9fa;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #ddd;
+        }
 
-                $stmt_items = $conn->prepare($sql_items);
-                $stmt_items->bind_param("i", $order_id);
-                $stmt_items->execute();
-                $res_items = $stmt_items->get_result();
+        .order-body {
+            padding: 15px;
+        }
 
-                // 3. Pre-calculate data for this order using the file function
-                $display_items = [];
-                $total_order_price_cents = 0;
+        .item-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
 
-                while($row = $res_items->fetch_assoc()) {
-                    $filename = $row['pavage_txt'];
-                    $filepath = "users/tillings/" . $filename; // Ensure this path matches your folder structure
+        .item-row img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
 
-                    // Default values in case file is missing
-                    $price_cents = 0;
-                    $quality = 0;
+        .status-badge {
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
 
-                    // Calculate stats from file
-                    if (function_exists('getTilingStats') && file_exists($filepath)) {
-                        $stats = getTilingStats($filepath);
-                        $price_cents = $stats['price'];
-                        $quality = $stats['percent'];
-                    }
+<body>
+    <?php include("./includes/navbar.php"); ?>
 
-                    $total_order_price_cents += $price_cents;
+    <main class="container">
+        <h1 data-i18n="my_orders.title">My orders</h1>
 
-                    // Store for display
-                    $display_items[] = [
-                            'name' => $filename,
-                            'price' => $price_cents,
-                            'quality' => $quality
-                    ];
-                }
-                ?>
-
-                <div class="order-box">
+        <?php if (empty($orders)): ?>
+            <p>You have not placed an order yet.</p>
+        <?php else: ?>
+            <?php foreach ($orders as $order): ?>
+                <div class="order-card">
                     <div class="order-header">
                         <div>
-                            <strong>Order #<?php echo htmlspecialchars($order['order_id']); ?></strong>
-                            <span style="color: #666; font-size: 0.9em; margin-left: 10px;">
-                            <?php echo htmlspecialchars($order['created_at']); ?>
-                        </span>
+                            <strong>Order #<?= $order['order_id'] ?></strong><br>
+                            <small>Placed on : <?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></small>
                         </div>
                         <div>
-                            <strong>Total: $<?php echo number_format($total_order_price_cents / 100, 2); ?></strong>
+                            <span class="status-badge">Paid</span>
                         </div>
                     </div>
 
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Tiling File</th>
-                            <th>Quality</th>
-                            <th>Price</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach($display_items as $item): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($item['name']); ?></td>
-                                <td><?php echo number_format($item['quality'], 2); ?>%</td>
-                                <td>$<?php echo number_format($item['price'] / 100, 2); ?></td>
-                            </tr>
+                    <div class="order-body">
+                        <?php
+                        // Retrieve tiling for this order to display it
+                        $stmtItems = $cnx->prepare("SELECT t.pavage_txt, i.path as lego_path, t.pavage_id, i.image_id FROM contain c 
+                                                JOIN TILLING t ON c.pavage_id = t.pavage_id 
+                                                JOIN IMAGE i ON t.image_id = i.image_id 
+                                                WHERE c.order_id = ?");
+                        $stmtItems->execute([$order['order_id']]);
+                        $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
+
+                        $orderTotal = 0;
+                        foreach ($items as $item):
+                            $filename = getOriginalImage($cnx, $item['image_id'])["filename"];
+                            $stats = getTilingStats($item['pavage_txt']);
+                            $price = $stats['price'] / 100;
+                            $orderTotal += $price;
+                        ?>
+                            <div class="item-row">
+                                <img src="users/imgs/<?= htmlspecialchars($item['lego_path']) ?>" alt="Overview">
+                                <div style="flex: 1;">
+                                    <strong>File : <?= htmlspecialchars($filename) ?></strong><br>
+                                    <small>Quality : <?= $stats['quality'] ?>%</small>
+                                    <br>
+                                    <a href="generate_manual.php?file=<?= urlencode($item['pavage_txt']) ?>" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                                        View Guide
+                                    </a>
+                                    <a href="users/imgs/<?= htmlspecialchars($item['lego_path']) ?>" download class="btn btn-sm btn-outline-secondary mt-2">
+                                        Download Image
+                                    </a>
+                                    <a href="users/tilings/<?= htmlspecialchars($item['pavage_txt']) ?>" download class="btn btn-sm btn-outline-secondary mt-2">
+                                        Download Tiling
+                                    </a>
+                                </div>
+                                <div><?= money($price) ?></div>
+                            </div>
                         <?php endforeach; ?>
-                        </tbody>
-                    </table>
+
+                        <div style="text-align: right; margin-top: 15px;">
+                            <strong>Subtotal : <?= money($orderTotal) ?></strong><br>
+                            <small>Shipping costs (10%): <?= money($orderTotal * 0.1) ?></small><br>
+                            <strong>Total : <?= money($orderTotal * 1.1) ?></strong>
+                        </div>
+                    </div>
                 </div>
-
-            <?php endwhile; ?>
-        <?php else: ?>
-            <p>You have no orders yet.</p>
+            <?php endforeach; ?>
         <?php endif; ?>
-    </div>
+    </main>
+    <?php include("./includes/footer.php"); ?>
+</body>
 
-    </body>
-    </html>
-
-<?php
-$conn->close();
-?>
+</html>

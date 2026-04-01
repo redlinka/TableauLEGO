@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/config/session.php';
 global $cnx;
 include("./config/cnx.php");
 
@@ -54,15 +54,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $link = $protocol . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/verify_account.php?token=' . $token;
 
                 $emailBody = "
-                    <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; max-width: 600px;'>
-                        <h2 style='color: #0d6efd;'>Activate Your Account 🧱</h2>
-                        <p>It looks like your account isn't active yet. Click below to verify your email:</p>
-                        <p style='text-align: center;'>
-                            <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Verify My Account</a>
-                        </p>
+                    <div style='font-family: Arial, sans-serif; padding: 30px; border: 1px solid #eeeeee; border-radius: 10px; max-width: 600px; color: #333;'>
+                        <h2 style='color: #0d6efd; margin-top: 0;'>Welcome to BrickMosaic</h2>
+                        <p>Thank you for joining us! To start building, please verify your email address by clicking the button below:</p>
+                        <div style='text-align: center; margin: 30px 0;'>
+                            <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Verify My Account</a>
+                        </div>
+                        <p style='font-size: 0.9em; color: #666;'>If the button above doesn't work, copy and paste this link into your browser:</p>
+                        <p style='font-size: 0.8em; color: #0d6efd; word-break: break-all;'>{$link}</p>
+                        <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>
+                        <p style='font-size: 0.8em; color: #999;'>If you did not create an account, you can safely ignore this email.</p>
                     </div>";
 
-                sendMail($user['email'], 'Activate your Img2Brick account', $emailBody);
+                sendMail($user['email'], 'Activate your BrickMosaic account', $emailBody);
 
                 $errors[] = 'Your account is not activated. A new verification email has been sent to your inbox. If you didn\'t receive it, click <a href="creation_mail.php">here</a>.';                csrf_rotate();
             } else {
@@ -92,20 +96,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Format email body
                 $emailBody = "
-                        <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; max-width: 600px;'>
-                            <h2 style='color: #0d6efd;'>Secure Login Link 🔑</h2>
-                            <p>We received a login attempt for your Img2Brick account. To complete the login process, please click the button below:</p>
-                            <p style='text-align: center;'>
-                                <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Log In</a>
+                    <div style='font-family: Arial, sans-serif; padding: 30px; border: 1px solid #eeeeee; border-radius: 10px; max-width: 600px; color: #333;'>
+                        <h2 style='color: #0d6efd; margin-top: 0;'>Secure Login Attempt</h2>
+                        <p>A login request was made for your <strong>BrickMosaic</strong> account. To complete the authentication, please use the button below:</p>
+                        
+                        <div style='text-align: center; margin: 35px 0;'>
+                            <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;'>Sign In to My Account</a>
+                        </div>
+                
+                        <div style='background-color: #fff9db; padding: 15px; border-radius: 5px; border-left: 4px solid #fcc419; margin-bottom: 20px;'>
+                            <p style='margin: 0; font-size: 0.85em; color: #856404;'>
+                                <strong>Security Alert:</strong> This link is only valid for <strong>1 minute</strong>. 
+                                If you did not request this login, please ignore this email and secure your account.
                             </p>
-                            <p style='color: #6c757d; font-size: 12px; margin-top: 20px;'>If the button doesn't work, copy this link: {$link}</p>
-                            <p style='color: #6c757d; font-size: 12px;'>This link expires in 1 minute.</p>
-                        </div>";
+                        </div>
+                
+                        <p style='font-size: 0.85em; color: #666;'>If the button doesn't work, copy and paste this URL:</p>
+                        <p style='font-size: 0.8em; color: #0d6efd; word-break: break-all;'>{$link}</p>
+                    </div>";
 
                 // Send authentication email
                 sendMail(
                         $user['email'],
-                        'Complete your login',
+                        'Login Verification - BrickMosaic',
                         $emailBody
                 );
 
@@ -131,6 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Log in</title>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 
@@ -148,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="alert alert-danger">
                             <ul class="mb-0 ps-3">
                                 <?php foreach ($errors as $error): ?>
-                                    <li><?= $error?></li>
+                                    <li><?= $error ?></li>
                                 <?php endforeach; ?>
                             </ul>
                         </div>

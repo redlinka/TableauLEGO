@@ -84,6 +84,10 @@ export interface BootstrapResponse {
     totalShapes: number;
     shapes: BrickShapeDefinition[];
   };
+  loyalty: {
+    tiers: LoyaltyTier[];
+    maxDiscountPercent: number;
+  };
 }
 
 export interface PuzzleListResponse {
@@ -114,6 +118,11 @@ export interface HistoryDetailResponse {
   loyaltyEntries: LoyaltyLedgerEntry[];
 }
 
+export interface LoyaltyTier {
+  points: number;
+  discountPercent: number;
+}
+
 export interface LoyaltyBalanceResponse {
   summary: LoyaltySummary;
   recentEntries: LoyaltyLedgerEntry[];
@@ -123,6 +132,18 @@ export interface LoyaltyLedgerResponse {
   total: number;
   items: LoyaltyLedgerEntry[];
   summary: LoyaltySummary;
+}
+
+export interface LoyaltyRedeemRequest {
+  points: number;
+  orderRef?: string;
+}
+
+export interface LoyaltyRedeemResponse {
+  success: boolean;
+  pointsDeducted: number;
+  discountPercent: number;
+  balanceAfter: number;
 }
 
 export interface CreateSoloImageRebuildSessionRequest {

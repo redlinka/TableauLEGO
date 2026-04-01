@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/config/session.php';
 global $cnx;
 include("./config/cnx.php");
 
@@ -61,18 +61,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Format email body
             $emailBody = "
-                                <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; max-width: 600px;'>
-                                    <h2 style='color: #0d6efd;'>Welcome to Img2Brick! 🧱</h2>
-                                    <p>Thanks for joining. To activate your account and start building, please click the button below:</p>
-                                    <p style='text-align: center;'>
-                                        <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Verify My Account</a>
-                                    </p>
-                                    <p style='color: #6c757d; font-size: 12px; margin-top: 20px;'>If the button doesn't work, copy this link: {$link}</p>
-                                </div>";
+                <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; max-width: 600px;'>
+                    <h2 style='color: #0d6efd;'>Welcome to BrickMosaic!</h2>
+                    <p>Thanks for joining. To activate your account and start building, please click the button below:</p>
+                    <p style='text-align: center;'>
+                        <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Verify My Account</a>
+                    </p>
+                    <p style='font-size: 0.9em; color: #666;'>If the button above doesn't work, copy and paste this link into your browser:</p>
+                    <p style='font-size: 0.8em; color: #0d6efd; word-break: break-all;'>{$link}</p>
+                    <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>
+                    <p style='font-size: 0.8em; color: #999;'>If you did not create an account, you can safely ignore this email.</p>
+                </div>";
 
             sendMail(
                     $userEmail,
-                    'Welcome to Img2Brick - Verify your account',
+                    'Welcome to BrickMosaic - Verify your account',
                     $emailBody
             );
 

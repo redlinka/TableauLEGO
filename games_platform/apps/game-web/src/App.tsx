@@ -34,6 +34,7 @@ import {
   authenticateGuest,
   createSoloImageRebuildSession,
   createSoloLineBreakerSession,
+  exchangePhpToken,
   fetchBootstrap,
   fetchHealth,
   fetchHistory,
@@ -50,7 +51,7 @@ import {
   submitSoloLineBreakerPlacement
 } from "./api/gameApi";
 import { resolveBoardColor } from "./colorUtils";
-import { GAME_CONTENT, MODE_CONTENT } from "./gameContent";
+import { GAME_CONTENT, MODE_CONTENT, POINTS_EXPLANATION } from "./gameContent";
 import { GameWebSocketClient } from "./ws/websocketClient";
 
 const GUEST_STORAGE_KEY = "tableaulego_games_guest";
@@ -897,9 +898,35 @@ export default function App() {
   }, [guestState.data]);
 
   useEffect(() => {
-    const token = guestState.data?.accessToken;
-    void loadInitialData(token);
-    void loadPlayerPanels(token);
+    const hash = window.location.hash.replace(/^#/, "");
+    const hashParams = new URLSearchParams(hash);
+    const phpToken = hashParams.get("phpToken") || new URLSearchParams(window.location.search).get("phpToken");
+
+    if (phpToken) {
+      window.history.replaceState({}, "", window.location.pathname);
+      exchangePhpToken(phpToken)
+        .then((response) => {
+          const guestData = {
+            accessToken: response.accessToken,
+            tokenType: response.tokenType,
+            expiresAt: response.expiresAt,
+            player: response.player
+          };
+          setGuestState({ loading: false, data: guestData });
+          void loadInitialData(response.accessToken);
+          void loadPlayerPanels(response.accessToken);
+        })
+        .catch(() => {
+          const token = guestState.data?.accessToken;
+          void loadInitialData(token);
+          void loadPlayerPanels(token);
+        });
+    } else {
+      const token = guestState.data?.accessToken;
+      void loadInitialData(token);
+      void loadPlayerPanels(token);
+    }
+
     const timer = window.setInterval(() => setNowMs(Date.now()), 1_000);
 
     return () => {
@@ -1368,7 +1395,7 @@ export default function App() {
               className={`rotation-chip${activeRotation.rotation === rotation.rotation ? " active" : ""}`}
               onClick={() => setSelectedRotation(rotation.rotation)}
             >
-              Rotation {rotation.rotation} deg
+              {rotation.rotation === 0 ? "↑" : rotation.rotation === 90 ? "→" : rotation.rotation === 180 ? "↓" : "←"}
             </button>
           ))}
         </div>
@@ -1941,10 +1968,7 @@ export default function App() {
     );
   }
 
-  const onboardingMessage =
-    selectedMode === GameMode.Solo
-      ? "Choisis ton jeu, lis l'objectif, puis lance une partie."
-      : "Choisis ton jeu, ouvre un salon ou rejoins-en un, puis mets-toi pret.";
+  const onboardingMessage = "Jouez et gagnez des points pour obtenir des reductions sur la boutique !";
   const boardHighlights = toBoardHighlights(
     selectedGameType,
     currentScore,
@@ -1963,7 +1987,7 @@ export default function App() {
       <section className="hero-panel">
         <div className="hero-topline">
           <div>
-            <p className="eyebrow">Plateforme de jeu</p>
+            <p className="eyebrow">BrickMosaic</p>
             <h1>{selectedGameContent.title}</h1>
             <p className="hero-copy">
               {selectedGameContent.shortDescription} {onboardingMessage}
@@ -1971,8 +1995,7 @@ export default function App() {
           </div>
           <div className="hero-badges">
             <span className="pill">{selectedModeContent.title}</span>
-            {guestState.data?.player ? <span className="pill">Joueur : {guestState.data.player.publicAlias}</span> : null}
-            {currentRewardPoints !== undefined ? <span className="pill">Derniere partie : +{currentRewardPoints} pts</span> : null}
+            {currentRewardPoints !== undefined ? <span className="pill">+{currentRewardPoints} pts gagnes</span> : null}
             {selectedMode === GameMode.Duplicate2P ? (
               <span className={`pill realtime-pill ${socketStatus}`}>
                 {toRealtimeStatusLabel(socketStatus)}
@@ -1980,15 +2003,45 @@ export default function App() {
             ) : null}
           </div>
         </div>
-        <div className="hero-actions">
-          <button onClick={() => void handleGuestLogin()}>
-            {guestState.loading ? "Connexion..." : guestState.data ? "Joueur invite pret" : "Creer un joueur invite"}
-          </button>
-          <button className="secondary-button" onClick={() => void loadInitialData(accessTokenRef.current)}>Rafraichir l'accueil</button>
-          <button className="secondary-button" onClick={() => void loadPlayerPanels(accessTokenRef.current)} disabled={!accessToken}>Actualiser historique et fidelite</button>
-        </div>
         <div className="choice-grid">{renderGamePickerCard(GameType.ImageRebuild)}{renderGamePickerCard(GameType.LineBreaker)}</div>
         <div className="mode-grid">{renderModeCard(GameMode.Solo)}{renderModeCard(GameMode.Duplicate2P)}</div>
+
+        {/* Rules section */}
+        <div className="rules-section">
+          <h3>Regles du jeu — {selectedGameContent.title}</h3>
+          <ol className="rules-list">
+            {selectedGameContent.rules.map((rule, i) => (
+              <li key={i} data-step={i + 1}>{rule}</li>
+            ))}
+          </ol>
+        </div>
+
+        {/* Points explanation section */}
+        <div className="points-section">
+          <h3>{POINTS_EXPLANATION.title}</h3>
+          <ul style={{margin: 0, paddingLeft: "1.2rem", lineHeight: 1.8}}>
+            {POINTS_EXPLANATION.howToEarn.map((line, i) => (
+              <li key={i}>{line}</li>
+            ))}
+          </ul>
+          <div className="points-tiers">
+            {POINTS_EXPLANATION.tiers.map((tier) => (
+              <div key={tier.points} className="tier-badge">
+                <strong>{tier.discount}</strong>
+                <span>{tier.points} pts</span>
+              </div>
+            ))}
+          </div>
+          <p style={{marginTop: "0.75rem", fontWeight: 700, fontSize: "0.95rem", color: "var(--primary)"}}>
+            {POINTS_EXPLANATION.callToAction}
+          </p>
+          {loyaltyBalanceState.data?.summary ? (
+            <p style={{marginTop: "0.5rem", fontSize: "1.1rem", fontWeight: 800}}>
+              Votre solde : {loyaltyBalanceState.data.summary.balance} pts
+            </p>
+          ) : null}
+        </div>
+
         {message ? <p className="inline-message">{message}</p> : null}
         {socketError ? <p className="inline-message error">{socketError}</p> : null}
       </section>
@@ -2000,20 +2053,16 @@ export default function App() {
           <article className="panel panel-soft">
             <div className="panel-heading">
               <div>
-                <p className="eyebrow">Brique courante</p>
-                <h2>Que faut-il placer maintenant ?</h2>
+                <p className="eyebrow">A vous de jouer</p>
+                <h2>Brique a placer</h2>
               </div>
-              <span className={`pill realtime-pill ${socketStatus}`}>
-                {selectedMode === GameMode.Duplicate2P
-                  ? toRealtimeStatusLabel(socketStatus)
-                  : "Tour actif"}
-              </span>
+              {selectedMode === GameMode.Duplicate2P ? (
+                <span className={`pill realtime-pill ${socketStatus}`}>
+                  {toRealtimeStatusLabel(socketStatus)}
+                </span>
+              ) : null}
             </div>
             <p className="support-copy">{selectedGameContent.turnAction}</p>
-            <div className="context-tip">
-              <span className="section-icon section-icon--tip">AIDE</span>
-              <span>{contextualHint}</span>
-            </div>
             {renderOfferPreview()}
             {renderStatusAndAction()}
             {renderStatCards(boardHighlights)}
@@ -2072,7 +2121,7 @@ export default function App() {
         {renderLoyaltyPanel()}
       </section>
 
-      {renderDebugPanel()}
+      {/* Debug panel removed for clean user experience */}
     </main>
   );
 }

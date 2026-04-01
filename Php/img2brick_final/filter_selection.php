@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/config/session.php';
 global $cnx;
 include("./config/cnx.php");
 require_once __DIR__ . '/includes/i18n.php';
@@ -131,7 +131,27 @@ $filters = [
     <meta charset="UTF-8">
     <title><?= htmlspecialchars(tr('filter.page_title', 'Step 3: Add Filters')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
     <style>
+        .step-indicator {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .step-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+        .step-dot.active { background-color: #0d6efd; }
+        .step-dot.done { background-color: #198754; }
+        .step-dot.inactive { background-color: #dee2e6; color: #6c757d; }
         .algo-card {
             transition: transform 0.2s;
             border: 2px solid transparent;
@@ -201,8 +221,18 @@ $filters = [
 
     <?php include("./includes/navbar.php"); ?>
 
-    <div class="container bg-light py-5">
-        <h2 class="text-center mb-4" data-i18n="filter.title">Step 3: Choose a Tint</h2>
+    <div class="container bg-light py-4">
+
+        <!-- Step indicator -->
+        <div class="step-indicator justify-content-center mb-3">
+            <div class="step-dot done">1</div>
+            <div class="step-dot done">2</div>
+            <div class="step-dot active">3</div>
+            <div class="step-dot inactive">4</div>
+        </div>
+
+        <h2 class="text-center mb-2" data-i18n="filter.title">Step 3: Apply a Filter</h2>
+        <p class="text-center text-muted mb-4" data-i18n="filter.subtitle_desc">Optional: apply a color filter to change the mood of your mosaic. Select "Normal" to keep the original colors.</p>
 
         <?php if (!empty($errors)): ?>
             <div class="alert alert-danger">

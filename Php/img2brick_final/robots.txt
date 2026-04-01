@@ -1,2 +1,57 @@
 User-agent: *
-Disallow: /
+
+# --- DISALLOW (Do not index) ---
+# Folders and files that are not standalone content pages
+Disallow: /config
+Disallow: /api
+Disallow: /font
+Disallow: /includes
+Disallow: /lib
+Disallow: /makefont
+Disallow: /vendor
+Disallow: /users
+Disallow: /composer.json
+Disallow: /robots.txt
+Disallow: /catalog.txt
+Disallow: /add_cart.php
+
+# Sensitive files
+Disallow: /.env
+Disallow: /.htaccess
+
+# Email-related pages
+Disallow: /connexion_mail.php
+Disallow: /creation_mail.php
+Disallow: /test_mail.php
+
+# Intermediate steps/no direct access
+Disallow: /generate_manual.php
+Disallow: /filter_selection.php
+Disallow: /crop_selection.php
+Disallow: /tiling_selection.php
+Disallow: /dimensions_selection.php
+Disallow: /downscale_selection.php
+
+# Disallow private/admin pages
+Disallow: /admin_panel.php
+Disallow: /password_forgotten.php
+Disallow: /reset_password.php
+Disallow: /verify_account.php
+Disallow: /verify_connexion.php
+Disallow: /logout.php
+
+# Disallow temporary/session files
+Disallow: /*.txt$
+
+# --- ALLOW (Index these) ---
+# Publicly accessible pages
+Allow: /index.php
+Allow: /cart.php
+Allow: /my_account.php
+Allow: /my_orders.php
+
+# Crawler directives
+Crawl-delay: 1
+
+# Sitemap (uncomment and update when domain is configured)
+# Sitemap: https://yourdomain.com/sitemap.xml

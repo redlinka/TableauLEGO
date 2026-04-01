@@ -155,6 +155,42 @@ export class PlayerRepository {
     };
   }
 
+  async redeemLoyaltyPoints(input: {
+    playerId: string;
+    points: number;
+  }): Promise<LoyaltySummary | null> {
+    const updated = await PlayerModel.findOneAndUpdate(
+      {
+        playerId: input.playerId,
+        "loyaltySummary.balance": { $gte: input.points }
+      },
+      {
+        $inc: {
+          "loyaltySummary.balance": -input.points
+        },
+        $set: {
+          lastSeenAt: new Date()
+        }
+      },
+      {
+        new: true
+      }
+    ).lean<PlayerDocument | null>();
+
+    if (!updated) {
+      return null;
+    }
+
+    return {
+      playerId: updated.playerId,
+      balance: updated.loyaltySummary.balance,
+      lifetimeEarned: updated.loyaltySummary.lifetimeEarned,
+      totalEntries: 0,
+      lastUpdatedAt: updated.updatedAt.toISOString(),
+      technicalLoyaltyId: updated.technicalLoyaltyId
+    };
+  }
+
   async getProfile(playerId: string): Promise<{
     identity: TechnicalPlayerIdentity;
     statsSummary: PlayerStatsSummary;

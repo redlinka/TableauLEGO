@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/config/session.php';
 global $cnx;
 include("./config/cnx.php");
 require_once __DIR__ . '/includes/i18n.php';
@@ -187,7 +187,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title><?= htmlspecialchars(tr('downscale.page_title', 'Step 2b: Compare')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
     <style>
+        .step-indicator {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .step-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+        .step-dot.active { background-color: #0d6efd; }
+        .step-dot.done { background-color: #198754; }
+        .step-dot.inactive { background-color: #dee2e6; color: #6c757d; }
         .pixelated {
             image-rendering: pixelated;
             width: 100%;
@@ -254,8 +274,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <?php include("./includes/navbar.php"); ?>
 
-    <div class="container bg-light py-5">
-        <h2 class="text-center mb-4" data-i18n="downscale.title">Choose your favorite Result</h2>
+    <div class="container bg-light py-4">
+
+        <!-- Step indicator -->
+        <div class="step-indicator justify-content-center mb-3">
+            <div class="step-dot done">1</div>
+            <div class="step-dot active">2</div>
+            <div class="step-dot inactive">3</div>
+            <div class="step-dot inactive">4</div>
+        </div>
+
+        <h2 class="text-center mb-2" data-i18n="downscale.title">Step 2: Choose Downscaling Algorithm</h2>
+        <p class="text-center text-muted mb-4" data-i18n="downscale.subtitle">Each algorithm produces a different pixel style. Click an image to zoom, then select your favorite.</p>
 
         <?php if (!empty($errors)): ?>
             <div class="alert alert-danger">
@@ -274,6 +304,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="card h-100 shadow-sm algo-card">
                                 <div class="card-header text-center fw-bold text-uppercase">
                                     <?= htmlspecialchars($algo) ?>
+                                    <div class="text-muted small fw-normal text-capitalize mt-1">
+                                        <?php
+                                        $algoDescKeys = [
+                                            'nearest' => 'downscale.desc_nearest',
+                                            'bilinear' => 'downscale.desc_bilinear',
+                                            'bicubic' => 'downscale.desc_bicubic'
+                                        ];
+                                        $algoDescFallbacks = [
+                                            'nearest' => 'Fast, sharp edges. Blocky but faithful.',
+                                            'bilinear' => 'Smooth blending. Good balance of speed and quality.',
+                                            'bicubic' => 'Best quality. Smooth gradients, slower processing.'
+                                        ];
+                                        echo htmlspecialchars(tr($algoDescKeys[$algo] ?? '', $algoDescFallbacks[$algo] ?? ''));
+                                        ?>
+                                    </div>
                                 </div>
                                 <div class="card-body preview-box">
                                     <img src="<?= htmlspecialchars($imgDir . $generatedImages[$algo]) ?>"
@@ -291,7 +336,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div class="text-center mt-5">
-            <a href="dimensions_selection.php" class="btn btn-outline-secondary" data-i18n="downscale.back">Back</a>
+            <a href="crop_selection.php" class="btn btn-outline-secondary" data-i18n="downscale.back">Back</a>
         </div>
     </div>
 

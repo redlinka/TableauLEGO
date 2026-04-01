@@ -1,7 +1,8 @@
 <?php
-session_start();
+require_once __DIR__ . '/config/session.php';
 global $cnx;
 include("./config/cnx.php");
+require_once __DIR__ . '/config/games_api.php';
 require_once __DIR__ . '/includes/i18n.php';
 
 if (!isset($_SESSION['userId'])) {
@@ -15,61 +16,60 @@ $imgFolder = 'users/imgs/';
 $tilingFolder = 'users/tilings/';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_pavage_id'])) {
-    $pavageId = (int)$_POST['remove_pavage_id'];
-    $userId   = (int)($_SESSION['userId'] ?? 0);
+  $pavageId = (int)$_POST['remove_pavage_id'];
+  $userId   = (int)($_SESSION['userId'] ?? 0);
 
-    try {
-        $cnx->beginTransaction();
+  try {
+    $cnx->beginTransaction();
 
-        // Retrieve file name
-        $stmt = $cnx->prepare("SELECT pavage_txt, image_id FROM TILLING WHERE pavage_id = ?");
-        $stmt->execute([$pavageId]);
-        $tiling = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Retrieve file name
+    $stmt = $cnx->prepare("SELECT pavage_txt, image_id FROM TILLING WHERE pavage_id = ?");
+    $stmt->execute([$pavageId]);
+    $tiling = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($tiling) {
-            // Delete from contain
-            $delContain = $cnx->prepare("DELETE FROM contain WHERE pavage_id = ?")->execute([$pavageId]);
+    if ($tiling) {
+      // Delete from contain
+      $delContain = $cnx->prepare("DELETE FROM contain WHERE pavage_id = ?")->execute([$pavageId]);
 
-            // Delete from TILLING
-            $delTilling = $cnx->prepare("DELETE FROM TILLING WHERE pavage_id = ?")->execute([$pavageId]);
+      // Delete from TILLING
+      $delTilling = $cnx->prepare("DELETE FROM TILLING WHERE pavage_id = ?")->execute([$pavageId]);
 
-            // Delete tilling from disk
-            $txtPath = __DIR__ . $tilingFolder . $tiling['pavage_txt'];
-            if (file_exists($txtPath)) {
-                unlink($txtPath);
-            }
-            $rootImageId = (int)$tiling['image_id'];
-            while (true) {
-                $stmt = $cnx->prepare("SELECT img_parent FROM IMAGE WHERE image_id = ?");
-                $stmt->execute([$rootImageId]);
-                $parentId = $stmt->fetchColumn();
+      // Delete tilling from disk
+      $txtPath = __DIR__ . $tilingFolder . $tiling['pavage_txt'];
+      if (file_exists($txtPath)) {
+        unlink($txtPath);
+      }
+      $rootImageId = (int)$tiling['image_id'];
+      while (true) {
+        $stmt = $cnx->prepare("SELECT img_parent FROM IMAGE WHERE image_id = ?");
+        $stmt->execute([$rootImageId]);
+        $parentId = $stmt->fetchColumn();
 
-                if (!$parentId) {
-                    break; // root found
-                }
-                $rootImageId = (int)$parentId;
-            }
-            // Delete all images under root
-            $imgDirPath = __DIR__ . '/users/imgs';
-            $tilingDirPath = __DIR__ . '/users/tilings';
-
-            deleteDescendants($cnx, $rootImageId, $imgDirPath, $tilingDirPath, false);
+        if (!$parentId) {
+          break; // root found
         }
+        $rootImageId = (int)$parentId;
+      }
+      // Delete all images under root
+      $imgDirPath = __DIR__ . '/users/imgs';
+      $tilingDirPath = __DIR__ . '/users/tilings';
 
-        $cnx->commit();
-        header("Location: cart.php");
-        exit;
-
-    } catch (PDOException $e) {
-        if ($cnx->inTransaction()) $cnx->rollBack();
-        header("Location: cart.php?error=delete_failed"); // create the error message
-        exit;
+      deleteDescendants($cnx, $rootImageId, $imgDirPath, $tilingDirPath, false);
     }
+    $cnx->commit();
+    addLog($cnx, "USER", "DELETE", "pavage");
+    header("Location: cart.php");
+    exit;
+  } catch (PDOException $e) {
+    if ($cnx->inTransaction()) $cnx->rollBack();
+    header("Location: cart.php?error=delete_failed"); // create the error message
+    exit;
+  }
 }
 
 function money($v)
 {
-  return number_format((float)$v, 2, ".", " ") . " EUR";
+  return number_format((float)$v, 2, ',', ' ') . ' EUR';
 }
 
 $stmt = $cnx->prepare("
@@ -100,7 +100,7 @@ foreach ($row_pan as $row) {
 
   $price = 0.0;
   $pavageFile = trim((string)($row['pavage_txt'] ?? ''));
-  $txtPath = __DIR__ . '/users/tilings/' . $pavageFile;
+  $txtPath = __DIR__ . "/users/tilings/" . $pavageFile;
 
   if ($pavageFile !== '' && is_file($txtPath) && is_readable($txtPath)) {
     $txtContent = file_get_contents($txtPath);
@@ -120,8 +120,66 @@ foreach ($row_pan as $row) {
   ];
 }
 
-$shipping = $subtotal * 0.10;
-$total = $subtotal + $shipping;
+// --- Loyalty tier selection (POST handler) ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['loyalty_tier'])) {
+    if (!csrf_validate($_POST['csrf_token'] ?? '')) {
+        $errors[] = "Invalid CSRF token.";
+    } else {
+        $tierValue = (int)$_POST['loyalty_tier'];
+        $validTiers = [0, 200, 500, 1000];
+        $_SESSION['loyalty_tier'] = in_array($tierValue, $validTiers, true) ? $tierValue : 0;
+        csrf_rotate();
+        header("Location: cart.php");
+        exit;
+    }
+}
+
+// --- Fetch loyalty data from games platform ---
+$loyaltyBalance = 0;
+$loyaltyTiers = [];
+$maxDiscountPercent = 50;
+$loyaltyAvailable = false;
+
+if (isset($_SESSION['userId'])) {
+    $gamesToken = games_exchange_token($id_uti, $_SESSION['username'] ?? '');
+    if ($gamesToken) {
+        $balanceData = games_get_balance($gamesToken);
+        if ($balanceData && isset($balanceData['summary']['balance'])) {
+            $loyaltyBalance = (int)$balanceData['summary']['balance'];
+            $loyaltyAvailable = true;
+        }
+        $tiersData = games_get_tiers();
+        if ($tiersData) {
+            $loyaltyTiers = $tiersData['tiers'] ?? [];
+            $maxDiscountPercent = $tiersData['maxDiscountPercent'] ?? 50;
+        }
+    }
+}
+
+$selectedTier = $_SESSION['loyalty_tier'] ?? 0;
+$discountPercent = 0;
+$discountAmount = 0.0;
+
+if ($selectedTier > 0 && $loyaltyAvailable) {
+    foreach ($loyaltyTiers as $tier) {
+        if ((int)$tier['points'] === $selectedTier && $loyaltyBalance >= $selectedTier) {
+            $discountPercent = (float)$tier['discountPercent'];
+            break;
+        }
+    }
+    if ($discountPercent > $maxDiscountPercent) {
+        $discountPercent = $maxDiscountPercent;
+    }
+    $discountAmount = round($subtotal * $discountPercent / 100, 2);
+    $maxDiscount = round($subtotal * $maxDiscountPercent / 100, 2);
+    if ($discountAmount > $maxDiscount) {
+        $discountAmount = $maxDiscount;
+    }
+}
+
+$subtotalAfterDiscount = $subtotal - $discountAmount;
+$shipping = $subtotalAfterDiscount * 0.10;
+$total = $subtotalAfterDiscount + $shipping;
 ?>
 
 <!DOCTYPE html>
@@ -131,6 +189,7 @@ $total = $subtotal + $shipping;
   <meta charset="UTF-8">
   <title><?= htmlspecialchars(tr('cart.page_title', 'My Cart')) ?></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
   <style>
     * {
       box-sizing: border-box;
@@ -344,6 +403,50 @@ $total = $subtotal + $shipping;
             <strong><?= money($subtotal) ?></strong>
           </div>
 
+          <?php if ($loyaltyAvailable && !empty($loyaltyTiers) && !empty($items)): ?>
+          <div class="sum-divider"></div>
+          <div style="background:#f0f7ff;border-radius:10px;padding:12px;margin:4px 0;">
+            <div style="font-weight:700;margin-bottom:8px;">
+              Vos points de fidelite : <span style="color:#2563eb;"><?= $loyaltyBalance ?> pts</span>
+            </div>
+            <form method="post" action="cart.php">
+              <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_get()) ?>">
+              <label style="display:block;padding:4px 0;cursor:pointer;">
+                <input type="radio" name="loyalty_tier" value="0" <?= $selectedTier === 0 ? 'checked' : '' ?> onchange="this.form.submit()">
+                Pas de reduction
+              </label>
+              <?php foreach ($loyaltyTiers as $tier):
+                $canAfford = $loyaltyBalance >= (int)$tier['points'];
+                $remaining = $loyaltyBalance - (int)$tier['points'];
+                $tierDiscount = round($subtotal * (float)$tier['discountPercent'] / 100, 2);
+              ?>
+              <label style="display:block;padding:4px 0;cursor:<?= $canAfford ? 'pointer' : 'not-allowed' ?>;opacity:<?= $canAfford ? '1' : '0.45' ?>;">
+                <input type="radio" name="loyalty_tier" value="<?= (int)$tier['points'] ?>"
+                  <?= $selectedTier === (int)$tier['points'] ? 'checked' : '' ?>
+                  <?= $canAfford ? 'onchange="this.form.submit()"' : 'disabled' ?>>
+                <?= (int)$tier['points'] ?> pts &rarr; <?= (int)$tier['discountPercent'] ?>%
+                <?php if ($canAfford): ?>
+                  (-<?= money($tierDiscount) ?>, restera <?= $remaining ?> pts)
+                <?php else: ?>
+                  (solde insuffisant)
+                <?php endif; ?>
+              </label>
+              <?php endforeach; ?>
+            </form>
+          </div>
+          <?php endif; ?>
+
+          <?php if ($discountAmount > 0): ?>
+          <div class="sum-row" style="color:#16a34a;">
+            <span>Reduction (<?= (int)$discountPercent ?>%)</span>
+            <strong>-<?= money($discountAmount) ?></strong>
+          </div>
+          <div class="sum-row">
+            <span>Sous-total reduit</span>
+            <strong><?= money($subtotalAfterDiscount) ?></strong>
+          </div>
+          <?php endif; ?>
+
           <div class="sum-row">
             <span data-i18n="cart.shipping">Shipping (10%)</span>
             <strong><?= money($shipping) ?></strong>
@@ -356,9 +459,14 @@ $total = $subtotal + $shipping;
             <strong><?= money($total) ?></strong>
           </div>
 
-          <form method="post" action="order.php">
-            <button type="submit" class="order-btn" data-i18n="cart.order" <?= empty($items) ? "disabled" : "" ?>>Order</button>
-          </form>
+          <?php if (!empty($items)): ?>
+            <form method="post" action="order.php">
+              <input type="hidden" name="loyalty_tier" value="<?= $selectedTier ?>">
+              <button type="submit" class="order-btn" data-i18n="cart.order">Order</button>
+            </form>
+          <?php else: ?>
+            <button class="order-btn" disabled data-i18n="cart.order">Order</button>
+          <?php endif; ?>
 
           <a href="index.php" class="back-link" data-i18n="cart.back">Back to start</a>
         </div>

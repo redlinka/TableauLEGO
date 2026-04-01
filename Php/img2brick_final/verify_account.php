@@ -1,6 +1,6 @@
 <?php
 // verify an unverified account
-session_start();
+require_once __DIR__ . '/config/session.php';
 global $cnx;
 include("./config/cnx.php");
 require_once __DIR__ . '/includes/i18n.php';

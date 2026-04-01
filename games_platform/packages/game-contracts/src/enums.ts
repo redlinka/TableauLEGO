@@ -52,5 +52,6 @@ export enum EventType {
 export enum LoyaltyEntryType {
   SessionReward = "session_reward",
   DuplicateBonus = "duplicate_bonus",
-  AdminAdjustment = "admin_adjustment"
+  AdminAdjustment = "admin_adjustment",
+  Redemption = "redemption"
 }

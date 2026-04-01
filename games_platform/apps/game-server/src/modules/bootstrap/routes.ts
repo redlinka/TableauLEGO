@@ -70,6 +70,14 @@ export async function registerBootstrapRoutes(
       bricks: {
         totalShapes: INITIAL_BRICK_SHAPES.length,
         shapes: INITIAL_BRICK_SHAPES
+      },
+      loyalty: {
+        tiers: [
+          { points: 200, discountPercent: 5 },
+          { points: 500, discountPercent: 10 },
+          { points: 1000, discountPercent: 20 }
+        ],
+        maxDiscountPercent: 50
       }
     };
 

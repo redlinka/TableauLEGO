@@ -11,40 +11,57 @@ export const GAME_CONTENT: Record<
     turnAction: string;
     scoreHint: string;
     howToPlay: string[];
+    rules: string[];
   }
 > = {
   [GameType.ImageRebuild]: {
-    title: "Reproduction d'image",
+    title: "Puzzle de briques",
     tag: "Jeu 1",
     shortDescription:
-      "Reproduis le modele avec les briques proposees, tour apres tour.",
+      "Reconstituez une image en placant des briques colorees une par une.",
     objective:
-      "Place chaque brique au bon endroit pour obtenir la reproduction la plus fidele possible.",
-    setupLabel: "Choisis un puzzle, puis lance une partie.",
-    turnAction: "Place la brique courante pour te rapprocher de l'image cible.",
+      "Placez les briques au bon endroit pour reproduire l'image modele.",
+    setupLabel: "Choisissez un puzzle, puis lancez la partie.",
+    turnAction: "Placez la brique sur votre plateau pour reproduire l'image.",
     scoreHint:
-      "Tu marques plus de points quand les couleurs et les positions ressemblent au modele.",
+      "Plus vos couleurs correspondent a l'image, plus vous gagnez de points !",
     howToPlay: [
-      "But : reproduire l'image cible le plus fidelement possible.",
-      "A chaque tour : une brique coloree t'est proposee.",
-      "Action : pose-la au bon endroit sur ton plateau."
+      "Une image modele vous est montree a gauche.",
+      "A chaque tour, une brique coloree apparait.",
+      "Cliquez sur votre plateau pour la poser au bon endroit."
+    ],
+    rules: [
+      "Une image modele s'affiche : c'est votre objectif",
+      "A chaque tour, une brique d'une couleur apparait",
+      "Cliquez sur une case de votre plateau pour la placer",
+      "Essayez de reproduire les couleurs de l'image modele",
+      "Vous avez 30 secondes par tour",
+      "La partie se termine quand toutes les briques ont ete jouees"
     ]
   },
   [GameType.LineBreaker]: {
     title: "Line Breaker",
     tag: "Jeu 2",
     shortDescription:
-      "Assemble des lignes completes d'une seule couleur pour les faire disparaitre.",
+      "Formez des lignes completes d'une seule couleur pour les effacer.",
     objective:
-      "Construis des lignes horizontales ou verticales monochromes pour marquer des points.",
-    setupLabel: "Lance une partie et commence a construire tes premieres lignes.",
-    turnAction: "Place la brique courante pour completer une ligne d'une meme couleur.",
+      "Remplissez des lignes entieres avec une meme couleur pour marquer des points.",
+    setupLabel: "Lancez une partie et commencez a former des lignes.",
+    turnAction: "Placez la brique pour completer une ligne d'une meme couleur.",
     scoreHint:
-      "Tu gagnes plus de points quand tu effaces plusieurs lignes ou que tu enchaines les combos.",
+      "Effacez plusieurs lignes d'un coup ou enchainez les combos pour multiplier vos points !",
     howToPlay: [
-      "But : former des lignes completes d'une seule couleur.",
-      "A chaque tour : une brique apparait avec sa couleur.",
-      "Action : pose-la pour declencher des lignes et des combos."
+      "Votre plateau est vide au depart.",
+      "A chaque tour, une brique coloree apparait.",
+      "Quand une ligne ou colonne est entierement d'une couleur, elle disparait."
+    ],
+    rules: [
+      "Vous commencez avec un plateau vide de 10x10",
+      "A chaque tour, une brique d'une couleur apparait",
+      "Cliquez sur une case pour la placer",
+      "Si une ligne ou colonne entiere est d'une seule couleur, elle est effacee",
+      "Effacer plusieurs lignes d'un coup donne un bonus",
+      "Enchainer des effacements consecutifs cree un combo"
     ]
   }
 };
@@ -58,15 +75,30 @@ export const MODE_CONTENT: Record<
   }
 > = {
   [GameMode.Solo]: {
-    title: "Mode solo",
+    title: "Solo",
     shortDescription:
-      "Tu joues seul contre le plateau et le serveur valide chaque placement.",
-    primaryAction: "Lancer une partie"
+      "Jouez seul et essayez d'obtenir le meilleur score.",
+    primaryAction: "Jouer en solo"
   },
   [GameMode.Duplicate2P]: {
-    title: "Mode duplicate",
+    title: "En ligne (2 joueurs)",
     shortDescription:
-      "Deux joueurs recoivent les memes briques. Le meilleur score l'emporte.",
-    primaryAction: "Creer ou rejoindre un salon"
+      "Affrontez un autre joueur avec les memes briques. Le meilleur score gagne !",
+    primaryAction: "Jouer en ligne"
   }
+};
+
+export const POINTS_EXPLANATION = {
+  title: "Vos points de fidelite",
+  howToEarn: [
+    "Chaque partie jouee vous rapporte des points",
+    "Plus votre score est eleve, plus vous gagnez de points",
+    "Gagner en mode 2 joueurs rapporte un bonus supplementaire"
+  ],
+  tiers: [
+    { points: 200, discount: "5%" },
+    { points: 500, discount: "10%" },
+    { points: 1000, discount: "20%" }
+  ],
+  callToAction: "Utilisez vos points sur la boutique pour obtenir des reductions !"
 };

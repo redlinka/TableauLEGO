@@ -11,6 +11,7 @@ import {
   HistoryResponse,
   LoyaltyBalanceResponse,
   LoyaltyLedgerResponse,
+  PhpExchangeResponse,
   PuzzleDetailResponse,
   PuzzleListResponse,
   SoloImageRebuildResultResponse,
@@ -46,6 +47,13 @@ export function authenticateGuest(
   return requestJson<GuestAuthResponse>("/api/v1/auth/guest", {
     method: "POST",
     body: JSON.stringify(payload)
+  });
+}
+
+export function exchangePhpToken(phpToken: string): Promise<PhpExchangeResponse> {
+  return requestJson<PhpExchangeResponse>("/api/v1/auth/php/exchange", {
+    method: "POST",
+    body: JSON.stringify({ phpToken })
   });
 }
 

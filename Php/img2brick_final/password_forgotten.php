@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/config/session.php';
 global $cnx;
 include("./config/cnx.php");
 require_once __DIR__ . '/includes/i18n.php';
@@ -63,16 +63,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                         // Format email body
                         $emailBody = "
-                                <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; max-width: 600px;'>
-                                    <h2 style='color: #0d6efd;'>Password Reset Request</h2>
-                                    <p>We received a request to reset your password. Click the button below to proceed:</p>
-                                    <p style='text-align: center;'>
-                                        <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Reset Password</a>
+                            <div style='font-family: Arial, sans-serif; padding: 30px; border: 1px solid #eeeeee; border-radius: 10px; max-width: 600px; color: #333;'>
+                                <h2 style='color: #0d6efd; margin-top: 0;'>Password Reset Request</h2>
+                                <p>We received a request to reset the password for your <strong>BrickMosaic</strong> account.</p>
+                                <p>To choose a new password, please click the button below:</p>
+                                
+                                <div style='text-align: center; margin: 30px 0;'>
+                                    <a href='{$link}' style='display: inline-block; background-color: #0d6efd; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;'>Reset My Password</a>
+                                </div>
+                        
+                                <div style='background-color: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px dashed #dee2e6;'>
+                                    <p style='margin: 0; font-size: 0.85em; color: #666;'>
+                                        <strong>Important:</strong> This link is only valid for <strong>1 minute</strong> for security reasons. 
+                                        If you did not make this request, you can safely ignore this email; your password will remain unchanged.
                                     </p>
-                                    <p style='color: #6c757d; font-size: 12px; margin-top: 20px;'>Link expires in 10 minutes.</p>
-                                </div>";
+                                </div>
+                        
+                                <p style='margin-top: 25px; font-size: 0.8em; color: #999; border-top: 1px solid #eee; padding-top: 15px;'>
+                                    If the button doesn't work, copy and paste this link: <br>
+                                    <span style='color: #0d6efd; word-break: break-all;'>{$link}</span>
+                                </p>
+                            </div>";
 
-                        sendMail($email, 'Password Recovery', $emailBody);
+                        sendMail($email, 'Password Reset - BrickMosaic', $emailBody);
 
                         // Update rate limit timestamp
                         $_SESSION['last_password_reset_sent'] = $currentTime;

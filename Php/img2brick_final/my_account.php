@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/config/session.php';
 global $cnx;
 include("./config/cnx.php");
 require_once __DIR__ . '/includes/i18n.php';
@@ -9,13 +9,21 @@ if (!isset($_SESSION['userId'])) {
     header("Location: connexion.php");
     exit;
 }
+if ($_SESSION['username'] == '4DM1N1STRAT0R_4ND_4LM16HTY') {
+    header("Location: admin_panel.php");
+    exit;
+}
 
 $userId  = $_SESSION['userId'];
 $errors  = [];
 $success = '';
+if (isset($_GET['success']) && $_GET['success'] == 1) {
+    $success = tr('account.update_success', 'Information updated successfully!');
+}
 
 // Fetch latest user data for display
-$stmt = $cnx->prepare("
+try {
+    $stmt = $cnx->prepare("
     SELECT 
         user_id,
         username,
@@ -23,18 +31,25 @@ $stmt = $cnx->prepare("
         first_name,
         last_name,
         phone,
-        default_address,
         birth_year
     FROM USER
     WHERE user_id = ?
 ");
-$stmt->execute([$userId]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$user) {
-    //http_response_code(404);
-    header("Location: index.php");
-    exit;
+    if (!$user) {
+        //http_response_code(404);
+        header("Location: index.php"); // create error message
+        exit;
+    }
+
+    $stmtAddr = $cnx->prepare("SELECT street, postal_code, city, country FROM ADDRESS WHERE user_id = ? AND is_default = 1 LIMIT 1");
+    $stmtAddr->execute([$userId]);
+    $addressData = $stmtAddr->fetch(PDO::FETCH_ASSOC) ?: [];
+} catch (PDOException $e) {
+    //echo "Database error: " . $e->getMessage();
+    header("Location: index.php"); // create error message
 }
 
 // Handle form submission
@@ -44,15 +59,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_validate($_POST['csrf'] ?? null)) {
         $errors[] = tr('account.session_expired', 'Session expired. Please refresh.');
     } else {
-
         // Sanitize input fields
         $username = trim($_POST['username'] ?? '');
         $newEmail = !empty($_POST['email']) ? trim($_POST['email']) : $user['email']; //$newEmail    = trim($_POST['email'] ?? '');
         $name     = trim($_POST['name'] ?? '');
         $surname  = trim($_POST['surname'] ?? '');
         $phone    = trim($_POST['phone'] ?? '');
-        $address  = trim($_POST['default_address'] ?? '');
         $birthYear = !empty($_POST['birth_year']) ? (int)$_POST['birth_year'] : null;
+        $street  = trim($_POST['street'] ?? '');
+        $zip = !empty($_POST['zip']) ? (int)$_POST['zip'] : null;
+        $city    = trim($_POST['city'] ?? '');
+        $country = trim($_POST['country'] ?? '');
 
         if (empty($username)) $errors[] = "Username is required.";
         if (empty($newEmail)) $errors[] = "Email is required.";
@@ -78,6 +95,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Update user information in database
         if (empty($errors)) {
             try {
+                $cnx->beginTransaction();
+
+                // Update USER table
                 $emailChanged = ($newEmail !== $user['email']);
                 $sql = "UPDATE USER SET 
                 username = ?, 
@@ -85,12 +105,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 first_name = ?, 
                 last_name = ?, 
                 phone = ?, 
-                default_address = ?,
                 birth_year = ?" . ($emailChanged ? ", is_verified = 0" : "") . " 
                 WHERE user_id = ?";
 
                 $upd = $cnx->prepare($sql);
-                $upd->execute([$username, $newEmail, $name, $surname, $phone, $address, $birthYear, $userId]);
+                $upd->execute([$username, $newEmail, $name, $surname, $phone, $birthYear, $userId]);
+
+                // Update user default address in ADDRESS table
+                $stmtCheck = $cnx->prepare("SELECT address_id FROM ADDRESS WHERE user_id = ? AND is_default = 1 LIMIT 1");
+                $stmtCheck->execute([$userId]);
+                $existingAddressId = $stmtCheck->fetchColumn();
+
+                if ($existingAddressId) {
+                    $stmtAddr = $cnx->prepare("UPDATE ADDRESS SET street = ?, postal_code = ?, city = ?, country = ? WHERE address_id = ?");
+                    $stmtAddr->execute([$street, $zip, $city, $country, $existingAddressId]);
+                } else {
+                    $stmtAddr = $cnx->prepare("INSERT INTO ADDRESS (street, postal_code, city, country, user_id, is_default) VALUES (?, ?, ?, ?, ?, 1)");
+                    $stmtAddr->execute([$street, $zip, $city, $country, $userId]);
+                }
 
                 if ($emailChanged) {
                     // Generate verification token
@@ -121,39 +153,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     sendMail(
                             $newEmail,
-                            'Verify your new email address - Img2Brick',
+                            'Verify your new email address - BrickMosaic',
                             $emailBody
                     );
 
                     $success = "Information updated successfully. A verification link has been sent to your new email address.";
-                } else {
-                    $success = tr('account.update_success', 'Information updated successfully!');
                 }
+                $cnx->commit();
+
+                // Send notification email about account changes
+                if (!$emailChanged) {
+                    $notifBody = "
+                        <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; max-width: 600px;'>
+                            <h2 style='color: #0d6efd;'>Account Updated</h2>
+                            <p>Your BrickMosaic account information was recently modified.</p>
+                            <p>If you did not make this change, please reset your password immediately.</p>
+                            <p style='color: #6c757d; font-size: 12px; margin-top: 20px;'>Date: " . date('Y-m-d H:i:s') . "</p>
+                        </div>";
+                    sendMail($user['email'], 'Account information updated - BrickMosaic', $notifBody);
+                }
+
+                $success = tr('account.update_success', 'Information updated successfully!');
 
                 // Update session variable
                 $_SESSION['email']    = $newEmail;
                 $_SESSION['username'] = $username;
 
-                // Re-fetch user data to display updated values
-                $stmt->execute([$userId]);
-                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                // Refresh data for display
+                header("Location: my_account.php?success=1");
+                exit;
 
             } catch (PDOException $e) {
-                //$errors[] = "Database error: " . $e->getMessage();
-                $errors[] = "Database error";
+                $cnx->rollBack();
+                $errors[] = "Database error: " . $e->getMessage();
+                //$errors[] = "Database error";
             }
         }
     }
 }
 
 $user = [
-        'username'        => $user['username'],
-        'email'           => $user['email'],
-        'name'            => $user['first_name'],
-        'surname'         => $user['last_name'],
-        'phone'           => $user['phone'],
-        'default_address' => $user['default_address'],
-        'birth_year'   => $user['birth_year'],
+        'username'   => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $username : $user['username'],
+        'email'      => $user['email'], // Toujours l'email de la BDD car disabled
+        'name'       => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $name : $user['first_name'],
+        'surname'    => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $surname : $user['last_name'],
+        'phone'      => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $phone : $user['phone'],
+        'birth_year' => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $birthYear : $user['birth_year'],
+        'street'     => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $street : ($addressData['street'] ?? ''),
+        'zip'        => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $zip : ($addressData['postal_code'] ?? ''),
+        'city'       => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $city : ($addressData['city'] ?? ''),
+        'country'    => ($_SERVER['REQUEST_METHOD'] === 'POST') ? $country : ($addressData['country'] ?? '')
 ];
 ?>
 
@@ -163,9 +212,11 @@ $user = [
     <meta charset="UTF-8">
     <title><?= htmlspecialchars(tr('account.page_title', 'My Account - Img2Brick')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
 </head>
-<body class="bg-light py-5">
-<div class="container">
+<body class="bg-light">
+<?php include("./includes/navbar.php"); ?>
+<div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
 
@@ -226,14 +277,34 @@ $user = [
 
                         <h5 class="mb-3 text-muted border-top pt-3" data-i18n="account.delivery_title">Delivery Defaults</h5>
                         <div class="row g-3 mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label" data-i18n="account.phone">Phone Number</label>
-                                <input type="tel" class="form-control" name="phone" value="<?= htmlspecialchars($user['phone'] ?? '') ?>" placeholder="+33 6 12 34 56 78" data-i18n-attr="placeholder:account.phone_placeholder">
-                                <div class="form-text" data-i18n="account.phone_hint">Mandatory for shipping carriers.</div>
+                                <input type="tel" class="form-control" name="phone" value="<?= htmlspecialchars($user['phone'] ?? '') ?>" placeholder="+33 6 12 34 56 78">
                             </div>
+
                             <div class="col-12">
-                                <label class="form-label" data-i18n="account.address">Default Shipping Address</label>
-                                <textarea class="form-control" name="default_address" rows="2" placeholder="Street, Zip Code, City, Country" data-i18n-attr="placeholder:account.address_placeholder"><?= htmlspecialchars($user['default_address'] ?? '') ?></textarea>
+                                <label class="form-label" data-i18n="account.street">Street Address</label>
+                                <input type="text" class="form-control" name="street" value="<?= htmlspecialchars($user['street'] ?? '') ?>" placeholder="123 Brick Street">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label" data-i18n="account.zip">Zip Code</label>
+                                <input type="text" class="form-control" name="zip" value="<?= htmlspecialchars($user['zip'] ?? '') ?>" placeholder="75001">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label" data-i18n="account.city">City</label>
+                                <input type="text" class="form-control" name="city" value="<?= htmlspecialchars($user['city'] ?? '') ?>" placeholder="Paris">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label" data-i18n="account.country">Country</label>
+                                <select class="form-select" name="country">
+                                    <option value="France" <?= ($user['country'] === 'France' ? 'selected' : '') ?>>France</option>
+                                    <option value="Spain" <?= ($user['country'] === 'Spain' ? 'selected' : '') ?>>Spain</option>
+                                    <option value="USA" <?= ($user['country'] === 'USA' ? 'selected' : '') ?>>USA</option>
+                                    <option value="UK" <?= ($user['country'] === 'UK' ? 'selected' : '') ?>>UK</option>
+                                </select>
                             </div>
                         </div>
 

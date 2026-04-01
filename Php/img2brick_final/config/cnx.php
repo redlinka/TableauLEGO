@@ -46,7 +46,7 @@ function sendMail($to, $subject, $body, $attachments = [])
     try {
         // Configure SMTP settings for Gmail service
         $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
+        $mail->Host = 'partage.univ-eiffel.fr';
         $mail->SMTPAuth = true;
         $mail->Username = $_ENV['SMTP_USER'];
         $mail->Password = $_ENV['SMTP_PASS'];
@@ -54,7 +54,7 @@ function sendMail($to, $subject, $body, $attachments = [])
         $mail->Port = 587;
 
         // Set email headers and content
-        $mail->setFrom($_ENV['SMTP_USER'], 'App');
+        $mail->setFrom($_ENV['SMTP_USER'], 'BrickMosaic Team');
         $mail->addAddress($to);
 
         $mail->isHTML(true); // Enable HTML rendering
@@ -264,6 +264,12 @@ function addLog($cnx, $agent, $logAction, $logObject)
     //ex: addLog($cnx, "Client", "Create account", "Account");
 
     if (isset($_SESSION['userId'])) {
+
+        if ($logObject === "pavage") {
+            $logObject = $_SESSION['pavage_txt'];
+        } else if ($logObject === "image") {
+            $logObject = $_SESSION["image_name"];
+        }
         try {
             $cnx->beginTransaction();
             $stmt = $cnx->prepare("INSERT INTO `LOG` (agent, log_action, log_object, log_date, user_id) VALUES (?, ?, ?, NOW(), ?)");
@@ -280,8 +286,8 @@ function getTilingStats($file)
     $result = [];
     $filePath = __DIR__ . "/../users/tilings/" . $file;
     if (!file_exists($filePath)) {
-        echo 'No file found at this path ' . $filePath;
-        exit;
+        error_log('getTilingStats: file not found at ' . $filePath);
+        return ['price' => 0, 'quality' => 0];
     }
 
     $ligne = fgets(fopen($filePath, 'r'));
@@ -299,4 +305,34 @@ function getTilingStats($file)
     }
 
     return $result;
+}
+
+function getOriginalImage($cnx, $imageId)
+{
+    if (!$imageId) {
+        return null;
+    }
+
+    try {
+        $stmt = $cnx->prepare("
+            SELECT image_id, filename, img_parent
+            FROM IMAGE
+            WHERE image_id = ?
+        ");
+        $stmt->execute([$imageId]);
+
+        $image = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$image) {
+            return null;
+        }
+
+        if ($image['img_parent'] === null) {
+            return $image;
+        }
+
+        return getOriginalImage($cnx, $image['img_parent']);
+    } catch (PDOException $e) {
+        return null;
+    }
 }
