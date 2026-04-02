@@ -39,7 +39,8 @@ import {
   resolveSessionSeed,
   toGameSessionSummary
 } from "../common/soloSessionSupport.js";
-import { calculateLoyaltyReward } from "../common/loyalty.js";
+import { calculateLoyaltyReward, LoyaltyPolicyConfig } from "../common/loyalty.js";
+import { fetchLoyaltyPolicy, toLoyaltyPolicyConfig } from "../common/loyaltyPolicyFetcher.js";
 import {
   calculateImageRebuildMetrics,
   calculateImageRebuildScore
@@ -161,6 +162,7 @@ export class DuplicateSessionService {
         | "duplicateChatMaxLength"
         | "imageRebuildMaxSequenceLength"
         | "lineBreakerMaxSequenceLength"
+        | "phpApiUrl"
       >;
       repositories: RepositoryBundle;
       puzzleCatalog: PuzzleCatalog;
@@ -168,6 +170,11 @@ export class DuplicateSessionService {
     }
   ) {
     this.nowProvider = dependencies.now ?? (() => new Date());
+  }
+
+  private async getLoyaltyPolicyConfig(): Promise<LoyaltyPolicyConfig> {
+    const policy = await fetchLoyaltyPolicy(this.dependencies.config.phpApiUrl);
+    return toLoyaltyPolicyConfig(policy);
   }
 
   setNotifier(notifier: DuplicateRealtimeNotifier): void {
@@ -2174,6 +2181,8 @@ export class DuplicateSessionService {
       return;
     }
 
+    const policyConfig = await this.getLoyaltyPolicyConfig();
+
     for (const participant of state.result.players) {
       const participantState = this.getParticipantState(state, participant.playerId);
       const reward = calculateLoyaltyReward({
@@ -2182,6 +2191,7 @@ export class DuplicateSessionService {
         outcome: participant.outcome as HistoryOutcome,
         score: participant.score,
         finishReason: participant.finishReason ?? state.result.finishReason,
+        policyConfig,
         imageMetrics:
           state.gameType === GameType.ImageRebuild
             ? {
@@ -2267,6 +2277,7 @@ export class DuplicateSessionService {
         entryType: reward.entryType,
         pointsDelta: reward.points,
         balanceAfter: loyaltySummary.balance,
+        expiresAt: reward.expiresAt,
         reason: reward.reason,
         gameType: document.gameType,
         mode: GameMode.Duplicate2P,

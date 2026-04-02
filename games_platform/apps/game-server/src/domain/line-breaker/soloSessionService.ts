@@ -31,7 +31,8 @@ import {
   resolveSessionSeed,
   toGameSessionSummary
 } from "../common/soloSessionSupport.js";
-import { calculateLoyaltyReward } from "../common/loyalty.js";
+import { calculateLoyaltyReward, LoyaltyPolicyConfig } from "../common/loyalty.js";
+import { fetchLoyaltyPolicy, toLoyaltyPolicyConfig } from "../common/loyaltyPolicyFetcher.js";
 import { calculateLineBreakerScore } from "./score.js";
 import {
   clearCompletedLines,
@@ -72,12 +73,17 @@ export class SoloLineBreakerService {
 
   constructor(
     private readonly dependencies: {
-      config: Pick<AppConfig, "soloTurnLimitMs" | "lineBreakerMaxSequenceLength">;
+      config: Pick<AppConfig, "soloTurnLimitMs" | "lineBreakerMaxSequenceLength" | "phpApiUrl">;
       repositories: RepositoryBundle;
       now?: () => Date;
     }
   ) {
     this.nowProvider = dependencies.now ?? (() => new Date());
+  }
+
+  private async getLoyaltyPolicyConfig(): Promise<LoyaltyPolicyConfig> {
+    const policy = await fetchLoyaltyPolicy(this.dependencies.config.phpApiUrl);
+    return toLoyaltyPolicyConfig(policy);
   }
 
   async createSession(input: {
@@ -837,12 +843,14 @@ export class SoloLineBreakerService {
     const score = input.state.result?.score ?? input.state.score.score;
     const outcome: HistoryOutcome =
       input.status === SessionStatus.Abandoned ? "abandoned" : "solo";
+    const policyConfig = await this.getLoyaltyPolicyConfig();
     const reward = calculateLoyaltyReward({
       gameType: GameType.LineBreaker,
       mode: GameMode.Solo,
       outcome,
       score,
       finishReason: input.state.finishReason,
+      policyConfig,
       lineMetrics: {
         totalLinesCleared: input.state.lineClearStats.totalLinesCleared,
         maxCombo: input.state.lineClearStats.maxCombo
@@ -892,6 +900,7 @@ export class SoloLineBreakerService {
       entryType: reward.entryType,
       pointsDelta: reward.points,
       balanceAfter: loyaltySummary.balance,
+      expiresAt: reward.expiresAt,
       reason: reward.reason,
       gameType: GameType.LineBreaker,
       mode: GameMode.Solo,

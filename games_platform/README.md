@@ -5,7 +5,7 @@ This workspace contains the new TableauLEGO game platform:
 - `apps/game-server`: Fastify + WebSocket + Mongoose backend
 - `apps/game-web`: React + TypeScript frontend
 - `packages/game-contracts`: shared HTTP, WebSocket and domain contracts
-- `docs/php-bridge-contract.md`: PHP signed-token integration contract
+- Documentation : voir les fichiers `documentation-*.md` et `cahier-de-tests.md` a la racine du projet
 
 ## Install
 
@@ -267,9 +267,7 @@ The backend already supports a future PHP bridge:
 - optional pseudonymized `technicalLoyaltyId`
 - no personal data stored in Node
 
-See:
-
-- `docs/php-bridge-contract.md`
+Voir : `documentation-php-bridge.md` a la racine du projet.
 
 ## Environment
 

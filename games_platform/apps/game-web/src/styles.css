@@ -1,10 +1,10 @@
-/* ===== Design System — aligned with BrickMosaic e-commerce ===== */
+/* ===== Design System  - aligned with BrickMosaic e-commerce ===== */
 
 :root {
   color-scheme: light;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 
-  /* Colors — matched to e-commerce style.css */
+  /* Colors  - matched to e-commerce style.css */
   --primary: #d11212;
   --primary-dark: #8b0a0a;
   --secondary: #007bff;
@@ -31,12 +31,12 @@
   /* Ghost cells on board */
   --ghost: rgba(209, 18, 18, 0.18);
 
-  /* Radii — smaller, matching e-commerce */
+  /* Radii  - smaller, matching e-commerce */
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 20px;
 
-  /* Shadows — same as e-commerce */
+  /* Shadows  - same as e-commerce */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
@@ -68,7 +68,7 @@ img {
   max-width: 100%;
 }
 
-/* ===== Buttons — 3D press style from e-commerce ===== */
+/* ===== Buttons  - 3D press style from e-commerce ===== */
 
 button {
   border: 0;
@@ -163,7 +163,7 @@ pre {
   background: rgba(255, 255, 255, 0.78);
 }
 
-/* Headings — Segoe UI bold, no serif */
+/* Headings  - Segoe UI bold, no serif */
 .hero-panel h1, .panel h2, .panel h3 {
   margin: 0;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -252,7 +252,7 @@ pre {
   margin-top: 1rem;
 }
 
-/* ===== Cards — unified border-radius 12px ===== */
+/* ===== Cards  - unified border-radius 12px ===== */
 
 .choice-card,
 .mode-card,
@@ -637,6 +637,19 @@ pre {
   background: var(--ghost);
 }
 
+.board-cell.action[data-keyboard-cursor="true"] {
+  outline: 3px solid var(--primary);
+  outline-offset: -2px;
+  z-index: 2;
+}
+
+.keyboard-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+  font-style: italic;
+}
+
 .goal-card {
   height: 100%;
   align-content: start;
@@ -814,6 +827,40 @@ pre {
   font-weight: 800;
   flex-shrink: 0;
   margin-top: 1px;
+}
+
+/* ===== Guest invite banner ===== */
+
+.guest-invite-banner {
+  background: linear-gradient(135deg, #fff7e6 0%, #fff0cc 100%);
+  border: 2px solid #f5a623;
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin: 0.75rem 0;
+  text-align: center;
+}
+
+.guest-invite-banner p {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  color: #6b4e00;
+  line-height: 1.5;
+}
+
+.cta-button {
+  display: inline-block;
+  padding: 0.6rem 1.5rem;
+  background: #f5a623;
+  color: #fff;
+  font-weight: 700;
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+}
+
+.cta-button:hover {
+  background: #e09000;
 }
 
 /* ===== Debug (hidden by default) ===== */

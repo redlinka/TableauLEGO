@@ -9,6 +9,7 @@ import { FastifyInstance } from "fastify";
 import { AppConfig } from "../../config/env.js";
 import { AppServices } from "../../types.js";
 import { resolveAuthenticatedPlayer } from "../auth/requestAuth.js";
+import { fetchLoyaltyPolicy } from "../../domain/common/loyaltyPolicyFetcher.js";
 
 function normalizeBaseUrl(requestBaseUrl: string | undefined, fallback: string): string {
   return requestBaseUrl && requestBaseUrl.trim() ? requestBaseUrl : fallback;
@@ -71,14 +72,25 @@ export async function registerBootstrapRoutes(
         totalShapes: INITIAL_BRICK_SHAPES.length,
         shapes: INITIAL_BRICK_SHAPES
       },
-      loyalty: {
-        tiers: [
-          { points: 200, discountPercent: 5 },
-          { points: 500, discountPercent: 10 },
-          { points: 1000, discountPercent: 20 }
-        ],
-        maxDiscountPercent: 50
-      }
+      loyalty: await (async () => {
+        const phpPolicy = await fetchLoyaltyPolicy(services.config.phpApiUrl);
+        if (phpPolicy) {
+          return {
+            tiers: phpPolicy.tiers,
+            maxDiscountPercent: phpPolicy.maxDiscountPercent,
+            currentMultiplier: phpPolicy.currentMultiplier,
+            expiration: phpPolicy.expiration
+          };
+        }
+        return {
+          tiers: [
+            { points: 200, discountPercent: 5 },
+            { points: 500, discountPercent: 10 },
+            { points: 1000, discountPercent: 20 }
+          ],
+          maxDiscountPercent: 50
+        };
+      })()
     };
 
     return response;

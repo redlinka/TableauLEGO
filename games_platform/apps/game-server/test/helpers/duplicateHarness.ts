@@ -177,7 +177,8 @@ export async function createDuplicateHarness(options?: {
     duplicateReconnectGraceMs: options?.duplicateReconnectGraceMs ?? 120,
     duplicateChatMaxLength: options?.duplicateChatMaxLength ?? 140,
     imageRebuildMaxSequenceLength: options?.imageRebuildMaxSequenceLength ?? 2,
-    lineBreakerMaxSequenceLength: options?.lineBreakerMaxSequenceLength ?? 2
+    lineBreakerMaxSequenceLength: options?.lineBreakerMaxSequenceLength ?? 2,
+    phpApiUrl: "http://127.0.0.1:19999"
   };
 
   await connectMongoose(config);

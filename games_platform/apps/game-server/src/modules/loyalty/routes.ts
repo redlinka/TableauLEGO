@@ -8,6 +8,7 @@ import { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { AppServices } from "../../types.js";
 import { resolveAuthenticatedPlayer } from "../auth/requestAuth.js";
+import { fetchLoyaltyPolicy } from "../../domain/common/loyaltyPolicyFetcher.js";
 
 const LOYALTY_TIERS = [
   { points: 200, discountPercent: 5 },
@@ -150,15 +151,28 @@ export async function registerLoyaltyRoutes(
     }
 
     const body = redeemBodySchema.parse(request.body ?? {});
-    const tier = LOYALTY_TIERS.find((t) => t.points === body.points);
+    const phpPolicy = await fetchLoyaltyPolicy(services.config.phpApiUrl);
+    const activeTiers = phpPolicy?.tiers ?? LOYALTY_TIERS;
+    const tier = activeTiers.find((t) => t.points === body.points);
 
     if (!tier) {
       return reply.code(400).send({
         error: {
           code: "INVALID_TIER",
-          message: `Points value must match a valid tier (${LOYALTY_TIERS.map((t) => t.points).join(", ")}).`
+          message: `Points value must match a valid tier (${activeTiers.map((t) => t.points).join(", ")}).`
         }
       });
+    }
+
+    const fifoBalance = await services.repositories.loyaltyLedger.getAvailableBalance(
+      player.playerId
+    );
+
+    if (fifoBalance >= tier.points) {
+      await services.repositories.loyaltyLedger.consumePointsFifo(
+        player.playerId,
+        tier.points
+      );
     }
 
     const updatedSummary = await services.repositories.players.redeemLoyaltyPoints({
@@ -184,7 +198,8 @@ export async function registerLoyaltyRoutes(
       metadata: {
         tier: tier.points,
         discountPercent: tier.discountPercent,
-        orderRef: body.orderRef
+        orderRef: body.orderRef,
+        consumedFifo: true
       }
     });
 

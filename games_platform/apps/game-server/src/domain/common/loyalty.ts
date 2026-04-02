@@ -5,12 +5,18 @@ import {
   LoyaltyEntryType
 } from "@games-platform/game-contracts";
 
+export interface LoyaltyPolicyConfig {
+  defaultExpirationDays?: number;
+  multiplier?: number;
+}
+
 export interface LoyaltyRewardInput {
   gameType: GameType;
   mode: GameMode;
   outcome: HistoryOutcome;
   score: number;
   finishReason?: string;
+  policyConfig?: LoyaltyPolicyConfig;
   imageMetrics?: {
     matchedCells?: number;
     accuracyRatio?: number;
@@ -26,6 +32,7 @@ export interface LoyaltyRewardDecision {
   formulaVersion: "loyalty_v1";
   entryType: LoyaltyEntryType;
   points: number;
+  expiresAt: string;
   reason: string;
   breakdown: {
     participationPoints: number;
@@ -35,6 +42,19 @@ export interface LoyaltyRewardDecision {
     adjustmentPoints: number;
     minimumApplied: number;
   };
+}
+
+/**
+ * Compute the expiration date for loyalty points based on the policy.
+ * Default: points expire after 30 days. Can be overridden by policy config.
+ */
+export function computeExpirationDate(
+  policyConfig?: { defaultExpirationDays?: number }
+): string {
+  const days = policyConfig?.defaultExpirationDays ?? 30;
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + days);
+  return expiresAt.toISOString();
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -108,13 +128,15 @@ export function calculateLoyaltyReward(
         ? 2
         : 8
       : 6;
+  const policyMultiplier = input.policyConfig?.multiplier ?? 1;
+  const rawPoints = participationPoints +
+    performancePoints +
+    outcomePoints +
+    gameBonusPoints +
+    adjustmentPoints;
   const points = Math.max(
     minimumApplied,
-    participationPoints +
-      performancePoints +
-      outcomePoints +
-      gameBonusPoints +
-      adjustmentPoints
+    Math.round(rawPoints * policyMultiplier)
   );
 
   return {
@@ -124,6 +146,7 @@ export function calculateLoyaltyReward(
         ? LoyaltyEntryType.DuplicateBonus
         : LoyaltyEntryType.SessionReward,
     points,
+    expiresAt: computeExpirationDate(input.policyConfig),
     reason:
       input.mode === GameMode.Solo
         ? `${input.gameType}_solo_completion`

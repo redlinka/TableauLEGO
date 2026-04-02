@@ -8,6 +8,8 @@ export interface LoyaltyLedgerDocument {
   entryType: LoyaltyEntryType;
   pointsDelta: number;
   balanceAfter?: number;
+  remainingPoints?: number;
+  expiresAt?: Date;
   reason: string;
   gameType?: GameType;
   mode?: GameMode;
@@ -63,6 +65,12 @@ const loyaltyLedgerSchema = new mongoose.Schema<LoyaltyLedgerDocument>(
     score: {
       type: Number
     },
+    remainingPoints: {
+      type: Number
+    },
+    expiresAt: {
+      type: Date
+    },
     metadata: {
       type: mongoose.Schema.Types.Mixed
     }
@@ -75,6 +83,7 @@ const loyaltyLedgerSchema = new mongoose.Schema<LoyaltyLedgerDocument>(
 
 loyaltyLedgerSchema.index({ playerId: 1, createdAt: -1 });
 loyaltyLedgerSchema.index({ sessionId: 1 });
+loyaltyLedgerSchema.index({ playerId: 1, expiresAt: 1, remainingPoints: 1 });
 
 export const LoyaltyLedgerModel: Model<LoyaltyLedgerDocument> =
   mongoose.models.LoyaltyLedger ??

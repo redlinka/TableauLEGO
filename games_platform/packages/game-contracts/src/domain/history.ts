@@ -47,6 +47,8 @@ export interface LoyaltyLedgerEntry {
   entryType: LoyaltyEntryType;
   pointsDelta: number;
   balanceAfter?: number;
+  remainingPoints?: number;
+  expiresAt?: string;
   reason: string;
   gameType?: GameType;
   mode?: GameMode;

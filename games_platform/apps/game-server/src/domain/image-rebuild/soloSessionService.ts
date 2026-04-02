@@ -33,7 +33,8 @@ import {
   resolveSessionSeed,
   toGameSessionSummary
 } from "../common/soloSessionSupport.js";
-import { calculateLoyaltyReward } from "../common/loyalty.js";
+import { calculateLoyaltyReward, LoyaltyPolicyConfig } from "../common/loyalty.js";
+import { fetchLoyaltyPolicy, toLoyaltyPolicyConfig } from "../common/loyaltyPolicyFetcher.js";
 import {
   calculateImageRebuildMetrics,
   calculateImageRebuildScore
@@ -104,13 +105,18 @@ export class SoloImageRebuildService {
 
   constructor(
     private readonly dependencies: {
-      config: Pick<AppConfig, "soloTurnLimitMs" | "imageRebuildMaxSequenceLength">;
+      config: Pick<AppConfig, "soloTurnLimitMs" | "imageRebuildMaxSequenceLength" | "phpApiUrl">;
       repositories: RepositoryBundle;
       puzzleCatalog: PuzzleCatalog;
       now?: () => Date;
     }
   ) {
     this.nowProvider = dependencies.now ?? (() => new Date());
+  }
+
+  private async getLoyaltyPolicyConfig(): Promise<LoyaltyPolicyConfig> {
+    const policy = await fetchLoyaltyPolicy(this.dependencies.config.phpApiUrl);
+    return toLoyaltyPolicyConfig(policy);
   }
 
   async createSession(input: {
@@ -908,12 +914,14 @@ export class SoloImageRebuildService {
     const score = input.state.result?.score ?? input.state.score.score;
     const outcome: HistoryOutcome =
       input.status === SessionStatus.Abandoned ? "abandoned" : "solo";
+    const policyConfig = await this.getLoyaltyPolicyConfig();
     const reward = calculateLoyaltyReward({
       gameType: GameType.ImageRebuild,
       mode: GameMode.Solo,
       outcome,
       score,
       finishReason: input.state.finishReason,
+      policyConfig,
       imageMetrics: {
         matchedCells: input.state.metrics.matchedCells,
         accuracyRatio: input.state.metrics.accuracyRatio,
@@ -960,6 +968,7 @@ export class SoloImageRebuildService {
       entryType: reward.entryType,
       pointsDelta: reward.points,
       balanceAfter: loyaltySummary.balance,
+      expiresAt: reward.expiresAt,
       reason: reward.reason,
       gameType: GameType.ImageRebuild,
       mode: GameMode.Solo,

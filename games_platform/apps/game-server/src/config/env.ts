@@ -33,7 +33,8 @@ const envSchema = z.object({
   DUPLICATE_RECONNECT_GRACE_MS: z.coerce.number().int().positive().default(60000),
   DUPLICATE_CHAT_MAX_LENGTH: z.coerce.number().int().positive().default(240),
   IMAGE_REBUILD_MAX_SEQUENCE_LENGTH: z.coerce.number().int().positive().default(160),
-  LINE_BREAKER_MAX_SEQUENCE_LENGTH: z.coerce.number().int().positive().default(200)
+  LINE_BREAKER_MAX_SEQUENCE_LENGTH: z.coerce.number().int().positive().default(200),
+  PHP_API_URL: z.string().default("http://127.0.0.1:8080")
 });
 
 export type AppConfig = {
@@ -62,6 +63,7 @@ export type AppConfig = {
   duplicateChatMaxLength: number;
   imageRebuildMaxSequenceLength: number;
   lineBreakerMaxSequenceLength: number;
+  phpApiUrl: string;
 };
 
 export function loadConfig(): AppConfig {
@@ -92,6 +94,7 @@ export function loadConfig(): AppConfig {
     duplicateReconnectGraceMs: parsed.DUPLICATE_RECONNECT_GRACE_MS,
     duplicateChatMaxLength: parsed.DUPLICATE_CHAT_MAX_LENGTH,
     imageRebuildMaxSequenceLength: parsed.IMAGE_REBUILD_MAX_SEQUENCE_LENGTH,
-    lineBreakerMaxSequenceLength: parsed.LINE_BREAKER_MAX_SEQUENCE_LENGTH
+    lineBreakerMaxSequenceLength: parsed.LINE_BREAKER_MAX_SEQUENCE_LENGTH,
+    phpApiUrl: parsed.PHP_API_URL
   };
 }

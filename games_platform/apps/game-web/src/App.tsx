@@ -57,6 +57,7 @@ import { GameWebSocketClient } from "./ws/websocketClient";
 const GUEST_STORAGE_KEY = "tableaulego_games_guest";
 const RESUME_STORAGE_KEY = "tableaulego_games_resume";
 const DEBUG_AVAILABLE = import.meta.env.VITE_DEBUG_UI === "true";
+const PHP_SHOP_URL = import.meta.env.VITE_PHP_SHOP_URL || "http://127.0.0.1:8080";
 
 type AsyncState<T> = {
   loading: boolean;
@@ -901,6 +902,14 @@ export default function App() {
     const hash = window.location.hash.replace(/^#/, "");
     const hashParams = new URLSearchParams(hash);
     const phpToken = hashParams.get("phpToken") || new URLSearchParams(window.location.search).get("phpToken");
+    const urlRoomCode = hashParams.get("roomCode") || new URLSearchParams(window.location.search).get("roomCode");
+
+    if (urlRoomCode) {
+      setRoomCodeInput(urlRoomCode.trim().toUpperCase());
+      setSelectedMode(GameMode.Duplicate2P);
+      setMessage(`Code de salon detecte : ${urlRoomCode.trim().toUpperCase()}. Connecte-toi puis rejoins le salon.`);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
 
     if (phpToken) {
       window.history.replaceState({}, "", window.location.pathname);
@@ -968,6 +977,82 @@ export default function App() {
       setSelectedRotation(fallbackRotation);
     }
   }, [activeShape, selectedRotation]);
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      const board = playerBoard;
+
+      if (!board || !activeOffer) {
+        return;
+      }
+
+      switch (event.key) {
+        case "ArrowUp": {
+          event.preventDefault();
+          setHoverCell((prev) => {
+            const current = prev ?? { x: 0, y: 0 };
+            return { x: current.x, y: Math.max(0, current.y - 1) };
+          });
+          break;
+        }
+        case "ArrowDown": {
+          event.preventDefault();
+          setHoverCell((prev) => {
+            const current = prev ?? { x: 0, y: 0 };
+            return { x: current.x, y: Math.min(board.height - 1, current.y + 1) };
+          });
+          break;
+        }
+        case "ArrowLeft": {
+          event.preventDefault();
+          setHoverCell((prev) => {
+            const current = prev ?? { x: 0, y: 0 };
+            return { x: Math.max(0, current.x - 1), y: current.y };
+          });
+          break;
+        }
+        case "ArrowRight": {
+          event.preventDefault();
+          setHoverCell((prev) => {
+            const current = prev ?? { x: 0, y: 0 };
+            return { x: Math.min(board.width - 1, current.x + 1), y: current.y };
+          });
+          break;
+        }
+        case "r":
+        case "R": {
+          event.preventDefault();
+          if (activeShape) {
+            const rotations = activeShape.rotations;
+            const currentIndex = rotations.findIndex(
+              (r) => r.rotation === selectedRotation
+            );
+            const nextIndex = (currentIndex + 1) % rotations.length;
+            setSelectedRotation(rotations[nextIndex].rotation);
+          }
+          break;
+        }
+        case "Enter":
+        case " ": {
+          event.preventDefault();
+          if (hoverCell) {
+            void handlePlace(hoverCell.x, hoverCell.y);
+          }
+          break;
+        }
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
 
   useEffect(() => {
     const currentResume = resumeStateRef.current;
@@ -1321,6 +1406,7 @@ export default function App() {
                 onMouseEnter={() => setHoverCell({ x, y })}
                 onFocus={() => setHoverCell({ x, y })}
                 onClick={() => void handlePlace(x, y)}
+                data-keyboard-cursor={hoverCell?.x === x && hoverCell?.y === y ? "true" : undefined}
                 disabled={
                   !activeOffer ||
                   (selectedMode === GameMode.Duplicate2P &&
@@ -1814,6 +1900,22 @@ export default function App() {
             ))}
           </div>
         ) : null}
+        {!loyaltyBalanceState.data?.summary.technicalLoyaltyId ? (
+          <div className="guest-invite-banner">
+            <p>
+              Tu joues en tant qu'invite. Cree un compte sur la boutique pour conserver tes
+              points de fidelite et profiter de reductions exclusives !
+            </p>
+            <a
+              href={`${PHP_SHOP_URL}/register.php?loyaltyRef=${encodeURIComponent(currentPlayerId ?? "")}`}
+              className="cta-button"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Creer mon compte sur la boutique
+            </a>
+          </div>
+        ) : null}
         <div className="hero-actions">
           <button onClick={() => void handleReplay()}>Rejouer</button>
           <button className="secondary-button" onClick={handleResetView}>Retour a l'accueil</button>
@@ -2008,7 +2110,7 @@ export default function App() {
 
         {/* Rules section */}
         <div className="rules-section">
-          <h3>Regles du jeu — {selectedGameContent.title}</h3>
+          <h3>Regles du jeu  - {selectedGameContent.title}</h3>
           <ol className="rules-list">
             {selectedGameContent.rules.map((rule, i) => (
               <li key={i} data-step={i + 1}>{rule}</li>
@@ -2063,6 +2165,7 @@ export default function App() {
               ) : null}
             </div>
             <p className="support-copy">{selectedGameContent.turnAction}</p>
+            <p className="keyboard-hint">Clavier : fleches pour deplacer, R pour tourner, Entree pour poser</p>
             {renderOfferPreview()}
             {renderStatusAndAction()}
             {renderStatCards(boardHighlights)}
