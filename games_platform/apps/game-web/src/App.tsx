@@ -1907,7 +1907,7 @@ export default function App() {
               points de fidelite et profiter de reductions exclusives !
             </p>
             <a
-              href={`${PHP_SHOP_URL}/register.php?loyaltyRef=${encodeURIComponent(currentPlayerId ?? "")}`}
+              href={`${PHP_SHOP_URL}/creation.php?loyaltyRef=${encodeURIComponent(currentPlayerId ?? "")}`}
               className="cta-button"
               target="_blank"
               rel="noopener noreferrer"

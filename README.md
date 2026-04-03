@@ -41,6 +41,7 @@ TableauLEGO/
 
 | Document | Description |
 |---|---|
+| [Manuel d'installation](INSTALLATION.md) | Guide complet pour deployer le projet sur une nouvelle machine |
 | [Dossier de conception](dossier-de-conception.md) | Conception technique detaillee (MCD, MLD, MPD, architecture, sprints) |
 | [Consignes du jeu](Consignesjeu.md) | Cahier des charges complet du projet |
 | [Documentation React](documentation-react.md) | Architecture, jeux, controles, API, WebSocket du frontend |
